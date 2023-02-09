@@ -1,0 +1,30 @@
+opam-version: "2.0"
+maintainer: "Rizo I. <rizo@odis.io>"
+authors: "Rizo I. <rizo@odis.io>"
+homepage: "https://odis.io"
+bug-reports: "https://github.com/odis-labs/jsoo-stdweb/issues"
+synopsis: "Standard Web API bindings for js_of_ocaml"
+
+build: [
+  ["dune" "subst"] {dev}
+  [
+    "dune"
+    "build"
+    "-p"
+    name
+    "-j"
+    jobs
+    "@install"
+    "@runtest" {with-test}
+    "@doc" {with-doc}
+  ]
+]
+
+depends: [
+  "ocaml" {= "4.14.0"}
+  "dune" {build}
+  "js_of_ocaml-compiler" {build & >= "4.1.0"}
+
+  "ocaml-lsp-server" {with-dev-setup}
+  "ocamlformat" {with-dev-setup}
+]

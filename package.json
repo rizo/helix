@@ -1,0 +1,34 @@
+{
+  "files": [
+    "bsconfig.json",
+    "src/helix/*.ml",
+    "src/helix/*.mli",
+    "src/helix-rescript/*.ml",
+    "src/html/*.ml",
+    "src/metajs/*.ml",
+    "src/signal/*.ml",
+    "src/stdweb/*.ml"
+  ],
+  "scripts": {
+    "build": "rescript build",
+    "clean": "rescript clean",
+    "fmt": "rescript format",
+    "watch": "rescript build -w"
+  },
+  "name": "rescript-helix",
+  "keywords": [
+    "rescript",
+    "ocaml",
+    "reactive",
+    "ui"
+  ],
+  "homepage": "https://github.com/odis-labs/helix",
+  "version": "0.0.1",
+  "main": "index.js",
+  "repository": "https://github.com/odis-labs/helix.git",
+  "author": "Rizo I. <rizo@odis.io>",
+  "license": "ISC",
+  "devDependencies": {
+    "rescript": "10"
+  }
+}

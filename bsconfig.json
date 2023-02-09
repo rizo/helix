@@ -1,0 +1,27 @@
+{
+  "version": "0.0.1",
+  "name": "rescript-helix",
+  "namespace": false,
+  "sources": [
+    {
+      "dir": "src/helix",
+      "public": [ "Helix" ]
+    },
+    { "dir": "src/helix-rescript", "public": [] },
+    { "dir": "src/html", "public": [] },
+    { "dir": "src/metajs", "files": {"excludes": ["Metajs_external.mli"] }, "public": [] },
+    { "dir": "src/signal", "public": [] },
+    { "dir": "src/stdweb", "public": ["Stdweb"] },
+    { "dir": "examples/demo-rescript", "public": [] }
+  ],
+  "package-specs": {
+    "module": "es6",
+    "suffix": ".bs.js"
+  },
+  "suffix": ".bs.js",
+  "bs-dependencies": [
+  ],
+  "warnings": {
+    "error": "+101"
+  }
+}
