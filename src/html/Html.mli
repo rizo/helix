@@ -5,7 +5,7 @@
 
 open Stdweb
 
-type html = Dom.Node.t
+type html
 (** The type for HTML elements or character data. *)
 
 (** {1:attr Attributes}
@@ -240,13 +240,9 @@ module Attr : sig
   (** [on_ok result] is [attr] if [result] is [Ok attr] and {!empty} if [result]
       is [Error _]. *)
 
-  val elem : (html -> unit) -> attr
-  (** [elem f] is an HTML attribute that calls [f] with an element this
+  val on_mount : (Dom.Element.t -> unit) -> attr
+  (** [on_mount f] is an HTML attribute that calls [f] with an element this
       attribute is added to. *)
-
-  val bind : html option ref -> attr
-  (** [bind ref] sets the value of [ref] to the HTML element to which this
-      attribute is attached. *)
 
   module Internal : sig
     type t = { set : Dom.Element.t -> unit; remove : Dom.Element.t -> unit }
@@ -262,8 +258,8 @@ val elem : string -> attr list -> html list -> html
 (** [elem name attrs children] is an HTML element named [name] with attributes
     [attr] and [children]. *)
 
-val empty : unit -> html
-(** [empty ()] is an empty element that will not be rendered. *)
+val empty : html
+(** [empty] is an empty element that will not be rendered. *)
 
 val text : string -> html
 (** [text s] is character data [s]. [s] will be escaped. *)
@@ -271,8 +267,8 @@ val text : string -> html
 val int : int -> html
 (** [int n] is [text (string_of_int n)]. *)
 
-val nbsp : unit -> html
-(** [nbsp ()] is [text "\u{00A0}"]. *)
+val nbsp : html
+(** [nbsp] is [text "\u{00A0}"]. *)
 
 val fragment : html list -> html
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment}
@@ -661,7 +657,7 @@ module Node : sig
       otherwise. *)
 
   module Internal : sig
-    type t = Dom.Node.t
+    type t = { mount : Dom.Node.t -> unit; remove : unit -> unit }
 
     val of_html : html -> t
     val to_html : t -> html

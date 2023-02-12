@@ -1,3 +1,6 @@
+module Console : sig
+  val log : 'a -> unit
+end
 
 module Dom : sig
   module Event : sig
@@ -111,6 +114,7 @@ module Dom : sig
     val first_child : t -> t option
     val last_child : t -> t option
     val next_sibling : t -> t option
+    val clone_node : t -> deep:bool -> t
     val append_child : parent:t -> t -> unit
     val insert_before : parent:t -> reference:t -> t -> unit
     val replace_child : parent:t -> reference:t -> t -> unit
@@ -169,7 +173,6 @@ module Dom : sig
     include module type of Character_data with type t := t
 
     val t : Metajs.js
-
     val as_character_data : t -> Character_data.t
   end
 
@@ -186,7 +189,6 @@ module Dom : sig
     type t
 
     val t : Metajs.js
-
     val as_node : t -> Node.t
     val make : unit -> t
     val replace_children : t -> Node.t array -> unit
@@ -196,7 +198,6 @@ module Dom : sig
     type t
 
     val this : t
-
     val as_node : t -> Node.t
     val get_element_by_id : string -> Element.t option
     val create_element : string -> Element.t
@@ -216,7 +217,35 @@ module Dom : sig
   end
 end
 
+module Object : sig
+  type t = Metajs.js
 
-module Console : sig
-  val log : 'a -> unit
+  val t : Metajs.js
+  val entries : Metajs.js -> (string * Metajs.js) array
+end
+
+module Iterator : sig
+  type t
+  type next
+
+  val next : t -> next
+  val next_is_done : next -> bool
+  val next_value : next -> Metajs.js
+  val iter : (Metajs.js -> unit) -> t -> unit
+end
+
+module Map : sig
+  type t
+
+  val t : Metajs.js
+  val of_js : Metajs.js -> t
+  val to_js : t -> Metajs.js
+  val make : unit -> t
+  val clear : t -> unit
+  val set : t -> Metajs.js -> Metajs.js -> unit
+  val get : t -> Metajs.js -> Metajs.js
+  val delete : t -> Metajs.js -> unit
+  val keys : t -> Iterator.t
+  val size : t -> int
+  val values : t -> Iterator.t
 end

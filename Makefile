@@ -5,7 +5,7 @@ lock:
 
 .PHONY: shell
 shell:
-	nix develop -f default.nix -j8 -i -k TERM -k PATH -v shell
+	nix develop -f default.nix -j8 -i -k TERM -k PATH -k HOME -v shell
 
 .PHONY: build
 build:
@@ -20,3 +20,7 @@ bundle:
 
 bundle-demo-rescript:
 	esbuild lib/es6/examples/demo/Demo.bs.js --bundle --outdir=examples/demo
+
+rescript-serve-tests:
+	npm exec -- \
+		esbuild lib/es6/examples/demo-rescript/Demo.bs.js --bundle --servedir=examples/demo-rescript --outfile=examples/demo-rescript/Demo.bs.js

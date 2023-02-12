@@ -14,16 +14,16 @@ module Dom = struct
     type 'a t = js
     type target = js
 
-    let target (t : 'a t) : target = get t "target"
+    let target (t : 'a t) : target = get_prop t "target"
 
     module Target = struct
       type t = target
 
-      let checked : t -> bool = fun this -> bool_of_js (get this "checked")
-      let value : t -> string = fun this -> string_of_js (get this "value")
+      let checked : t -> bool = fun this -> bool_of_js (get_prop this "checked")
+      let value : t -> string = fun this -> string_of_js (get_prop this "value")
 
       let set_value : t -> string -> unit =
-       fun this value -> set this "value" (js_of_string value)
+       fun this value -> set_prop this "value" (js_of_string value)
     end
 
     let target_value ev = Target.value (target ev)
@@ -32,23 +32,23 @@ module Dom = struct
       type nonrec kind = [ `Input ] kind
       type t = js
 
-      let data this = string_of_js (get this "data")
+      let data this = string_of_js (get_prop this "data")
     end
 
     module Keyboard = struct
       type nonrec kind = [ `Keyboard ] kind
       type t = js
 
-      let key this = string_of_js (get this "key")
-      let code this = string_of_js (get this "keyCode")
+      let key this = string_of_js (get_prop this "key")
+      let code this = string_of_js (get_prop this "keyCode")
     end
 
     module Mouse = struct
       type nonrec kind = [ `Mouse ] kind
       type t = js
 
-      let page_x this = float_of_js (get this "pageX")
-      let page_y this = float_of_js (get this "pageY")
+      let page_x this = float_of_js (get_prop this "pageX")
+      let page_y this = float_of_js (get_prop this "pageY")
     end
 
     let click = "click"
@@ -88,18 +88,20 @@ module Dom = struct
     let as_event_target t = t
 
     let parent_node : t -> node option =
-     fun this -> option_of_js (fun x -> x) (get this "parentNode")
+     fun this -> option_of_js (fun x -> x) (get_prop this "parentNode")
 
-    let child_nodes : t -> List.t = fun this -> get this "childNodes"
+    let child_nodes : t -> List.t = fun this -> get_prop this "childNodes"
 
     let first_child : t -> node option =
-     fun this -> option_of_js (fun x -> x) (get this "firstChild")
+     fun this -> option_of_js (fun x -> x) (get_prop this "firstChild")
 
     let last_child : t -> node option =
-     fun this -> option_of_js (fun x -> x) (get this "lastChild")
+     fun this -> option_of_js (fun x -> x) (get_prop this "lastChild")
 
     let next_sibling : t -> node option =
-     fun this -> option_of_js (fun x -> x) (get this "nextSibling")
+     fun this -> option_of_js (fun x -> x) (get_prop this "nextSibling")
+
+    let clone_node this ~deep = meth_call this "cloneNode" [| js_of_bool deep |]
 
     let append_child : parent:t -> t -> unit =
      fun ~parent other -> meth_call_unit parent "appendChild" [| other |]
@@ -116,10 +118,10 @@ module Dom = struct
       meth_call_unit parent "replaceChild" [| new_node; reference |]
 
     let set_text_content : t -> string -> unit =
-     fun this text -> set this "textContent" (js_of_string text)
+     fun this text -> set_prop this "textContent" (js_of_string text)
 
     let get_text_content : t -> string =
-     fun this -> string_of_js (get this "textContent")
+     fun this -> string_of_js (get_prop this "textContent")
 
     let is_same_node : t -> t -> bool =
      fun this other -> bool_of_js (meth_call this "isSameNode" [| other |])
@@ -154,8 +156,10 @@ module Dom = struct
   module Css_style_declaration = struct
     type t = js
 
-    let css_text : t -> string = fun this -> string_of_js (get this "cssText")
-    let length : t -> int = fun this -> int_of_js (get this "length")
+    let css_text : t -> string =
+     fun this -> string_of_js (get_prop this "cssText")
+
+    let length : t -> int = fun this -> int_of_js (get_prop this "length")
 
     let set_property : t -> string -> string -> unit =
      fun this name value ->
@@ -167,7 +171,8 @@ module Dom = struct
       string_of_js (meth_call this "setProperty" [| js_of_string name |])
 
     let remove_property : t -> string -> unit =
-     fun this name -> meth_call_unit this "removeProperty" [| js_of_string name |]
+     fun this name ->
+      meth_call_unit this "removeProperty" [| js_of_string name |]
   end
 
   module Html_element = struct
@@ -176,7 +181,9 @@ module Dom = struct
     let of_node t = t
     let of_element t = t
     let as_element t = t
-    let get_style : t -> Css_style_declaration.t = fun this -> get this "style"
+
+    let get_style : t -> Css_style_declaration.t =
+     fun this -> get_prop this "style"
 
     let set_style_property : t -> string -> string -> unit =
      fun this name value ->
@@ -186,7 +193,8 @@ module Dom = struct
      fun this name -> Css_style_declaration.get_property (get_style this) name
 
     let remove_style_property : t -> string -> unit =
-     fun this name -> Css_style_declaration.remove_property (get_style this) name
+     fun this name ->
+      Css_style_declaration.remove_property (get_style this) name
   end
 
   module Character_data = struct
@@ -200,7 +208,7 @@ module Dom = struct
 
     include (Character_data : module type of Character_data with type t := t)
 
-    let t = get global "Text"
+    let t = get_prop global "Text"
     let as_character_data t = t
   end
 
@@ -209,16 +217,15 @@ module Dom = struct
 
     include (Character_data : module type of Character_data with type t := t)
 
-    let t = get global "Comment"
+    let t = get_prop global "Comment"
     let as_character_data t = t
-
     let make : string -> t = fun data -> new_obj t [| js_of_string data |]
   end
 
   module Document_fragment = struct
     type t = js
 
-    let t = get global "DocumentFragment"
+    let t = get_prop global "DocumentFragment"
     let as_node t = t
     let make : unit -> t = fun () -> new_obj t [||]
 
@@ -230,19 +237,20 @@ module Dom = struct
     type t = Metajs.js
 
     let this = Global.document
-
     let as_node this = this
 
     let get_element_by_id : string -> Element.t option =
      fun id ->
-      option_of_js (fun x -> x) (meth_call Global.document "getElementById" [| js_of_string id |])
+      option_of_js
+        (fun x -> x)
+        (meth_call Global.document "getElementById" [| js_of_string id |])
 
     let create_text_node : string -> Text.t =
      fun text ->
       meth_call Global.document "createTextNode" [| js_of_string text |]
 
-    let create_element : string -> Element.t =
-     fun name -> meth_call Global.document "createElement" [| js_of_string name |]
+    let create_element name =
+      meth_call Global.document "createElement" [| js_of_string name |]
   end
 
   module Window = struct
@@ -269,4 +277,58 @@ end
 module Console = struct
   let log : 'a -> unit =
    fun x -> meth_call_unit Global.console "log" [| Metajs.repr x |]
+end
+
+module Object = struct
+  type t = Metajs.js
+
+  let t = get_prop global "Object"
+
+  let entry_of_js js =
+    match Metajs.array_of_js js with
+    | [| key; v |] -> (Metajs.string_of_js key, v)
+    | _ -> invalid_arg "Object entries is not a pair"
+
+  let entries obj =
+    Array.map entry_of_js (Metajs.array_of_js (meth_call t "entries" [| obj |]))
+end
+
+module Iterator = struct
+  open Metajs
+
+  type t = js
+  type next = js
+
+  let t = get_prop global "Map"
+  let next t = meth_call t "next" [||]
+  let next_is_done next = bool_of_js (get_prop next "done")
+  let next_value next = get_prop next "value"
+
+  let iter f t =
+    let is_done = ref false in
+    while not !is_done do
+      let n = next t in
+      if next_is_done n then is_done := true
+      else
+        let v = next_value n in
+        f v
+    done
+end
+
+module Map = struct
+  open Metajs
+
+  type t = js
+
+  let t = get_prop global "Map"
+  let to_js t = t
+  let of_js t = t
+  let make () = new_obj t [||]
+  let clear t = meth_call_unit t "clear" [||]
+  let set t k v = meth_call_unit t "set" [| k; v |]
+  let get t k = meth_call t "get" [| k |]
+  let delete t k = meth_call_unit t "delete" [| k |]
+  let keys t = meth_call t "keys" [||]
+  let size t = int_of_js (get_prop t "size")
+  let values t = meth_call t "values" [||]
 end

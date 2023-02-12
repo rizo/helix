@@ -13,7 +13,7 @@ let view_function_docs ~signature ~description ~example ?preview ?console
     ; h3 [] [ text "Example" ]
     ; pre [] [ code [ class_name "language-ocaml" ] example ]
     ; (match preview with
-      | None -> empty ()
+      | None -> empty
       | Some preview ->
         fragment
           [ h3 [] [ text "Preview" ]
@@ -23,7 +23,7 @@ let view_function_docs ~signature ~description ~example ?preview ?console
               preview
           ])
     ; (match console with
-      | None -> empty ()
+      | None -> empty
       | Some console ->
         fragment
           [ h3 [] [ text "Console" ]
@@ -81,7 +81,7 @@ let show_html_attr_elem_docs () =
   [ text "Button" ]|}
     ~preview:
       [ button
-          [ Attr.elem (fun el -> Console.log ("Button element:", el)) ]
+          [ Attr.on_mount (fun el -> Console.log ("Button element:", el)) ]
           [ text "Button" ]
       ]
     ~console:{|Array ["Button element", button]|}

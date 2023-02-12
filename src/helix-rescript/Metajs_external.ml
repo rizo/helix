@@ -16,6 +16,8 @@ external js_of_float : float -> js = "%identity"
 external float_of_js : js -> float = "%identity"
 external js_of_int : int -> js = "%identity"
 external int_of_js : js -> int = "%identity"
+external js_of_array : 'a array -> js = "%identity"
+external array_of_js : js -> 'a array = "%identity"
 
 let obj : (string * js) array -> js =
   [%raw

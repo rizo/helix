@@ -34,17 +34,26 @@ val js_of_float : float -> js
 val float_of_js : js -> float
 val js_of_int : int -> js
 val int_of_js : js -> int
+val js_of_array : 'a array -> js
+val array_of_js : js -> 'a array
 val new_obj : js -> js array -> js
 val obj : (string * js) array -> js
-val get : js -> string -> js
-val get_path : js -> string list -> js
-val set : js -> string -> js -> unit
-val set_path : js -> string list -> js -> unit
-val delete : js -> string -> unit
-val lookup : js -> string -> js option
-val lookup_map : (js -> 'a) -> js -> string -> 'a option
-val lookup_path : js -> string list -> js option
-val lookup_map_path : (js -> 'a) -> js -> string list -> 'a option
+val get : js -> js -> js
+val get_prop : js -> string -> js
+val get_path : js -> js list -> js
+val get_prop_path : js -> string list -> js
+val set : js -> js -> js -> unit
+val set_prop : js -> string -> js -> unit
+val set_path : js -> js list -> js -> unit
+val set_prop_path : js -> string list -> js -> unit
+val del : js -> js -> unit
+val del_prop : js -> string -> unit
+
+(* val lookup : js -> string -> js option
+   val lookup_map : (js -> 'a) -> js -> string -> 'a option
+   val lookup_path : js -> js list -> js option
+   val lookup_map_path : (js -> 'a) -> js -> js list -> 'a option *)
+
 val meth_call : js -> string -> js array -> js
 val meth_call_unit : js -> string -> js array -> unit
 val fun_call : js -> js array -> js
@@ -52,8 +61,6 @@ val fun_call_unit : js -> js array -> unit
 val callback : arity:int -> (_ -> _) -> js
 val typeof : js -> js
 val instanceof : js -> js -> bool
-
-
 val repr : 'a -> js
 
 module Global : sig

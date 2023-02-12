@@ -42,8 +42,8 @@ module View : sig
   (** [show to_html signal] is a dynamic HTML node created from [signal] values
       using [to_html]. *)
 
-  val show_conditional :
-    ?on:bool Signal.t -> ('a -> Html.html) -> 'a Signal.t -> Html.html
+  (* val show_conditional :
+     ?on:bool Signal.t -> ('a -> Html.html) -> 'a Signal.t -> Html.html *)
   (** [show ?on:condition to_html signal] is a reactive HTML element created
       from [signal] values using [to_html]. If boolean [condition] signal is
       passed the resulting element is only rendered if the signal is [true]. *)

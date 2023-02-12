@@ -18,27 +18,21 @@ module Attr = struct
     | Ok attr -> attr
 
   let string name value =
-    { set = (fun el -> Dom.Element.set_attribute el name value)
-    ; remove = (fun el -> Dom.Element.remove_attribute el name)
+    {
+      set = (fun el -> Dom.Element.set_attribute el name value);
+      remove = (fun el -> Dom.Element.remove_attribute el name);
     }
 
   let bool name bool = if bool then string name "" else empty
   let int name i = string name (string_of_int i)
   let add el { set; _ } = set el
-
-  let elem f =
-    { set = (fun elem -> f (Stdweb.Dom.Element.as_node elem))
-    ; remove = (fun _ -> ())
-    }
-
-  let bind r =
-    { set = (fun elem -> r := Some (Stdweb.Dom.Element.as_node elem))
-    ; remove = (fun _ -> ())
-    }
+  let on_mount f = { set = (fun elem -> f elem); remove = (fun _ -> ()) }
 
   module Internal = struct
-    type t = attr =
-      { set : Dom.Element.t -> unit; remove : Dom.Element.t -> unit }
+    type t = attr = {
+      set : Dom.Element.t -> unit;
+      remove : Dom.Element.t -> unit;
+    }
 
     let of_attr x = x
     let to_attr x = x
@@ -116,32 +110,69 @@ let class_flags options =
 
 let on kind f =
   let kind = Dom.Event.Kind.to_string kind in
-  { set = (fun el -> Dom.Element.add_event_listener el kind f)
-  ; remove = (fun el -> Dom.Element.remove_event_listener el kind)
+  {
+    set = (fun el -> Dom.Element.add_event_listener el kind f);
+    remove = (fun el -> Dom.Element.remove_event_listener el kind);
   }
 
 let on_click = on Dom.Event.click
 let on_input = on Dom.Event.input
 let on_keydown = on Dom.Event.keydown
 
-type html = Dom.Node.t
+type html = { mount : Dom.Node.t -> unit; remove : unit -> unit }
 
 let elem name (attrs : attr list) (children : html list) : html =
-  let el = Dom.Document.create_element name in
-  let node = Dom.Element.as_node el in
-  List.iter (Attr.add el) attrs;
-  List.iter (fun child -> Dom.Node.append_child ~parent:node child) children;
-  node
+  let elem = Dom.Document.create_element name in
+  let node = Dom.Element.as_node elem in
 
-let text data = Dom.Text.as_node (Dom.Document.create_text_node data)
+  let mount parent =
+    Dom.Node.append_child ~parent node;
+    List.iter (fun (child : html) -> child.mount node) children;
+    List.iter (Attr.add elem) attrs
+  in
+
+  let remove () =
+    match Dom.Node.parent_node node with
+    | Some parent -> Dom.Node.remove_child ~parent node
+    | None ->
+      Console.log
+        "BUG: attempting to remove an HTML element that was never added to a \
+         parent.";
+      Console.log (name, elem)
+  in
+  { mount; remove }
+
+let text data =
+  let node = Dom.Text.as_node (Dom.Document.create_text_node data) in
+  let mount parent = Dom.Node.append_child ~parent node in
+  let remove () =
+    match Dom.Node.parent_node node with
+    | Some parent -> Dom.Node.remove_child ~parent node
+    | None ->
+      Console.log
+        "BUG: attempting to remove an HTML text node that was never added to a \
+         parent.";
+      Console.log (name, node)
+  in
+  { mount; remove }
+
 let int n = text (string_of_int n)
-let empty () = text ""
-let nbsp () = text "\u{00A0}"
+let empty = { mount = (fun _ -> ()); remove = (fun () -> ()) }
+let nbsp = text "\u{00A0}"
+
+(* let fragment children_html parent =
+   let node = Dom.Document_fragment.make () |> Dom.Document_fragment.as_node in
+   List.iter
+     (fun child_html ->
+       let _child_node = add_to_parent ~parent:node child_html in
+       ())
+     children_html;
+   node *)
 
 let fragment children =
-  let node = Dom.Document_fragment.make () |> Dom.Document_fragment.as_node in
-  List.iter (fun child -> Dom.Node.append_child ~parent:node child) children;
-  node
+  let mount parent = List.iter (fun child -> child.mount parent) children in
+  let remove () = List.iter (fun child -> child.remove ()) children in
+  { mount; remove }
 
 let a attrs children = elem "a" attrs children
 let abbr attrs children = elem "abbr" attrs children
@@ -254,15 +285,15 @@ module Node = struct
   let of_some to_html option =
     match option with
     | Some x -> to_html x
-    | None -> empty ()
+    | None -> empty
 
   let of_ok to_html result =
     match result with
     | Ok x -> to_html x
-    | Error _ -> empty ()
+    | Error _ -> empty
 
   module Internal = struct
-    type t = html
+    type t = html = { mount : Dom.Node.t -> unit; remove : unit -> unit }
 
     let of_html x = x
     let to_html x = x
@@ -283,5 +314,4 @@ end
 
 (* DOM helpers *)
 
-let render parent node =
-  Dom.Node.append_child ~parent:(Dom.Element.as_node parent) node
+let render parent html = html.mount (Dom.Element.as_node parent)

@@ -12,15 +12,19 @@ let bool_of_js = Jsoo_runtime.Js.to_bool
 let js_of_float = Jsoo_runtime.Js.number_of_float
 let float_of_js = Jsoo_runtime.Js.float_of_number
 
+(* Array *)
+let js_of_array = Jsoo_runtime.Js.array
+let array_of_js = Jsoo_runtime.Js.to_array
+
 external js_of_int : int -> js = "%identity"
 external int_of_js : js -> int = "%identity"
 
 let obj = Jsoo_runtime.Js.obj
 let new_obj = Jsoo_runtime.Js.new_obj
 
-external get : js -> string -> js = "caml_js_get"
-external set : js -> string -> js -> unit = "caml_js_set"
-external delete : js -> string -> unit = "caml_js_delete"
+external get : js -> js -> js = "caml_js_get"
+external set : js -> js -> js -> unit = "caml_js_set"
+external del : js -> js -> unit = "caml_js_delete"
 
 let fun_call = Jsoo_runtime.Js.fun_call
 let meth_call = Jsoo_runtime.Js.meth_call
