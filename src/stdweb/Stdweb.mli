@@ -132,6 +132,7 @@ module Dom : sig
 
     include module type of Node with type t := t
 
+    val as_js : t -> Metajs.js
     val as_node : t -> Node.t
     val append : t -> t -> unit
     val replace_with : t -> t -> unit
