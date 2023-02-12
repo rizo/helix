@@ -121,6 +121,50 @@ let test_append_same () =
       ul [] [ items |> View.each (fun item -> li [] [ int item ]) ];
     ]
 
+let test_conditional_1 () =
+  let is_visible = Signal.make true in
+  let flag = Signal.make true in
+  let l1 = [ "a"; "b"; "c" ] in
+  let l2 = [ "b"; "d"; "e" ] in
+  let open Html in
+  div []
+    [
+      button
+        [ on_click (fun _ -> Signal.update not is_visible) ]
+        [ text "Toggle show" ];
+      button [ on_click (fun _ -> Signal.update not flag) ] [ text "Swap list" ];
+      ul
+        [ View.conditional_attr is_visible ]
+        [
+          flag
+          |> Signal.map (fun b -> if b then l1 else l2)
+          |> View.each (fun item -> li [] [ text item ]);
+        ];
+    ]
+
+(* FIXME *)
+let test_conditional_2 () =
+  let is_visible = Signal.make true in
+  let items = Signal.make [ "a"; "b"; "X"; "c" ] in
+  let open Html in
+  div []
+    [
+      button
+        [ on_click (fun _ -> Signal.update not is_visible) ]
+        [ text "Toggle X" ];
+      ul []
+        [
+          items
+          |> View.each (fun item ->
+                 li
+                   [
+                     (if item = "X" then View.conditional_attr is_visible
+                     else Attr.empty);
+                   ]
+                   [ text item ]);
+        ];
+    ]
+
 let test_random () =
   let items = Signal.make (List.init 7 string_of_int) in
   let open Html in
@@ -203,6 +247,12 @@ let main () =
       hr [];
       h2 [] [ text "swap_4" ];
       test_swap_4 ();
+      hr [];
+      h2 [] [ text "conditional_1" ];
+      test_conditional_1 ();
+      hr [];
+      h2 [] [ text "conditional_2" ];
+      test_conditional_2 ();
       hr [];
       h2 [] [ text "append" ];
       test_append ();
