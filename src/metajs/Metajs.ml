@@ -6,6 +6,12 @@ let is_none v = is_null v || is_undefined v
 let is_some v = not (is_none v)
 let option_of_js of_js v = if is_none v then None else Some (of_js v)
 
+let js_of_array to_js array =
+  Metajs_external.js_of_array (Array.map to_js array)
+
+let array_of_js of_js array_js =
+  Array.map of_js (Metajs_external.array_of_js array_js)
+
 let js_of_option ~none to_js = function
   | None -> none
   | Some v -> to_js v

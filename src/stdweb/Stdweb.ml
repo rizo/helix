@@ -296,12 +296,12 @@ module Object = struct
   let t = obj_get global "Object"
 
   let entry_of_js js =
-    match Metajs.array_of_js js with
+    match Metajs.array_of_js (fun js -> js) js with
     | [| key; v |] -> (Metajs.string_of_js key, v)
     | _ -> invalid_arg "Object entries is not a pair"
 
   let entries obj =
-    Array.map entry_of_js (Metajs.array_of_js (meth_call t "entries" [| obj |]))
+    Metajs.array_of_js entry_of_js (meth_call t "entries" [| obj |])
 end
 
 module Iterator = struct

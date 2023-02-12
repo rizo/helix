@@ -36,8 +36,8 @@ val js_of_float : float -> js
 val float_of_js : js -> float
 val js_of_int : int -> js
 val int_of_js : js -> int
-val js_of_array : 'a array -> js
-val array_of_js : js -> 'a array
+val js_of_array : ('a -> js) -> 'a array -> js
+val array_of_js : (js -> 'a) -> js -> 'a array
 val repr : 'a -> js
 
 (** {2 Objects} *)
