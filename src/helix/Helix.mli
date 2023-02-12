@@ -71,7 +71,7 @@ module View : sig
 
   val conditional_attr : bool Signal.t -> Html.attr
 
-  val conditional_html : on:bool Signal.t -> Html.html -> Html.html
+  (* val conditional_html : on:bool Signal.t -> Html.html -> Html.html *)
   (** [conditional ~on:signal html] shows [html] when [signal] is [true]. *)
 
   (* val optional : ('a -> Html.html option) -> 'a Signal.t -> Html.html *)

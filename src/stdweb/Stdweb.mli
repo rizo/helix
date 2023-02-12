@@ -1,4 +1,7 @@
 module Console : sig
+  type t
+
+  val t : Metajs.js
   val log : 'a -> unit
 end
 
@@ -217,6 +220,12 @@ module Dom : sig
   end
 end
 
+module Global : sig
+  val this : Metajs.js
+  val document : Dom.Document.t
+  val window : Dom.Window.t
+end
+
 module Object : sig
   type t = Metajs.js
 
@@ -228,6 +237,7 @@ module Iterator : sig
   type t
   type next
 
+  val t : Metajs.js
   val next : t -> next
   val next_is_done : next -> bool
   val next_value : next -> Metajs.js

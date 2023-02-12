@@ -6,8 +6,6 @@ module Document_fragment = Stdweb.Dom.Document_fragment
 module Document = Stdweb.Dom.Document
 module Html_element = Stdweb.Dom.Html_element
 
-let log = Stdweb.Console.log
-
 (* Reactive rendering *)
 
 let gen_show_id =
@@ -115,7 +113,7 @@ let conditional_attr active_sig : Attr.t =
   in
   Attr.Internal.to_attr { set; remove }
 
-let conditional_html ~on:condition_s html = assert false
+(* let conditional_html ~on:condition_s html = assert false *)
 (* let anchor = Comment.as_node (Comment.make (gen_conditional_id ())) in
    let fragment = Document_fragment.(as_node (make ())) in
    Node.append_child ~parent:fragment anchor;
@@ -172,11 +170,11 @@ module Each = struct
     val del_slot : t -> key:key -> slots -> int -> unit
     val clear : t -> unit
   end = struct
-    type key = Metajs.js
+    type key = string
     type slots = Stdweb.Map.t
     type t = Metajs.js
 
-    let key x = Metajs.js_of_int (Hashtbl.hash x)
+    let key x = string_of_int (Hashtbl.hash x)
     let make () = Metajs.obj [||]
     let make_slots = Stdweb.Map.make
     let js_of_html_internal : Html.Node.Internal.t -> Metajs.js = Obj.magic
@@ -194,10 +192,10 @@ module Each = struct
         let html = html_internal_of_js html_js in
         (idx, html)
 
-    let set cache ~key slots = Metajs.set cache key (Stdweb.Map.to_js slots)
+    let set cache ~key slots = Metajs.obj_set cache key (Stdweb.Map.to_js slots)
 
     let get cache ~key =
-      Metajs.option_of_js Stdweb.Map.of_js (Metajs.get cache key)
+      Metajs.option_of_js Stdweb.Map.of_js (Metajs.obj_get cache key)
 
     let add_slot cache ~key idx html =
       let slots =
@@ -210,7 +208,7 @@ module Each = struct
 
     let del_slot cache ~key slots idx =
       Stdweb.Map.delete slots (Metajs.js_of_int idx);
-      if Stdweb.Map.size slots = 0 then Metajs.del cache key
+      if Stdweb.Map.size slots = 0 then Metajs.obj_del cache key
 
     let clear cache =
       let entries = Stdweb.Object.entries cache in
@@ -328,7 +326,6 @@ let toggle ~on:active_sig attr0 : Attr.t =
   let active_sig = Signal.uniq ~equal:( = ) active_sig in
   let internal = Attr.Internal.of_attr attr0 in
   let should_activate0 = Signal.get active_sig in
-
   let set elem =
     if should_activate0 then internal.set elem;
     Signal.use

@@ -1,5 +1,6 @@
 type js = Jsoo_runtime.Js.t
 
+let global = Jsoo_runtime.Js.pure_js_expr "globalThis"
 let null = Jsoo_runtime.Js.pure_js_expr "null"
 let undefined = Jsoo_runtime.Js.pure_js_expr "undefined"
 let js_equal = Jsoo_runtime.Js.equals
@@ -20,11 +21,11 @@ external js_of_int : int -> js = "%identity"
 external int_of_js : js -> int = "%identity"
 
 let obj = Jsoo_runtime.Js.obj
-let new_obj = Jsoo_runtime.Js.new_obj
+let obj_new = Jsoo_runtime.Js.new_obj
 
-external get : js -> js -> js = "caml_js_get"
-external set : js -> js -> js -> unit = "caml_js_set"
-external del : js -> js -> unit = "caml_js_delete"
+external obj_get : js -> string -> js = "caml_js_get"
+external obj_set : js -> string -> js -> unit = "caml_js_set"
+external obj_del : js -> string -> unit = "caml_js_delete"
 
 let fun_call = Jsoo_runtime.Js.fun_call
 let meth_call = Jsoo_runtime.Js.meth_call
@@ -33,4 +34,3 @@ external callback : arity:int -> (_ -> _) -> js = "caml_js_wrap_callback_strict"
 
 let typeof = Jsoo_runtime.Js.typeof
 let instanceof = Jsoo_runtime.Js.instanceof
-let global = Jsoo_runtime.Js.pure_js_expr "globalThis"

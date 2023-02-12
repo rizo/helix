@@ -28,10 +28,10 @@ val array_of_js : js -> 'a array
 (* Objects and properties. *)
 
 val obj : (string * js) array -> js
-val new_obj : js -> js array -> js
-val get : js -> js -> js
-val set : js -> js -> js -> unit
-val del : js -> js -> unit
+val obj_new : js -> js array -> js
+val obj_get : js -> string -> js
+val obj_set : js -> string -> js -> unit
+val obj_del : js -> string -> unit
 
 (* Function and method helpers. *)
 
