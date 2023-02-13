@@ -355,6 +355,8 @@ module Encoder = struct
   let fun7 f = Helix_js_external.of_fun 7 f
   let fun8 f = Helix_js_external.of_fun 8 f
   let fun9 f = Helix_js_external.of_fun 9 f
+
+  external any : 'a -> Helix_js_external.t = "%identity"
 end
 
 type 'a decoder = t -> 'a
@@ -388,6 +390,8 @@ module Decoder = struct
   let nullable of_js js = if is_null js then None else Some (of_js js)
   let optional of_js js = if is_undefined js then None else Some (of_js js)
   let field js name decoder = decoder (Helix_js_external.obj_get js name)
+
+  external any : Helix_js_external.t -> 'a = "%identity"
 end
 
 (* Functions *)
@@ -483,18 +487,69 @@ module Fun = struct
     ()
 end
 
-external repr : 'a -> Helix_js_external.t = "%identity"
-
 module Dict = struct
-  type t = Obj.t
+  type 'a t = js
 
   let t = global "Object"
+  let empty = Obj.empty
+
+  let of_array arr =
+    let arr : 'a array = Stdlib.Obj.magic arr in
+    Helix_js_external.obj arr
+
+  let of_list l = of_array (Array.of_list l)
+  let get dict key = Obj.get dict key Decoder.any
+  let unsafe_get dict key = Decoder.any (Obj.get_js dict key)
+  let set dict key x = Obj.set dict key Encoder.any x
+  let del = Obj.del
 
   let entry_of_js js =
     match Decoder.js_array js with
-    | [| key; v |] -> (Decoder.string key, v)
+    | [| key; v |] -> (Decoder.string key, Decoder.any v)
     | _ -> invalid_arg "Object entries is not a pair"
 
-  let entries obj =
-    Decoder.array entry_of_js (Obj.call_js t "entries" [| obj |])
+  let entries dict =
+    Obj.call1 t "entries" ~return:(Decoder.array entry_of_js) Encoder.js dict
+
+  let keys dict =
+    Obj.call1 t "keys" ~return:Decoder.(array string) Encoder.js dict
+
+  let values dict =
+    Obj.call1 t "values" ~return:Decoder.(array any) Encoder.js dict
+
+  let map dict f =
+    let out = empty () in
+    let keys = keys dict in
+    for i = 0 to Array.length keys - 1 do
+      let key = Array.unsafe_get keys i in
+      let x = unsafe_get dict key in
+      let x' = f x in
+      set out key x'
+    done;
+    out
+
+  let update dict f =
+    let keys = keys dict in
+    for i = 0 to Array.length keys - 1 do
+      let key = Array.unsafe_get keys i in
+      let x = unsafe_get dict key in
+      let x' = f x in
+      set dict key x'
+    done
+
+  let fold_left dict f init =
+    let acc = ref init in
+    let values = values dict in
+    for i = 0 to Array.length values - 1 do
+      let x = Array.unsafe_get values i in
+      acc := f !acc x
+    done;
+    !acc
+
+  let iter dict f =
+    let values = values dict in
+    for i = 0 to Array.length values - 1 do
+      let x = Array.unsafe_get values i in
+      f x
+    done
 end

@@ -178,31 +178,27 @@ module Each = struct
   end = struct
     module E = Js.Encoder
     module D = Js.Decoder
+    module Map = Stdweb.Map
+    module Iterator = Stdweb.Iterator
 
     type key = string
-    type slots = Stdweb.Map.t
-    type t = Js.Obj.t
+    type slots = Html.Node.Internal.t Map.t
+    type t = slots Js.Dict.t
 
     let key x = string_of_int (Hashtbl.hash x)
-    let make () = Js.Obj.empty ()
-    let make_slots = Stdweb.Map.make
-    let js_of_html_internal : Html.Node.Internal.t -> Js.t = Obj.magic
-    let html_internal_of_js : Js.t -> Html.Node.Internal.t = Obj.magic
+    let make () = Js.Dict.empty ()
+    let make_slots = Map.make
 
     let get_slot slots =
-      let iter = Stdweb.Map.keys slots in
-      let next = Stdweb.Iterator.next iter in
-      if Stdweb.Iterator.next_is_done next then
-        failwith "BUG: get_slot: slots must not be empty"
-      else
-        let idx_js = Stdweb.Iterator.next_value next in
+      match Map.first_key slots with
+      | None -> failwith "BUG: get_slot: slots must not be empty"
+      | Some idx_js ->
         let idx = D.int idx_js in
-        let html_js = Stdweb.Map.get slots idx_js in
-        let html = html_internal_of_js html_js in
+        let html = Map.get slots idx_js in
         (idx, html)
 
-    let set cache ~key slots = Js.Obj.set cache key Stdweb.Map.to_js slots
-    let get cache ~key = Js.Obj.get cache key Stdweb.Map.of_js
+    let set cache ~key slots = Js.Dict.set cache key slots
+    let get cache ~key = Js.Dict.get cache key
 
     let add_slot cache ~key idx html =
       let slots =
@@ -210,26 +206,20 @@ module Each = struct
         | None -> make_slots ()
         | Some slots -> slots
       in
-      Stdweb.Map.set slots (E.int idx) (js_of_html_internal html);
+      Map.set slots (E.int idx) html;
       set cache ~key slots
 
     let del_slot cache ~key slots idx =
-      Stdweb.Map.delete slots (E.int idx);
-      if Stdweb.Map.size slots = 0 then Js.Obj.del cache key
+      Map.delete slots (E.int idx);
+      if Map.size slots = 0 then Js.Dict.del cache key
 
     let clear cache =
-      let entries = Js.Dict.entries cache in
-      Array.iter
-        (fun (_key, slots_js) ->
-          let slots = Stdweb.Map.of_js slots_js in
-          let values = Stdweb.Map.values slots in
-          Stdweb.Iterator.iter
-            (fun html_js ->
-              let html = html_internal_of_js html_js in
-              html.remove ())
+      Js.Dict.iter cache (fun slots ->
+          let values = Map.values slots in
+          Iterator.iter
+            (fun (html : Html.Node.Internal.t) -> html.remove ())
             values;
-          Stdweb.Map.clear slots)
-        entries
+          Map.clear slots)
   end
 
   let make (render : 'a -> Html.html) items_signal : Html.html =

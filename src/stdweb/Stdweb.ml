@@ -269,16 +269,16 @@ module Console = struct
   type t
 
   let t = Global.console
-  let log x = Js.Obj.call_js_unit Global.console "log" [| Js.repr x |]
+  let log x = Js.Obj.call_js_unit Global.console "log" [| Js.Encoder.any x |]
 end
 
 module Iterator = struct
-  type t = Js.t
-  type next = Js.t
+  type 'a t = Js.t
+  type 'a next = Js.t
 
   let next t = Js.Obj.call_js t "next" [||]
   let next_is_done next = Js.Decoder.bool (Js.Obj.get_js next "done")
-  let next_value next = Js.Obj.get_js next "value"
+  let next_value next = Js.Decoder.any (Js.Obj.get_js next "value")
 
   let iter f t =
     let is_done = ref false in
@@ -292,17 +292,22 @@ module Iterator = struct
 end
 
 module Map = struct
-  type t = Js.t
+  type 'a t = Js.t
 
   let t = Js.global "Map"
   let to_js t = t
   let of_js t = t
   let make () = Js.Obj.new0 t
   let clear t = Js.Obj.call_js_unit t "clear" [||]
-  let set t k v = Js.Obj.call_js_unit t "set" [| k; v |]
-  let get t k = Js.Obj.call_js t "get" [| k |]
+  let set t k v = Js.Obj.call_js_unit t "set" [| k; Js.Encoder.any v |]
+  let get t k = Js.Decoder.any (Js.Obj.call_js t "get" [| k |])
   let delete t k = Js.Obj.call_js_unit t "delete" [| k |]
   let keys t = Js.Obj.call_js t "keys" [||]
   let size t = Js.Decoder.int (Js.Obj.get_js t "size")
   let values t = Js.Obj.call_js t "values" [||]
+
+  let first_key t =
+    let iter = keys t in
+    let next = Iterator.next iter in
+    if Iterator.next_is_done next then None else Some (Iterator.next_value next)
 end

@@ -1,5 +1,8 @@
 type t
+(** JavaScript values. *)
+
 type js = t
+(** Alias for {!type:t}. *)
 
 val null : t
 (** The JavaScript [null] value. *)
@@ -15,7 +18,6 @@ val is_undefined : t -> bool
 
 (** {2 Type helpers} *)
 
-val repr : 'a -> t
 val typeof : t -> t
 val instanceof : t -> t -> bool
 
@@ -65,6 +67,7 @@ module Encoder : sig
   val fun7 : ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'r) encoder
   val fun8 : ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'r) encoder
   val fun9 : ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i -> 'r) encoder
+  val any : 'a encoder
 end
 
 type 'a decoder = t -> 'a
@@ -85,6 +88,7 @@ module Decoder : sig
   val nullable : 'a decoder -> 'a option decoder
   val optional : 'a decoder -> 'a option decoder
   val field : t -> string -> 'a decoder -> 'a
+  val any : 'a decoder
 end
 
 (** {2 JavaScript objects} *)
@@ -626,7 +630,20 @@ module Fun : sig
 end
 
 module Dict : sig
-  type t = Obj.t
+  type 'a t
 
-  val entries : t -> (string * t) array
+  val empty : unit -> 'a t
+  val of_list : (string * 'a) list -> 'a t
+  val of_array : (string * 'a) array -> 'a t
+  val get : 'a t -> string -> 'a option
+  val unsafe_get : 'a t -> string -> 'a
+  val set : 'a t -> string -> 'a -> unit
+  val del : 'a t -> string -> unit
+  val entries : 'a t -> (string * 'a) array
+  val keys : 'a t -> string array
+  val values : 'a t -> 'a array
+  val map : 'a t -> ('a -> 'b) -> 'b t
+  val update : 'a t -> ('a -> 'a) -> unit
+  val fold_left : 'a t -> ('acc -> 'a -> 'acc) -> 'acc -> 'acc
+  val iter : 'a t -> ('a -> unit) -> unit
 end

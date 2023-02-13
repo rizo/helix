@@ -230,27 +230,28 @@ module Global : sig
 end
 
 module Iterator : sig
-  type t
-  type next
+  type 'a t
+  type 'a next
 
-  val next : t -> next
-  val next_is_done : next -> bool
-  val next_value : next -> Js.t
-  val iter : (Js.t -> unit) -> t -> unit
+  val next : 'a t -> 'a next
+  val next_is_done : 'a next -> bool
+  val next_value : 'a next -> 'a
+  val iter : ('a -> unit) -> 'a t -> unit
 end
 
 module Map : sig
-  type t
+  type 'a t
 
   val t : Js.t
-  val of_js : Js.t -> t
-  val to_js : t -> Js.t
-  val make : unit -> t
-  val clear : t -> unit
-  val set : t -> Js.t -> Js.t -> unit
-  val get : t -> Js.t -> Js.t
-  val delete : t -> Js.t -> unit
-  val keys : t -> Iterator.t
-  val size : t -> int
-  val values : t -> Iterator.t
+  val of_js : Js.t -> 'a t
+  val to_js : 'a t -> Js.t
+  val make : unit -> 'a t
+  val clear : 'a t -> unit
+  val set : 'a t -> Js.t -> 'a -> unit
+  val get : 'a t -> Js.t -> 'a
+  val delete : 'a t -> Js.t -> unit
+  val keys : 'a t -> Js.t Iterator.t
+  val size : 'a t -> int
+  val values : 'a t -> 'a Iterator.t
+  val first_key : 'a t -> Js.t option
 end
