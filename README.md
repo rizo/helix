@@ -9,7 +9,7 @@ let view_counter () =
   let open Html in
   fragment
     [
-      h2 [ style [ ("font-family", "monospace") ] ] [ text "Html.select" ];
+      h2 [ style [ ("font-family", "monospace") ] ] [ text "Counter" ];
       div [ style [ ("margin-bottom", "20px") ] ] [ text "Compute a count." ];
       div []
         [
