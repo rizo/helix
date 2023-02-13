@@ -134,7 +134,7 @@ let test_conditional_1 () =
         [ text "Toggle show" ];
       button [ on_click (fun _ -> Signal.update not flag) ] [ text "Swap list" ];
       ul
-        [ View.conditional_attr is_visible ]
+        [ View.conditional ~on:is_visible ]
         [
           flag
           |> Signal.map (fun b -> if b then l1 else l2)
@@ -158,7 +158,7 @@ let test_conditional_2 () =
           |> View.each (fun item ->
                  li
                    [
-                     (if item = "X" then View.conditional_attr is_visible
+                     (if item = "X" then View.conditional ~on:is_visible
                      else Attr.empty);
                    ]
                    [ text item ]);

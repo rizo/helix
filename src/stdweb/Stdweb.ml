@@ -1,10 +1,10 @@
-open Metajs
+module Js = Helix_js
 
 module Global = struct
-  let this = global
-  let window = obj_get this "window"
-  let document = obj_get this "document"
-  let console = obj_get this "console"
+  let this = Js.global_this
+  let window = Js.global "window"
+  let document = Js.global "document"
+  let console = Js.global "console"
 end
 
 module Dom = struct
@@ -18,44 +18,47 @@ module Dom = struct
       let to_string t = t
     end
 
-    type 'a t = js
-    type target = js
+    type 'a t = Js.t
+    type target = Js.t
 
-    let target (t : 'a t) : target = obj_get t "target"
+    let target (t : 'a t) : target = Js.Obj.get_js t "target"
 
     module Target = struct
       type t = target
 
-      let checked : t -> bool = fun this -> bool_of_js (obj_get this "checked")
-      let value : t -> string = fun this -> string_of_js (obj_get this "value")
+      let checked : t -> bool =
+       fun this -> Js.Decoder.bool (Js.Obj.get_js this "checked")
+
+      let value : t -> string =
+       fun this -> Js.Decoder.string (Js.Obj.get_js this "value")
 
       let set_value : t -> string -> unit =
-       fun this value -> obj_set this "value" (js_of_string value)
+       fun this value -> Js.Obj.set this "value" Js.Encoder.string value
     end
 
     let target_value ev = Target.value (target ev)
 
     module Input = struct
       type nonrec kind = [ `Input ] kind
-      type t = js
+      type t = Js.t
 
-      let data this = string_of_js (obj_get this "data")
+      let data this = Js.Decoder.string (Js.Obj.get_js this "data")
     end
 
     module Keyboard = struct
       type nonrec kind = [ `Keyboard ] kind
-      type t = js
+      type t = Js.t
 
-      let key this = string_of_js (obj_get this "key")
-      let code this = string_of_js (obj_get this "keyCode")
+      let key this = Js.Decoder.string (Js.Obj.get_js this "key")
+      let code this = Js.Decoder.string (Js.Obj.get_js this "keyCode")
     end
 
     module Mouse = struct
       type nonrec kind = [ `Mouse ] kind
-      type t = js
+      type t = Js.t
 
-      let page_x this = float_of_js (obj_get this "pageX")
-      let page_y this = float_of_js (obj_get this "pageY")
+      let page_x this = Js.Decoder.float (Js.Obj.get_js this "pageX")
+      let page_y this = Js.Decoder.float (Js.Obj.get_js this "pageY")
     end
 
     let click = "click"
@@ -65,132 +68,141 @@ module Dom = struct
   end
 
   module Event_target = struct
-    type t = js
+    type t = Js.t
     type 'a listener = 'a Event.t -> unit
 
     let add_event_listener : t -> string -> ('a Event.t -> unit) -> unit =
      fun this event_name f ->
-      meth_call_unit this "addEventListener"
-        [| js_of_string event_name; callback ~arity:1 f |]
+      Js.Obj.call_js_unit this "addEventListener"
+        [| Js.Encoder.string event_name; Js.Encoder.fun1 f |]
 
     let remove_event_listener : t -> string -> unit =
      fun this event_name ->
-      meth_call_unit this "removeEventLister" [| js_of_string event_name |]
+      Js.Obj.call_js_unit this "removeEventLister"
+        [| Js.Encoder.string event_name |]
   end
 
   module Node = struct
-    type t = js
+    type t = Js.t
     type node = t
 
     module List = struct
-      type t = js
+      type t = Js.t
 
       let for_each : t -> (node -> unit) -> unit =
-       fun this f -> meth_call_unit this "forEach" [| callback ~arity:1 f |]
+       fun this f -> Js.Obj.call_js_unit this "forEach" [| Js.Encoder.fun1 f |]
     end
 
     include (Event_target : module type of Event_target with type t := t)
 
-    let as_js t = t
-    let as_event_target t = t
+    let to_js t = t
+    let to_event_target t = t
 
     let parent_node : t -> node option =
-     fun this -> option_of_js (fun x -> x) (obj_get this "parentNode")
+     fun this ->
+      Js.Decoder.nullable (fun x -> x) (Js.Obj.get_js this "parentNode")
 
-    let child_nodes : t -> List.t = fun this -> obj_get this "childNodes"
+    let child_nodes : t -> List.t = fun this -> Js.Obj.get_js this "childNodes"
 
     let first_child : t -> node option =
-     fun this -> option_of_js (fun x -> x) (obj_get this "firstChild")
+     fun this ->
+      Js.Decoder.nullable (fun x -> x) (Js.Obj.get_js this "firstChild")
 
     let last_child : t -> node option =
-     fun this -> option_of_js (fun x -> x) (obj_get this "lastChild")
+     fun this ->
+      Js.Decoder.nullable (fun x -> x) (Js.Obj.get_js this "lastChild")
 
     let next_sibling : t -> node option =
-     fun this -> option_of_js (fun x -> x) (obj_get this "nextSibling")
+     fun this ->
+      Js.Decoder.nullable (fun x -> x) (Js.Obj.get_js this "nextSibling")
 
-    let clone_node this ~deep = meth_call this "cloneNode" [| js_of_bool deep |]
+    let clone_node this ~deep =
+      Js.Obj.call_js this "cloneNode" [| Js.Encoder.bool deep |]
 
     let append_child : parent:t -> t -> unit =
-     fun ~parent other -> meth_call_unit parent "appendChild" [| other |]
+     fun ~parent other -> Js.Obj.call_js_unit parent "appendChild" [| other |]
 
     let remove_child : parent:t -> t -> unit =
-     fun ~parent other -> meth_call_unit parent "removeChild" [| other |]
+     fun ~parent other -> Js.Obj.call_js_unit parent "removeChild" [| other |]
 
     let insert_before : parent:t -> reference:t -> t -> unit =
      fun ~parent ~reference new_node ->
-      meth_call_unit parent "insertBefore" [| new_node; reference |]
+      Js.Obj.call_js_unit parent "insertBefore" [| new_node; reference |]
 
     let replace_child : parent:t -> reference:t -> t -> unit =
      fun ~parent ~reference new_node ->
-      meth_call_unit parent "replaceChild" [| new_node; reference |]
+      Js.Obj.call_js_unit parent "replaceChild" [| new_node; reference |]
 
     let set_text_content : t -> string -> unit =
-     fun this text -> obj_set this "textContent" (js_of_string text)
+     fun this text -> Js.Obj.set this "textContent" Js.Encoder.string text
 
     let get_text_content : t -> string =
-     fun this -> string_of_js (obj_get this "textContent")
+     fun this -> Js.Decoder.string (Js.Obj.get_js this "textContent")
 
     let is_same_node : t -> t -> bool =
-     fun this other -> bool_of_js (meth_call this "isSameNode" [| other |])
+     fun this other ->
+      Js.Decoder.bool (Js.Obj.call_js this "isSameNode" [| other |])
   end
 
   module Element = struct
-    type t = js
+    type t = Js.t
 
     include (Node : module type of Node with type t := t)
 
-    let as_node t = t
+    let to_node t = t
 
     let replace_children : t -> t array -> unit =
-     fun this children -> meth_call_unit this "replaceChildren" children
+     fun this children -> Js.Obj.call_js_unit this "replaceChildren" children
 
     let append : t -> t -> unit =
-     fun this other -> meth_call_unit this "append" [| other |]
+     fun this other -> Js.Obj.call_js_unit this "append" [| other |]
 
     let replace_with : t -> t -> unit =
-     fun this other -> meth_call_unit this "replaceWith" [| other |]
+     fun this other -> Js.Obj.call_js_unit this "replaceWith" [| other |]
 
     let set_attribute : t -> string -> string -> unit =
      fun this name value ->
-      meth_call_unit this "setAttribute"
-        [| js_of_string name; js_of_string value |]
+      Js.Obj.call_js_unit this "setAttribute"
+        [| Js.Encoder.string name; Js.Encoder.string value |]
 
     let remove_attribute : t -> string -> unit =
      fun this name ->
-      meth_call_unit this "removeAttribute" [| js_of_string name |]
+      Js.Obj.call_js_unit this "removeAttribute" [| Js.Encoder.string name |]
   end
 
   module Css_style_declaration = struct
-    type t = js
+    type t = Js.t
 
     let css_text : t -> string =
-     fun this -> string_of_js (obj_get this "cssText")
+     fun this -> Js.Decoder.string (Js.Obj.get_js this "cssText")
 
-    let length : t -> int = fun this -> int_of_js (obj_get this "length")
+    let length : t -> int =
+     fun this -> Js.Decoder.int (Js.Obj.get_js this "length")
 
     let set_property : t -> string -> string -> unit =
      fun this name value ->
-      meth_call_unit this "setProperty"
-        [| js_of_string name; js_of_string value |]
+      Js.Obj.call_js_unit this "setProperty"
+        [| Js.Encoder.string name; Js.Encoder.string value |]
 
     let get_property : t -> string -> string =
      fun this name ->
-      string_of_js (meth_call this "setProperty" [| js_of_string name |])
+      Js.Decoder.string
+        (Js.Obj.call_js this "setProperty" [| Js.Encoder.string name |])
 
     let remove_property : t -> string -> unit =
      fun this name ->
-      meth_call_unit this "removeProperty" [| js_of_string name |]
+      Js.Obj.call_js_unit this "removeProperty" [| Js.Encoder.string name |]
   end
 
   module Html_element = struct
-    type t = js
+    type t = Js.t
 
     let of_node t = t
     let of_element t = t
-    let as_element t = t
+    let to_element t = t
 
     let get_style : t -> Css_style_declaration.t =
-     fun this -> obj_get this "style"
+     fun this -> Js.Obj.get_js this "style"
 
     let set_style_property : t -> string -> string -> unit =
      fun this name value ->
@@ -205,79 +217,82 @@ module Dom = struct
   end
 
   module Character_data = struct
-    type t = js
+    type t = Js.t
 
-    let as_node t = t
+    let to_node t = t
   end
 
   module Text = struct
-    type t = js
+    type t = Js.t
 
     include (Character_data : module type of Character_data with type t := t)
 
-    let t = obj_get global "Text"
-    let as_character_data t = t
+    let t = Js.global "Text"
+    let to_character_data t = t
   end
 
   module Comment = struct
-    type t = js
+    type t = Js.t
 
     include (Character_data : module type of Character_data with type t := t)
 
-    let t = obj_get global "Comment"
-    let as_character_data t = t
-    let make : string -> t = fun data -> obj_new t [| js_of_string data |]
+    let t = Js.global "Comment"
+    let to_character_data t = t
+    let make : string -> t = fun data -> Js.Obj.new1 t Js.Encoder.string data
   end
 
   module Document_fragment = struct
-    type t = js
+    type t = Js.t
 
-    let t = obj_get global "DocumentFragment"
-    let as_node t = t
-    let make : unit -> t = fun () -> obj_new t [||]
+    let t = Js.global "DocumentFragment"
+    let to_node t = t
+    let make : unit -> t = fun () -> Js.Obj.new0 t
 
     let replace_children : t -> t array -> unit =
-     fun this children -> meth_call_unit this "replaceChildren" children
+     fun this children -> Js.Obj.call_js_unit this "replaceChildren" children
   end
 
   module Document = struct
-    type t = Metajs.js
+    type t = Js.t
 
     let this = Global.document
-    let as_node this = this
+    let to_node this = this
 
     let get_element_by_id : string -> Element.t option =
      fun id ->
-      option_of_js
+      Js.Decoder.nullable
         (fun x -> x)
-        (meth_call Global.document "getElementById" [| js_of_string id |])
+        (Js.Obj.call_js Global.document "getElementById"
+           [| Js.Encoder.string id |])
 
     let create_text_node : string -> Text.t =
      fun text ->
-      meth_call Global.document "createTextNode" [| js_of_string text |]
+      Js.Obj.call_js Global.document "createTextNode"
+        [| Js.Encoder.string text |]
 
     let create_element name =
-      meth_call Global.document "createElement" [| js_of_string name |]
+      Js.Obj.call_js Global.document "createElement"
+        [| Js.Encoder.string name |]
   end
 
   module Window = struct
-    type t = js
+    type t = Js.t
 
     let this = Global.window
 
     include (Event_target : module type of Event_target with type t := t)
 
-    let as_event_target t = t
+    let to_event_target t = t
 
     let set_interval : (unit -> unit) -> int -> unit =
      fun f ms ->
-      meth_call_unit Global.window "setInterval"
-        [| callback ~arity:1 f; js_of_int ms |]
+      Js.Obj.call_js_unit Global.window "setInterval"
+        [| Js.Encoder.fun1 f; Js.Encoder.int ms |]
 
     let set_timeout : (unit -> unit) -> int -> unit =
      fun f ms ->
-      meth_call_unit Global.window "setTimeout"
-        [| callback ~arity:1 f; js_of_int ms |]
+      Js.Obj.call_js_unit Global.window "setTimeout"
+        [| Js.Encoder.fun1 f; Js.Encoder.int ms |]
   end
 end
 
@@ -287,33 +302,16 @@ module Console = struct
   let t = Global.console
 
   let log : 'a -> unit =
-   fun x -> meth_call_unit Global.console "log" [| Metajs.repr x |]
-end
-
-module Object = struct
-  type t = Metajs.js
-
-  let t = obj_get global "Object"
-
-  let entry_of_js js =
-    match Metajs.array_of_js (fun js -> js) js with
-    | [| key; v |] -> (Metajs.string_of_js key, v)
-    | _ -> invalid_arg "Object entries is not a pair"
-
-  let entries obj =
-    Metajs.array_of_js entry_of_js (meth_call t "entries" [| obj |])
+   fun x -> Js.Obj.call_js_unit Global.console "log" [| Js.repr x |]
 end
 
 module Iterator = struct
-  open Metajs
+  type t = Js.t
+  type next = Js.t
 
-  type t = js
-  type next = js
-
-  let t = obj_get global "Iterator"
-  let next t = meth_call t "next" [||]
-  let next_is_done next = bool_of_js (obj_get next "done")
-  let next_value next = obj_get next "value"
+  let next t = Js.Obj.call_js t "next" [||]
+  let next_is_done next = Js.Decoder.bool (Js.Obj.get_js next "done")
+  let next_value next = Js.Obj.get_js next "value"
 
   let iter f t =
     let is_done = ref false in
@@ -327,19 +325,17 @@ module Iterator = struct
 end
 
 module Map = struct
-  open Metajs
+  type t = Js.t
 
-  type t = js
-
-  let t = obj_get global "Map"
+  let t = Js.global "Map"
   let to_js t = t
   let of_js t = t
-  let make () = obj_new t [||]
-  let clear t = meth_call_unit t "clear" [||]
-  let set t k v = meth_call_unit t "set" [| k; v |]
-  let get t k = meth_call t "get" [| k |]
-  let delete t k = meth_call_unit t "delete" [| k |]
-  let keys t = meth_call t "keys" [||]
-  let size t = int_of_js (obj_get t "size")
-  let values t = meth_call t "values" [||]
+  let make () = Js.Obj.new0 t
+  let clear t = Js.Obj.call_js_unit t "clear" [||]
+  let set t k v = Js.Obj.call_js_unit t "set" [| k; v |]
+  let get t k = Js.Obj.call_js t "get" [| k |]
+  let delete t k = Js.Obj.call_js_unit t "delete" [| k |]
+  let keys t = Js.Obj.call_js t "keys" [||]
+  let size t = Js.Decoder.int (Js.Obj.get_js t "size")
+  let values t = Js.Obj.call_js t "values" [||]
 end

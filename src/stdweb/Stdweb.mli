@@ -1,7 +1,9 @@
+module Js = Helix_js
+
 module Console : sig
   type t
 
-  val t : Metajs.js
+  val t : Js.t
   val log : 'a -> unit
 end
 
@@ -110,8 +112,8 @@ module Dom : sig
 
     include module type of Event_target with type t := t
 
-    val as_js : t -> Metajs.js
-    val as_event_target : t -> Event_target.t
+    val to_js : t -> Js.t
+    val to_event_target : t -> Event_target.t
     val parent_node : t -> t option
     val child_nodes : t -> List.t
     val first_child : t -> t option
@@ -132,8 +134,8 @@ module Dom : sig
 
     include module type of Node with type t := t
 
-    val as_js : t -> Metajs.js
-    val as_node : t -> Node.t
+    val to_js : t -> Js.t
+    val to_node : t -> Node.t
     val append : t -> t -> unit
     val replace_with : t -> t -> unit
     val set_attribute : t -> string -> string -> unit
@@ -156,7 +158,7 @@ module Dom : sig
 
     val of_element : Element.t -> t
     val of_node : Node.t -> t
-    val as_element : t -> Element.t
+    val to_element : t -> Element.t
     val get_style : t -> Css_style_declaration.t
 
     (* Additional style helpers. *)
@@ -168,7 +170,7 @@ module Dom : sig
   module Character_data : sig
     type t
 
-    val as_node : t -> Node.t
+    val to_node : t -> Node.t
   end
 
   module Text : sig
@@ -176,8 +178,8 @@ module Dom : sig
 
     include module type of Character_data with type t := t
 
-    val t : Metajs.js
-    val as_character_data : t -> Character_data.t
+    val t : Js.t
+    val to_character_data : t -> Character_data.t
   end
 
   module Comment : sig
@@ -185,15 +187,15 @@ module Dom : sig
 
     include module type of Character_data with type t := t
 
-    val as_character_data : t -> Character_data.t
+    val to_character_data : t -> Character_data.t
     val make : string -> t
   end
 
   module Document_fragment : sig
     type t
 
-    val t : Metajs.js
-    val as_node : t -> Node.t
+    val t : Js.t
+    val to_node : t -> Node.t
     val make : unit -> t
     val replace_children : t -> Node.t array -> unit
   end
@@ -202,7 +204,7 @@ module Dom : sig
     type t
 
     val this : t
-    val as_node : t -> Node.t
+    val to_node : t -> Node.t
     val get_element_by_id : string -> Element.t option
     val create_element : string -> Element.t
     val create_text_node : string -> Text.t
@@ -215,47 +217,39 @@ module Dom : sig
 
     include module type of Event_target with type t := t
 
-    val as_event_target : t -> Event_target.t
+    val to_event_target : t -> Event_target.t
     val set_interval : (unit -> unit) -> int -> unit
     val set_timeout : (unit -> unit) -> int -> unit
   end
 end
 
 module Global : sig
-  val this : Metajs.js
+  val this : Js.t
   val document : Dom.Document.t
   val window : Dom.Window.t
-end
-
-module Object : sig
-  type t = Metajs.js
-
-  val t : Metajs.js
-  val entries : Metajs.js -> (string * Metajs.js) array
 end
 
 module Iterator : sig
   type t
   type next
 
-  val t : Metajs.js
   val next : t -> next
   val next_is_done : next -> bool
-  val next_value : next -> Metajs.js
-  val iter : (Metajs.js -> unit) -> t -> unit
+  val next_value : next -> Js.t
+  val iter : (Js.t -> unit) -> t -> unit
 end
 
 module Map : sig
   type t
 
-  val t : Metajs.js
-  val of_js : Metajs.js -> t
-  val to_js : t -> Metajs.js
+  val t : Js.t
+  val of_js : Js.t -> t
+  val to_js : t -> Js.t
   val make : unit -> t
   val clear : t -> unit
-  val set : t -> Metajs.js -> Metajs.js -> unit
-  val get : t -> Metajs.js -> Metajs.js
-  val delete : t -> Metajs.js -> unit
+  val set : t -> Js.t -> Js.t -> unit
+  val get : t -> Js.t -> Js.t
+  val delete : t -> Js.t -> unit
   val keys : t -> Iterator.t
   val size : t -> int
   val values : t -> Iterator.t

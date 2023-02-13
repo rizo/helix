@@ -1,3 +1,4 @@
+module Js = Helix_js
 module Attr = Html.Attr
 module Node = Stdweb.Dom.Node
 module Element = Stdweb.Dom.Element
@@ -5,6 +6,11 @@ module Comment = Stdweb.Dom.Comment
 module Document_fragment = Stdweb.Dom.Document_fragment
 module Document = Stdweb.Dom.Document
 module Html_element = Stdweb.Dom.Html_element
+
+let option_get option =
+  match option with
+  | Some x -> x
+  | None -> invalid_arg "option is None"
 
 (* Reactive rendering *)
 
@@ -22,7 +28,7 @@ let insert_after_anchor ~parent ~anchor node =
 
 let show (to_html : 'a -> Html.html) signal : Html.html =
   (* Anchor for the show node. *)
-  let anchor = Comment.as_node (Comment.make (gen_show_id ())) in
+  let anchor = Comment.to_node (Comment.make (gen_show_id ())) in
 
   (* Create initial html. *)
   let init = to_html (Signal.get signal) in
@@ -32,7 +38,7 @@ let show (to_html : 'a -> Html.html) signal : Html.html =
   let prev = ref init in
 
   (* Temporary fragment for next node. *)
-  let fragment = Document_fragment.(as_node (make ())) in
+  let fragment = Document_fragment.(to_node (make ())) in
 
   let mount parent =
     (* Add anchor. *)
@@ -68,18 +74,18 @@ let gen_conditional_id =
     incr i;
     "conditional:" ^ string_of_int !i
 
-let conditional_attr active_sig : Attr.t =
+let conditional ~on:active_sig : Attr.t =
   (* Dedup the boolean signal. *)
   let active_sig = Signal.uniq ~equal:( == ) active_sig in
 
   (* Anchor for the conditional node. *)
-  let anchor = Comment.as_node (Comment.make (gen_conditional_id ())) in
+  let anchor = Comment.to_node (Comment.make (gen_conditional_id ())) in
 
   (* Initial state. *)
   let should_activate0 = Signal.get active_sig in
 
   let set elem =
-    let node = Element.as_node elem in
+    let node = Element.to_node elem in
     let parent =
       match Node.parent_node node with
       | Some parent -> parent
@@ -100,7 +106,7 @@ let conditional_attr active_sig : Attr.t =
       active_sig
   in
   let remove elem =
-    let node = Element.as_node elem in
+    let node = Element.to_node elem in
     let parent =
       match Node.parent_node node with
       | Some parent -> parent
@@ -114,8 +120,8 @@ let conditional_attr active_sig : Attr.t =
   Attr.Internal.to_attr { set; remove }
 
 (* let conditional_html ~on:condition_s html = assert false *)
-(* let anchor = Comment.as_node (Comment.make (gen_conditional_id ())) in
-   let fragment = Document_fragment.(as_node (make ())) in
+(* let anchor = Comment.to_node (Comment.make (gen_conditional_id ())) in
+   let fragment = Document_fragment.(to_node (make ())) in
    Node.append_child ~parent:fragment anchor;
    let prev_ref = ref None in
    if Signal.get condition_s then begin
@@ -170,15 +176,18 @@ module Each = struct
     val del_slot : t -> key:key -> slots -> int -> unit
     val clear : t -> unit
   end = struct
+    module E = Js.Encoder
+    module D = Js.Decoder
+
     type key = string
     type slots = Stdweb.Map.t
-    type t = Metajs.js
+    type t = Js.Obj.t
 
     let key x = string_of_int (Hashtbl.hash x)
-    let make () = Metajs.obj [||]
+    let make () = Js.Obj.empty ()
     let make_slots = Stdweb.Map.make
-    let js_of_html_internal : Html.Node.Internal.t -> Metajs.js = Obj.magic
-    let html_internal_of_js : Metajs.js -> Html.Node.Internal.t = Obj.magic
+    let js_of_html_internal : Html.Node.Internal.t -> Js.t = Obj.magic
+    let html_internal_of_js : Js.t -> Html.Node.Internal.t = Obj.magic
 
     let get_slot slots =
       let iter = Stdweb.Map.keys slots in
@@ -187,15 +196,13 @@ module Each = struct
         failwith "BUG: get_slot: slots must not be empty"
       else
         let idx_js = Stdweb.Iterator.next_value next in
-        let idx = Metajs.int_of_js idx_js in
+        let idx = D.int idx_js in
         let html_js = Stdweb.Map.get slots idx_js in
         let html = html_internal_of_js html_js in
         (idx, html)
 
-    let set cache ~key slots = Metajs.obj_set cache key (Stdweb.Map.to_js slots)
-
-    let get cache ~key =
-      Metajs.option_of_js Stdweb.Map.of_js (Metajs.obj_get cache key)
+    let set cache ~key slots = Js.Obj.set cache key Stdweb.Map.to_js slots
+    let get cache ~key = Js.Obj.get cache key Stdweb.Map.of_js
 
     let add_slot cache ~key idx html =
       let slots =
@@ -203,15 +210,15 @@ module Each = struct
         | None -> make_slots ()
         | Some slots -> slots
       in
-      Stdweb.Map.set slots (Metajs.js_of_int idx) (js_of_html_internal html);
+      Stdweb.Map.set slots (E.int idx) (js_of_html_internal html);
       set cache ~key slots
 
     let del_slot cache ~key slots idx =
-      Stdweb.Map.delete slots (Metajs.js_of_int idx);
-      if Stdweb.Map.size slots = 0 then Metajs.obj_del cache key
+      Stdweb.Map.delete slots (E.int idx);
+      if Stdweb.Map.size slots = 0 then Js.Obj.del cache key
 
     let clear cache =
-      let entries = Stdweb.Object.entries cache in
+      let entries = Js.Dict.entries cache in
       Array.iter
         (fun (_key, slots_js) ->
           let slots = Stdweb.Map.of_js slots_js in
@@ -227,11 +234,11 @@ module Each = struct
 
   let make (render : 'a -> Html.html) items_signal : Html.html =
     (* Create anchor. *)
-    let comment = Comment.as_node (Comment.make (gen_id ())) in
+    let comment = Comment.to_node (Comment.make (gen_id ())) in
     let anchor = ref comment in
 
     (* Initialize cache with items0. *)
-    let fragment = Document_fragment.(as_node (make ())) in
+    let fragment = Document_fragment.(to_node (make ())) in
     let items0 = Signal.get items_signal in
 
     let old_cache = ref (Cache.make ()) in
@@ -265,7 +272,7 @@ module Each = struct
                 let i, i_html = Cache.get_slot old_slots in
                 if i = j then begin
                   (* Keep. *)
-                  anchor := Node.next_sibling !anchor |> Option.get;
+                  anchor := Node.next_sibling !anchor |> option_get;
                   Cache.del_slot !old_cache ~key old_slots j;
                   Cache.add_slot new_cache ~key j i_html
                 end

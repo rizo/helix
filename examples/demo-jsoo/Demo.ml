@@ -20,9 +20,6 @@ let view_mouse () =
         [ style [ ("margin-bottom", "20px") ] ]
         [ text "Render mouse position." ];
       View.show text mouse;
-      View.show text mouse;
-      ul [] [ li [] [ text "Leo" ]; li [] [ text "Teddy" ] ];
-      View.show text (Signal.map String.uppercase_ascii mouse);
     ]
 
 let view_timer () =
@@ -59,24 +56,20 @@ let view_input_bind () =
         ];
     ]
 
-let view_select () =
+let view_counter () =
   let incr = Signal.make 0 in
   let count = incr |> Signal.reduce (fun x y -> x + y) 0 in
-  let occasionally = Time.tick ~ms:2000 |> Signal.const 100 in
   let open Html in
   fragment
     [
       h2 [ style [ ("font-family", "monospace") ] ] [ text "Html.select" ];
-      div
-        [ style [ ("margin-bottom", "20px") ] ]
-        [ text "Combine signals to compute a count." ];
+      div [ style [ ("margin-bottom", "20px") ] ] [ text "Compute a count." ];
       div []
         [
           button [ on_click (fun _ -> Signal.emit 1 incr) ] [ text "+" ];
           button [ on_click (fun _ -> Signal.emit (-1) incr) ] [ text "-" ];
           span [ style [ ("margin-left", "5px") ] ] [ View.show int count ];
         ];
-      div [] [ Signal.select [ occasionally; count ] |> View.show int ];
     ]
 
 let view_show () =
@@ -102,11 +95,7 @@ let view_toggle () =
         [ text "Style/unstyle element!" ];
       div
         [ View.toggle ~on:stylish (style [ ("background-color", "cyan") ]) ]
-        [ text "This element has show attributes!" ]
-      (* h2 [ style [ ("font-family","monospace") ] ] [ text "Html.async" ];
-         div [ style [ ("margin-bottom","20px") ] ] *)
-      (* [ text "Render promise value." ]; *)
-      (* div [] [ async int (Js.Promise.resolve 5) ]; *);
+        [ text "This element has show attributes!" ];
     ]
 
 let view_visibility () =
@@ -149,7 +138,7 @@ let view_visibility_simple () =
       button
         [ on Event.click (fun _ -> Signal.update not is_visible) ]
         [ View.show text (Signal.map (bool "Hide" "Show") is_visible) ];
-      div [ View.visible ~on:is_visible ] [ text "HELLO" ];
+      span [ View.visible ~on:is_visible ] [ text "HELLO" ];
     ]
 
 let view_each () =
@@ -162,7 +151,15 @@ let view_each () =
     [
       h2 [ style [ ("font-family", "monospace") ] ] [ text "Html.each" ];
       div [ style [ ("margin-bottom", "20px") ] ] [ text "show lists." ];
-      ul []
+      ul
+        [
+          style
+            [
+              ("outline", "1px solid pink");
+              ("height", "200px");
+              ("overflow-y", "scroll");
+            ];
+        ]
         [
           li [] [ Html.text "fixed li before 1" ];
           View.each (fun item -> li [] [ Html.text ("each-1: " ^ item) ]) items;
@@ -181,7 +178,7 @@ let main () =
       view_visibility_simple ();
       view_timer ();
       view_input_bind ();
-      view_select ();
+      view_counter ();
       view_visibility ();
       view_show ();
       view_toggle ();

@@ -123,7 +123,7 @@ type html = { mount : Dom.Node.t -> unit; remove : unit -> unit }
 
 let elem name (attrs : attr list) (children : html list) : html =
   let elem = Dom.Document.create_element name in
-  let node = Dom.Element.as_node elem in
+  let node = Dom.Element.to_node elem in
 
   let mount parent =
     Dom.Node.append_child ~parent node;
@@ -143,7 +143,7 @@ let elem name (attrs : attr list) (children : html list) : html =
   { mount; remove }
 
 let text data =
-  let node = Dom.Text.as_node (Dom.Document.create_text_node data) in
+  let node = Dom.Text.to_node (Dom.Document.create_text_node data) in
   let mount parent = Dom.Node.append_child ~parent node in
   let remove () =
     match Dom.Node.parent_node node with
@@ -161,7 +161,7 @@ let empty = { mount = (fun _ -> ()); remove = (fun () -> ()) }
 let nbsp = text "\u{00A0}"
 
 (* let fragment children_html parent =
-   let node = Dom.Document_fragment.make () |> Dom.Document_fragment.as_node in
+   let node = Dom.Document_fragment.make () |> Dom.Document_fragment.to_node in
    List.iter
      (fun child_html ->
        let _child_node = add_to_parent ~parent:node child_html in
@@ -314,4 +314,4 @@ end
 
 (* DOM helpers *)
 
-let render parent html = html.mount (Dom.Element.as_node parent)
+let render parent html = html.mount (Dom.Element.to_node parent)

@@ -18,9 +18,9 @@ watch:
 bundle:
 	esbuild _build/default/examples/basic.bc.js --bundle --outdir=examples
 
-bundle-demo-rescript:
+rescript-bundle-demo:
 	esbuild lib/es6/examples/demo/Demo.bs.js --bundle --outdir=examples/demo
 
-rescript-serve-tests:
+rescript-serve-demo:
 	npm exec -- \
 		esbuild lib/es6/examples/demo-rescript/Demo.bs.js --bundle --servedir=examples/demo-rescript --outfile=examples/demo-rescript/Demo.bs.js

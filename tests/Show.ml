@@ -1,6 +1,5 @@
 module Event = Stdweb.Dom.Event
 open Helix
-open Stdweb
 
 let test_simple () =
   let open Html in

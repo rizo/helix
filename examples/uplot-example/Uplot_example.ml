@@ -1,49 +1,63 @@
-(* https://github.com/leeoniya/uPlot/blob/42938f988a9611d0a65f98a52f018d2edd3b8076/demos/tooltips.html *)
-
 open Stdweb
-
-let js_of_data data =
-  Metajs.js_of_array (Metajs.js_of_array Metajs.js_of_float) data
-
-let uPlot = Metajs.obj_get Metajs.global "uPlot"
-
-let init ~options data target =
-  let data = js_of_data data in
-  let target = Dom.Element.as_js target in
-  let _ = Metajs.obj_new uPlot [| options; data; target |] in
-  ()
+open Helix
 
 let options =
-  let open Metajs in
+  let open Js.Encoder in
   obj
-    [|
-      ("title", js_of_string "Tooltips");
-      ("width", js_of_int 600);
-      ("height", js_of_int 400);
-      ("scales", obj [| ("x", obj [| ("time", js_of_bool false) |]) |]);
+    [
+      ("title", string "Helix - uPlot");
+      ("width", int 600);
+      ("height", int 400);
+      ("scales", obj [ ("x", obj [ ("time", bool false) ]) ]);
       ( "series",
-        js_of_array obj
+        array js
           [|
-            [||];
-            [| ("label", js_of_string "One"); ("stroke", js_of_string "red") |];
-            [|
-              ("label", js_of_string "Two");
-              ("stroke", js_of_string "blue");
-              ("show", js_of_bool false);
-            |];
+            obj [];
+            obj [ ("label", string "One"); ("stroke", string "red") ];
+            obj
+              [
+                ("label", string "Two");
+                ("stroke", string "blue");
+                ("show", bool false);
+              ];
           |] );
-    |]
+    ]
 
-let data =
+let data1 =
   [|
     [| 1.; 2.; 3.; 4.; 5.; 6.; 7. |];
     [| 40.; 43.; 60.; 65.; 71.; 73.; 80. |];
     [| 18.; 24.; 37.; 55.; 55.; 60.; 63. |];
   |]
 
+let data2 =
+  [|
+    [| 1.; 2.; 3.; 4.; 5.; 6.; 7. |];
+    [| 10.; 23.; 10.; 95.; 71.; 93.; 20. |];
+    [| 38.; 84.; 77.; 15.; 35.; 10.; 43. |];
+  |]
+
 let main () =
-  let open Helix.Html in
-  div [ Attr.on_mount (fun el -> init ~options data el) ] []
+  let uplot_signal = Signal.make None in
+  let data_flag = ref false in
+  let mount_uplot el =
+    let uplot = Uplot.make ~options ~data:data1 el in
+    Signal.emit (Some uplot) uplot_signal
+  in
+  let adjust_data _ev =
+    match Signal.get uplot_signal with
+    | None -> Console.log "uplot not loaded"
+    | Some uplot ->
+      let data = if !data_flag then data1 else data2 in
+      data_flag := not !data_flag;
+      Uplot.set_data uplot data
+  in
+  let open Html in
+  div []
+    [
+      button [ on_click adjust_data ] [ text "Toggle data" ];
+      div [ Attr.on_mount mount_uplot ] [];
+    ]
 
 let () =
   match Dom.Document.get_element_by_id "root" with

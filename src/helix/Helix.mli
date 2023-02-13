@@ -13,6 +13,13 @@ module Html : sig
   (** @inline *)
 end
 
+type js = Helix_js.t
+
+module Js : sig
+  include module type of Helix_js with type t = js
+  (** @inline *)
+end
+
 (** {1 Signals} *)
 
 type 'a signal = 'a Signal.t
@@ -44,7 +51,7 @@ module View : sig
 
   (* val show_conditional :
      ?on:bool Signal.t -> ('a -> Html.html) -> 'a Signal.t -> Html.html *)
-  (** [show ?on:condition to_html signal] is a reactive HTML element created
+  (* [show ?on:condition to_html signal] is a reactive HTML element created
       from [signal] values using [to_html]. If boolean [condition] signal is
       passed the resulting element is only rendered if the signal is [true]. *)
 
@@ -58,7 +65,7 @@ module View : sig
       ]} *)
 
   (* val option : ('a -> Html.html) -> 'a option Signal.t -> Html.html *)
-  (** [option to_html items] reactively renders [items] with [to_html].
+  (* [option to_html items] reactively renders [items] with [to_html].
 
       {[
         let name = Signal.make None in
@@ -69,10 +76,11 @@ module View : sig
   (* val conditional : on:bool Signal.t -> 'a Signal.t -> Html.html *)
   (* val on : bool Signal.t -> Html.html -> Html.html *)
 
-  val conditional_attr : bool Signal.t -> Html.attr
+  val conditional : on:bool Signal.t -> Html.attr
+  (** [conditional on:signal] an attribute that shows the element if [signal] is
+      [true]. *)
 
   (* val conditional_html : on:bool Signal.t -> Html.html -> Html.html *)
-  (** [conditional ~on:signal html] shows [html] when [signal] is [true]. *)
 
   (* val optional : ('a -> Html.html option) -> 'a Signal.t -> Html.html *)
 

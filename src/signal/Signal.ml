@@ -11,16 +11,16 @@ end = struct
   type 'a t = 'a sub list ref
 
   let empty () = ref []
-  let add (k : 'a sub) subs = subs := !subs @ [ k ]
+  let add (k : 'a sub) subs = subs := List.append !subs [ k ]
   let dispatch x subs = List.iter (fun k -> k x) !subs
 end
 
-type 'a t =
-  { name : string
-  ; mutable value : 'a
-  ; emit : 'a -> unit
-  ; sub : ('a -> unit) -> unit
-  }
+type 'a t = {
+  name : string;
+  mutable value : 'a;
+  emit : 'a -> unit;
+  sub : ('a -> unit) -> unit;
+}
 
 let base ~name value =
   let subs = Subs.empty () in
@@ -102,10 +102,11 @@ let filter pred ~seed s =
   let subs = Subs.empty () in
   let sub k = Subs.add k subs in
   let rec s' =
-    { name = "filter"
-    ; value = (if pred s.value then s.value else seed)
-    ; emit
-    ; sub
+    {
+      name = "filter";
+      value = (if pred s.value then s.value else seed);
+      emit;
+      sub;
     }
   and emit x =
     if pred x then (
@@ -119,13 +120,14 @@ let filter_map f ~seed s =
   let subs = Subs.empty () in
   let sub k = Subs.add k subs in
   let rec s' =
-    { name = "filter_map"
-    ; value =
+    {
+      name = "filter_map";
+      value =
         (match f s.value with
         | Some x -> x
-        | None -> seed)
-    ; emit
-    ; sub
+        | None -> seed);
+      emit;
+      sub;
     }
   and emit x =
     s'.value <- x;
