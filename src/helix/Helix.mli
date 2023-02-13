@@ -108,4 +108,4 @@ module View : sig
 end
 
 val render : Stdweb.Dom.Element.t -> html -> unit
-(** [render root_elem html] renders the [html] into the [root_elem]. *)
+(** [render root html] renders the [html] into the [root]. *)

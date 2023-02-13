@@ -1,16 +1,16 @@
 type t
 type js = t
 
-val null : js
+val null : t
 (** The JavaScript [null] value. *)
 
-val undefined : js
+val undefined : t
 (** The JavaScript [undefined] value. *)
 
-val is_null : js -> bool
+val is_null : t -> bool
 (** [is_null t] is [t == null]. *)
 
-val is_undefined : js -> bool
+val is_undefined : t -> bool
 (** [is_undefined t] is [t == undefined]. *)
 
 (** {2 Type helpers} *)
@@ -21,16 +21,16 @@ val instanceof : t -> t -> bool
 
 (** {2 Equality} *)
 
-val equal : js -> js -> bool
+val equal : t -> t -> bool
 
 (** {2 Global values} *)
 
-val global : string -> js
+val global : string -> t
 (** Get a property from [globalThis]. See
     {{:https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis}
     [globalThis]}. *)
 
-val global_this : js
+val global_this : t
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis}
     [globalThis]}. *)
@@ -49,7 +49,7 @@ module Encoder : sig
   val bool : bool encoder
   val string : string encoder
   val array : 'a encoder -> 'a array encoder
-  val js_array : js array encoder
+  val js_array : t array encoder
   val pair : 'a encoder -> 'b encoder -> ('a * 'b) encoder
   val triple : 'a encoder -> 'b encoder -> 'c encoder -> ('a * 'b * 'c) encoder
   val nullable : 'a encoder -> 'a option encoder
@@ -79,7 +79,7 @@ module Decoder : sig
   val bool : bool decoder
   val string : string decoder
   val array : 'a decoder -> 'a array decoder
-  val js_array : js array decoder
+  val js_array : t array decoder
   val pair : 'a decoder -> 'b decoder -> ('a * 'b) decoder
   val triple : 'a decoder -> 'b decoder -> 'c decoder -> ('a * 'b * 'c) decoder
   val nullable : 'a decoder -> 'a option decoder
@@ -100,7 +100,7 @@ module Obj : sig
 
   val get : t -> string -> 'a decoder -> 'a option
   val get_path : t -> string list -> 'a decoder -> 'a option
-  val get_js : t -> string -> js
+  val get_js : t -> string -> t
 
   (** {2 Set properties} *)
 
@@ -488,7 +488,7 @@ module Obj : sig
     'i ->
     t
 
-  val new_js : js -> js array -> t
+  val new_js : t -> t array -> t
 end
 
 (** {2 Function helpers} *)
@@ -628,5 +628,5 @@ end
 module Dict : sig
   type t = Obj.t
 
-  val entries : js -> (string * js) array
+  val entries : t -> (string * t) array
 end

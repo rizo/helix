@@ -4,8 +4,8 @@ let test_simple () =
   let open Html in
   div []
     [
-      div [ View.conditional_attr (Signal.make true) ] [ text "present" ];
-      footer [ View.conditional_attr (Signal.make false) ] [ text "missing" ];
+      div [ View.conditional ~on:(Signal.make true) ] [ text "present" ];
+      footer [ View.conditional ~on:(Signal.make false) ] [ text "missing" ];
     ]
 
 let test_toggle_simple () =
@@ -17,7 +17,7 @@ let test_toggle_simple () =
         [ on_click (fun _ -> Signal.update not is_present) ]
         [ text "Toggle present" ];
       ul []
-        [ li [] [ span [ View.conditional_attr is_present ] [ text "HELLO" ] ] ];
+        [ li [] [ span [ View.conditional ~on:is_present ] [ text "HELLO" ] ] ];
     ]
 
 let test_toggle_siblings () =
@@ -39,14 +39,14 @@ let test_toggle_siblings () =
         [ text "Toggle BOTH" ];
       ul []
         [
-          li [] [ span [ View.conditional_attr hello ] [ text "HELLO 1" ] ];
-          li [] [ span [ View.conditional_attr hello ] [ text "HELLO 2" ] ];
+          li [] [ span [ View.conditional ~on:hello ] [ text "HELLO 1" ] ];
+          li [] [ span [ View.conditional ~on:hello ] [ text "HELLO 2" ] ];
         ];
       ul []
         [
           li [] [ span [] [ text "before 1" ] ];
           li [] [ span [] [ text "before 2" ] ];
-          li [] [ span [ View.conditional_attr hello ] [ text "HELLO" ] ];
+          li [] [ span [ View.conditional ~on:hello ] [ text "HELLO" ] ];
           li [] [ span [] [ text "after 1" ] ];
           li [] [ span [] [ text "after 2" ] ];
         ];
@@ -54,33 +54,33 @@ let test_toggle_siblings () =
         [
           li [] [ span [] [ text "before 1" ] ];
           li [] [ span [] [ text "before 2" ] ];
-          li [] [ span [ View.conditional_attr hello ] [ text "HELLO 1" ] ];
-          li [] [ span [ View.conditional_attr hello ] [ text "HELLO 2" ] ];
+          li [] [ span [ View.conditional ~on:hello ] [ text "HELLO 1" ] ];
+          li [] [ span [ View.conditional ~on:hello ] [ text "HELLO 2" ] ];
           li [] [ span [] [ text "after 1" ] ];
           li [] [ span [] [ text "after 2" ] ];
         ];
       ul []
         [
           li [] [ span [] [ text "before 1" ] ];
-          li [] [ span [ View.conditional_attr hello ] [ text "HELLO 1" ] ];
+          li [] [ span [ View.conditional ~on:hello ] [ text "HELLO 1" ] ];
         ];
       ul []
         [
-          li [] [ span [ View.conditional_attr hello ] [ text "HELLO 1" ] ];
+          li [] [ span [ View.conditional ~on:hello ] [ text "HELLO 1" ] ];
           li [] [ span [] [ text "after 1" ] ];
         ];
       ul []
         [
-          li [] [ span [ View.conditional_attr hello ] [ text "HELLO" ] ];
-          li [] [ span [ View.conditional_attr bye ] [ text "BYE" ] ];
+          li [] [ span [ View.conditional ~on:hello ] [ text "HELLO" ] ];
+          li [] [ span [ View.conditional ~on:bye ] [ text "BYE" ] ];
         ];
       ul []
         [
           li [] [ span [] [ text "before 1" ] ];
-          li [] [ span [ View.conditional_attr bye ] [ text "BYE 1" ] ];
-          li [] [ span [ View.conditional_attr hello ] [ text "HELLO 1" ] ];
-          li [] [ span [ View.conditional_attr hello ] [ text "HELLO 2" ] ];
-          li [] [ span [ View.conditional_attr bye ] [ text "BYE 2" ] ];
+          li [] [ span [ View.conditional ~on:bye ] [ text "BYE 1" ] ];
+          li [] [ span [ View.conditional ~on:hello ] [ text "HELLO 1" ] ];
+          li [] [ span [ View.conditional ~on:hello ] [ text "HELLO 2" ] ];
+          li [] [ span [ View.conditional ~on:bye ] [ text "BYE 2" ] ];
           li [] [ span [] [ text "after 1" ] ];
         ];
     ]
