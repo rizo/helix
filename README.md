@@ -5,7 +5,7 @@
 ```ocaml
 let view_counter () =
   let incr = Signal.make 0 in
-  let count = incr |> Signal.reduce (fun x y -> x + y) 0 in
+  let count = Signal.reduce (fun x y -> x + y) 0 incr in
   let open Html in
   fragment
     [
