@@ -1,0 +1,9 @@
+
+(executable
+ (name docs)
+ (libraries helix helix.stdweb helix.jsoo helix.signal_syntax)
+ (modes js))
+
+(alias
+ (name default)
+ (deps index.html))

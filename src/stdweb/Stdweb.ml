@@ -21,13 +21,13 @@ module Dom = struct
     type 'a t = Js.t
     type target = Js.t
 
-    let target t = Js.Obj.get_js t "target"
+    let target t = Js.Obj.get t "target" Js.Decoder.js
 
     module Target = struct
       type t = target
 
-      let checked this = Js.Decoder.bool (Js.Obj.get_js this "checked")
-      let value this = Js.Decoder.string (Js.Obj.get_js this "value")
+      let checked this = Js.Obj.get this "checked" Js.Decoder.bool
+      let value this = Js.Obj.get this "value" Js.Decoder.string
       let set_value this value = Js.Obj.set this "value" Js.Encoder.string value
     end
 
@@ -37,23 +37,23 @@ module Dom = struct
       type nonrec kind = [ `Input ] kind
       type t = Js.t
 
-      let data this = Js.Decoder.string (Js.Obj.get_js this "data")
+      let data this = Js.Obj.get this "data" Js.Decoder.string
     end
 
     module Keyboard = struct
       type nonrec kind = [ `Keyboard ] kind
       type t = Js.t
 
-      let key this = Js.Decoder.string (Js.Obj.get_js this "key")
-      let code this = Js.Decoder.string (Js.Obj.get_js this "keyCode")
+      let key this = Js.Obj.get this "key" Js.Decoder.string
+      let code this = Js.Obj.get this "keyCode" Js.Decoder.string
     end
 
     module Mouse = struct
       type nonrec kind = [ `Mouse ] kind
       type t = Js.t
 
-      let page_x this = Js.Decoder.float (Js.Obj.get_js this "pageX")
-      let page_y this = Js.Decoder.float (Js.Obj.get_js this "pageY")
+      let page_x this = Js.Obj.get this "pageX" Js.Decoder.float
+      let page_y this = Js.Obj.get this "pageY" Js.Decoder.float
     end
 
     let click = "click"
@@ -90,23 +90,16 @@ module Dom = struct
 
     let to_js t = t
     let to_event_target t = t
-
-    let parent_node this =
-      Js.Decoder.nullable (fun x -> x) (Js.Obj.get_js this "parentNode")
-
-    let child_nodes this = Js.Obj.get_js this "childNodes"
-
-    let first_child this =
-      Js.Decoder.nullable (fun x -> x) (Js.Obj.get_js this "firstChild")
-
-    let last_child this =
-      Js.Decoder.nullable (fun x -> x) (Js.Obj.get_js this "lastChild")
+    let parent_node this = Js.Obj.get this "parentNode" Js.Decoder.(nullable js)
+    let child_nodes this = Js.Obj.get this "childNodes" Js.Decoder.js
+    let first_child this = Js.Obj.get this "firstChild" Js.Decoder.(nullable js)
+    let last_child this = Js.Obj.get this "lastChild" Js.Decoder.(nullable js)
 
     let next_sibling this =
-      Js.Decoder.nullable (fun x -> x) (Js.Obj.get_js this "nextSibling")
+      Js.Obj.get this "nextSibling" Js.Decoder.(nullable js)
 
     let clone_node this ~deep =
-      Js.Obj.call_js this "cloneNode" [| Js.Encoder.bool deep |]
+      Js.Obj.call1 this "cloneNode" Js.Encoder.bool deep ~return:Js.Decoder.js
 
     let append_child ~parent other =
       Js.Obj.call_js_unit parent "appendChild" [| other |]
@@ -123,8 +116,7 @@ module Dom = struct
     let set_text_content this text =
       Js.Obj.set this "textContent" Js.Encoder.string text
 
-    let get_text_content this =
-      Js.Decoder.string (Js.Obj.get_js this "textContent")
+    let get_text_content this = Js.Obj.get this "textContent" Js.Decoder.string
 
     let is_same_node this other =
       Js.Decoder.bool (Js.Obj.call_js this "isSameNode" [| other |])
@@ -156,8 +148,8 @@ module Dom = struct
   module Css_style_declaration = struct
     type t = Js.t
 
-    let css_text this = Js.Decoder.string (Js.Obj.get_js this "cssText")
-    let length this = Js.Decoder.int (Js.Obj.get_js this "length")
+    let css_text this = Js.Obj.get this "cssText" Js.Decoder.string
+    let length this = Js.Obj.get this "length" Js.Decoder.int
 
     let set_property this name value =
       Js.Obj.call_js_unit this "setProperty"
@@ -177,7 +169,7 @@ module Dom = struct
     let of_node t = t
     let of_element t = t
     let to_element t = t
-    let get_style this = Js.Obj.get_js this "style"
+    let get_style this = Js.Obj.get this "style" Js.Decoder.js
 
     let set_style_property this name value =
       Css_style_declaration.set_property (get_style this) name value
@@ -277,8 +269,8 @@ module Iterator = struct
   type 'a next = Js.t
 
   let next t = Js.Obj.call_js t "next" [||]
-  let next_is_done next = Js.Decoder.bool (Js.Obj.get_js next "done")
-  let next_value next = Js.Decoder.any (Js.Obj.get_js next "value")
+  let next_is_done next = Js.Obj.get next "done" Js.Decoder.bool
+  let next_value next = Js.Obj.get next "value" Js.Decoder.any
 
   let iter f t =
     let is_done = ref false in
@@ -303,7 +295,7 @@ module Map = struct
   let get t k = Js.Decoder.any (Js.Obj.call_js t "get" [| k |])
   let delete t k = Js.Obj.call_js_unit t "delete" [| k |]
   let keys t = Js.Obj.call_js t "keys" [||]
-  let size t = Js.Decoder.int (Js.Obj.get_js t "size")
+  let size t = Js.Obj.get t "size" Js.Decoder.int
   let values t = Js.Obj.call_js t "values" [||]
 
   let first_key t =

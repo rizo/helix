@@ -1,34 +1,40 @@
-type t = Jsoo_runtime.Js.t
+type t
 
-let global = Jsoo_runtime.Js.pure_js_expr "globalThis"
-let null = Jsoo_runtime.Js.pure_js_expr "null"
-let undefined = Jsoo_runtime.Js.pure_js_expr "undefined"
-let equal = Jsoo_runtime.Js.equals
-let of_string = Jsoo_runtime.Js.string
-let to_string = Jsoo_runtime.Js.to_string
-let of_bool = Jsoo_runtime.Js.bool
-let to_bool = Jsoo_runtime.Js.to_bool
-let of_float = Jsoo_runtime.Js.number_of_float
-let to_float = Jsoo_runtime.Js.float_of_number
+external _pure_js_expr : string -> 'a = "caml_pure_js_expr"
+
+let global_this = _pure_js_expr "globalThis"
+let null = _pure_js_expr "null"
+let undefined = _pure_js_expr "undefined"
+
+external debugger : unit -> unit = "debugger"
+external equal : t -> t -> bool = "caml_js_equals"
+
+(* Primitives *)
+external of_string : string -> t = "caml_jsstring_of_string"
+external to_string : t -> string = "caml_string_of_jsstring"
+external of_bool : bool -> t = "caml_js_from_bool"
+external to_bool : t -> bool = "caml_js_to_bool"
+external of_float : float -> t = "caml_js_from_float"
+external to_float : t -> float = "caml_js_to_float"
 
 (* Array *)
-let of_js_array = Jsoo_runtime.Js.array
-let to_js_array = Jsoo_runtime.Js.to_array
-
+external of_js_array : 'a array -> t = "caml_js_from_array"
+external to_js_array : t -> 'a array = "caml_js_to_array"
 external of_int : int -> t = "%identity"
 external to_int : t -> int = "%identity"
 
-let obj = Jsoo_runtime.Js.obj
-let obj_new = Jsoo_runtime.Js.new_obj
+(* Obj *)
+external obj : (string * t) array -> t = "caml_js_object"
+external obj_new : t -> t array -> t = "caml_js_new"
+external obj_get : t -> 'prop -> t = "caml_js_get"
+external obj_set : t -> 'prop -> t -> unit = "caml_js_set"
+external obj_del : t -> 'prop -> unit = "caml_js_delete"
+external obj_call : t -> string -> t array -> t = "caml_js_meth_call"
 
-external obj_get : t -> string -> t = "caml_js_get"
-external obj_set : t -> string -> t -> unit = "caml_js_set"
-external obj_del : t -> string -> unit = "caml_js_delete"
-
-let fun_call = Jsoo_runtime.Js.fun_call
-let obj_call = Jsoo_runtime.Js.meth_call
-
+(* Fun *)
+external fun_call : t -> t array -> t = "caml_js_fun_call"
 external of_fun : int -> (_ -> _) -> t = "caml_js_wrap_callback_strict"
 
-let typeof = Jsoo_runtime.Js.typeof
-let instanceof = Jsoo_runtime.Js.instanceof
+(* Type *)
+external typeof : t -> t = "caml_js_typeof"
+external instanceof : t -> t -> bool = "caml_js_instanceof"

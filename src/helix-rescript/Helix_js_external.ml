@@ -1,9 +1,10 @@
 type t
 
-external global : t = "globalThis" [@@bs.val]
+external global_this : t = "globalThis" [@@bs.val]
 
 let null : t = [%raw "null"]
 let undefined : t = [%raw "undefined"]
+let debugger () : unit = [%debugger]
 let equal = ( = )
 
 external of_string : string -> t = "%identity"
@@ -33,13 +34,13 @@ function(a) {
 let obj_new : t -> t array -> t =
   [%raw {|function(c, a) { return new c(...a); }|}]
 
-let obj_get : t -> string -> t =
+let obj_get : t -> 'prop -> t =
   [%raw {|function(obj, prop) { return obj[prop]; }|}]
 
-let obj_set : t -> string -> t -> unit =
+let obj_set : t -> 'prop -> t -> unit =
   [%raw {|function(obj, prop, value) { obj[prop] = value; }|}]
 
-let obj_del : t -> string -> unit =
+let obj_del : t -> 'prop -> unit =
   [%raw {|function(obj, prop) { delete o[prop]; }|}]
 
 let fun_call : t -> t array -> t = [%raw {|function(f, a) { return f(...a); }|}]

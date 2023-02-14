@@ -47,8 +47,8 @@ module Js_tests = struct
   type person = { name : string; age : int }
 
   let person_of_js js =
-    let name = D.string (Js.Obj.get_js js "name") in
-    let age = D.int (Js.Obj.get_js js "age") in
+    let name = Js.Obj.get js "name" D.string in
+    let age = Js.Obj.get js "age" D.int in
     { name; age }
 
   let person_to_js person =

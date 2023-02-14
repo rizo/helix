@@ -1,10 +1,11 @@
 type t
 
-(* Standard values. *)
+(* Raw *)
 
-val global : t
 val null : t
 val undefined : t
+val global_this : t
+val debugger : unit -> unit
 
 (* Equality and comparision. *)
 
@@ -27,9 +28,9 @@ val to_js_array : t -> 'a array
 
 val obj : (string * t) array -> t
 val obj_new : t -> t array -> t
-val obj_get : t -> string -> t
-val obj_set : t -> string -> t -> unit
-val obj_del : t -> string -> unit
+val obj_get : t -> 'prop -> t
+val obj_set : t -> 'prop -> t -> unit
+val obj_del : t -> 'prop -> unit
 
 (* Function and method helpers. *)
 

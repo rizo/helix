@@ -4,54 +4,59 @@ type t
 type js = t
 (** Alias for {!type:t}. *)
 
-val null : t
+val null : js
 (** The JavaScript [null] value. *)
 
-val undefined : t
+val undefined : js
 (** The JavaScript [undefined] value. *)
 
-val is_null : t -> bool
+exception Undefined_property of string
+(** An exception raised when an unexpected {!val:undefined} property is
+    encountered. *)
+
+val debugger : unit -> unit
+
+val is_null : js -> bool
 (** [is_null t] is [t == null]. *)
 
-val is_undefined : t -> bool
+val is_undefined : js -> bool
 (** [is_undefined t] is [t == undefined]. *)
 
 (** {2 Type helpers} *)
 
-val typeof : t -> t
-val instanceof : t -> t -> bool
+val type_of : js -> string
+val instance_of : js -> constructor:js -> bool
 
 (** {2 Equality} *)
 
-val equal : t -> t -> bool
+val equal : js -> js -> bool
 
 (** {2 Global values} *)
 
-val global : string -> t
-(** Get a property from [globalThis]. See
-    {{:https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis}
-    [globalThis]}. *)
+val global : string -> js
+(** [global name] is [globalThis\[name\]]. If this evaluates to
+    {!val:undefined}, [Undefined_property] is raised. *)
 
-val global_this : t
+val global_this : js
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis}
     [globalThis]}. *)
 
-(** {2 Converters} *)
+(** {2 Value encoding} *)
 
-type 'a encoder = 'a -> t
+type 'a encoder = 'a -> js
 
-val encode : 'a encoder -> 'a -> t
+val encode : 'a encoder -> 'a -> js
 
 module Encoder : sig
   val unit : unit encoder
   val int : int encoder
   val float : float encoder
-  val js : t encoder
+  val js : js encoder
   val bool : bool encoder
   val string : string encoder
   val array : 'a encoder -> 'a array encoder
-  val js_array : t array encoder
+  val array_js : js array encoder
   val pair : 'a encoder -> 'b encoder -> ('a * 'b) encoder
   val triple : 'a encoder -> 'b encoder -> 'c encoder -> ('a * 'b * 'c) encoder
   val nullable : 'a encoder -> 'a option encoder
@@ -70,24 +75,26 @@ module Encoder : sig
   val any : 'a encoder
 end
 
-type 'a decoder = t -> 'a
+(** {2 Value decoding} *)
 
-val decode : 'a decoder -> t -> 'a
+type 'a decoder = js -> 'a
+
+val decode : 'a decoder -> js -> 'a
 
 module Decoder : sig
   val unit : unit decoder
   val int : int decoder
   val float : float decoder
-  val js : t decoder
+  val js : js decoder
   val bool : bool decoder
   val string : string decoder
   val array : 'a decoder -> 'a array decoder
-  val js_array : t array decoder
+  val array_js : js array decoder
   val pair : 'a decoder -> 'b decoder -> ('a * 'b) decoder
   val triple : 'a decoder -> 'b decoder -> 'c decoder -> ('a * 'b * 'c) decoder
   val nullable : 'a decoder -> 'a option decoder
   val optional : 'a decoder -> 'a option decoder
-  val field : t -> string -> 'a decoder -> 'a
+  val field : js -> string -> 'a decoder -> 'a
   val any : 'a decoder
 end
 
@@ -97,24 +104,37 @@ module Obj : sig
   type t = js
 
   val empty : unit -> t
-  val of_list : (string * t) list -> t
-  val of_array : (string * t) array -> t
+  val of_list : (string * js) list -> t
+  val of_array : (string * js) array -> t
 
   (** {2 Get properties} *)
 
-  val get : t -> string -> 'a decoder -> 'a option
-  val get_path : t -> string list -> 'a decoder -> 'a option
-  val get_js : t -> string -> t
+  val get : t -> string -> 'a decoder -> 'a
+  (** [get obj prop decoder] is the value of the property [prop] in [obj]. If
+      [prop] is {!val:undefined}, [Undefined_property] is raised.
+
+      Note: [prop] must be an ASCII string. *)
+
+  val get_opt : t -> string -> 'a decoder -> 'a option
+  (** [get_opt obj prop decoder] is the value of the property [prop] in [obj] if
+      [prop] is defined, and [None] otherwise.
+
+      Note: [prop] must be an ASCII string. *)
+
+  val get_path : t -> string list -> 'a decoder -> 'a
+  val get_path_opt : t -> string list -> 'a decoder -> 'a option
+  val get_js : t -> js -> js
 
   (** {2 Set properties} *)
 
   val set : t -> string -> 'a encoder -> 'a -> unit
   val set_path : t -> string list -> 'a encoder -> 'a -> unit
-  val set_js : t -> string -> t -> unit
+  val set_js : t -> js -> js -> unit
 
   (** {2 Delete properties} *)
 
   val del : t -> string -> unit
+  val del_js : t -> js -> unit
 
   (** {2 Function properties} *)
 
@@ -380,7 +400,7 @@ module Obj : sig
     'i ->
     unit
 
-  val call_js : t -> string -> t array -> t
+  val call_js : t -> string -> t array -> js
   val call_js_unit : t -> string -> t array -> unit
 
   (** {2 New object instances} *)
@@ -625,8 +645,23 @@ module Fun : sig
     'i ->
     'r
 
-  val call_js : t -> t array -> t
-  val call_js_unit : t -> t array -> unit
+  val call_js : t -> js array -> js
+  val call_js_unit : t -> js array -> unit
+end
+
+module Array : sig
+  type 'a t
+
+  val make : int -> 'a t
+  val init : int -> (int -> 'a) -> 'a t
+  val length : 'a t -> int
+  val get : 'a t -> int -> 'a
+  val get_opt : 'a t -> int -> 'a option
+  val set : 'a t -> int -> 'a -> unit
+  val push : 'a t -> 'a -> unit
+  val pop : 'a t -> 'a
+  val pop_opt : 'a t -> 'a option
+  val iter : 'a t -> ('a -> unit) -> unit
 end
 
 module Dict : sig
@@ -635,8 +670,8 @@ module Dict : sig
   val empty : unit -> 'a t
   val of_list : (string * 'a) list -> 'a t
   val of_array : (string * 'a) array -> 'a t
-  val get : 'a t -> string -> 'a option
-  val unsafe_get : 'a t -> string -> 'a
+  val get : 'a t -> string -> 'a
+  val get_opt : 'a t -> string -> 'a option
   val set : 'a t -> string -> 'a -> unit
   val del : 'a t -> string -> unit
   val entries : 'a t -> (string * 'a) array

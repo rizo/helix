@@ -176,8 +176,6 @@ module Each = struct
     val del_slot : t -> key:key -> slots -> int -> unit
     val clear : t -> unit
   end = struct
-    module E = Js.Encoder
-    module D = Js.Decoder
     module Map = Stdweb.Map
     module Iterator = Stdweb.Iterator
 
@@ -193,12 +191,12 @@ module Each = struct
       match Map.first_key slots with
       | None -> failwith "BUG: get_slot: slots must not be empty"
       | Some idx_js ->
-        let idx = D.int idx_js in
+        let idx = Js.Decoder.int idx_js in
         let html = Map.get slots idx_js in
         (idx, html)
 
     let set cache ~key slots = Js.Dict.set cache key slots
-    let get cache ~key = Js.Dict.get cache key
+    let get cache ~key = Js.Dict.get_opt cache key
 
     let add_slot cache ~key idx html =
       let slots =
@@ -206,11 +204,11 @@ module Each = struct
         | None -> make_slots ()
         | Some slots -> slots
       in
-      Map.set slots (E.int idx) html;
+      Map.set slots (Js.Encoder.int idx) html;
       set cache ~key slots
 
     let del_slot cache ~key slots idx =
-      Map.delete slots (E.int idx);
+      Map.delete slots (Js.Encoder.int idx);
       if Map.size slots = 0 then Js.Dict.del cache key
 
     let clear cache =

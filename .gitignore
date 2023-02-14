@@ -5,7 +5,6 @@ _opam
 public_html/js
 .bsb.lock
 .merlin
-dune
 dune.mel
 .melange.eobjs
 node_modules

@@ -38,24 +38,21 @@ let data2 =
   |]
 
 let main () =
-  let uplot_signal = Signal.make None in
-  let data_flag = ref false in
-  let mount_uplot el =
-    let uplot = Uplot.make ~options ~data:data1 el in
-    Signal.emit (Some uplot) uplot_signal
-  in
-  let adjust_data _ev =
-    match Signal.get uplot_signal with
+  let flag = Signal.make true in
+  let uplot = ref None in
+  let mount_uplot el = uplot := Some (Uplot.make ~options ~data:data1 el) in
+  let adjust_data flag =
+    match !uplot with
     | None -> Console.log "uplot not loaded"
-    | Some uplot ->
-      let data = if !data_flag then data1 else data2 in
-      data_flag := not !data_flag;
-      Uplot.set_data uplot data
+    | Some uplot -> Uplot.set_data uplot (if flag then data1 else data2)
   in
+  Signal.sub adjust_data flag;
   let open Html in
   div []
     [
-      button [ on_click adjust_data ] [ text "Toggle data" ];
+      button
+        [ on_click (fun _ -> Signal.update not flag) ]
+        [ text "Toggle data" ];
       div [ Attr.on_mount mount_uplot ] [];
     ]
 

@@ -1,0 +1,4 @@
+(library
+ (public_name helix.stdweb)
+ (name stdweb)
+ (libraries helix.js))
