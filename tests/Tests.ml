@@ -3,10 +3,9 @@ open Helix
 let main () =
   let open Html in
   div []
-    [
-      (* Show.main (); *)
+    [ (* Show.main (); *)
       (* Conditional_attr.main (); *)
-      Each.main ();
+      Each.main ()
     ]
 
 module Js2_tests = struct
@@ -36,8 +35,7 @@ module Js_tests = struct
     assert (D.int (E.int 42) = 42);
     assert (D.bool (E.bool true) = true);
     assert (D.string (E.string "hello") = "hello");
-    assert (
-      D.pair D.int D.string (E.pair E.int E.string (42, "foo")) = (42, "foo"));
+    assert (D.pair D.int D.string (E.pair E.int E.string (42, "foo")) = (42, "foo"));
     assert (D.nullable D.int (E.nullable E.int None) = None);
     assert (D.nullable D.int (E.optional E.int (Some 42)) = Some 42);
     assert (D.optional D.int (E.optional E.int None) = None);
@@ -59,7 +57,10 @@ module Js_tests = struct
     assert (person_of_js (person_to_js joe) = joe)
 end
 
+let run () = Test_signals.run ()
+
 let () =
+  run ();
   let open Stdweb in
   match Dom.Document.get_element_by_id "root" with
   | Some root -> Helix.render root (main ())
