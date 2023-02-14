@@ -6,17 +6,19 @@ let app () =
   let what = Signal.make `a in
   let open Html in
   div []
-    [ div
+    [
+      div
         [ style [ ("gap", "10px"); ("display", "flex") ] ]
-        [ button [ on Event.click (fun _ -> Signal.emit `a what) ] [ text "a" ]
-        ; button [ on Event.click (fun _ -> Signal.emit `b what) ] [ text "b" ]
-        ]
-    ; hr []
-    ; what
+        [
+          button [ on Event.click (fun _ -> Signal.emit `a what) ] [ text "a" ];
+          button [ on Event.click (fun _ -> Signal.emit `b what) ] [ text "b" ];
+        ];
+      hr [];
+      what
       |> View.show (fun what ->
              match what with
              | `a -> text "A"
-             | `b -> text "B")
+             | `b -> text "B");
     ]
 
 let () =

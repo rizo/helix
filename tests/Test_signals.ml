@@ -132,7 +132,9 @@ let test_map_4 () =
 let test_filter_map_1 () =
   let o = ref [] in
   let s1 = Signal.make 0 in
-  let s2 = Signal.filter_map (fun x -> if x = 0 then None else Some x) ~seed:100 s1 in
+  let s2 =
+    Signal.filter_map (fun x -> if x = 0 then None else Some x) ~seed:100 s1
+  in
   Signal.use (fun x -> push o x) s2;
   Signal.emit 2 s1;
   Signal.emit 0 s1;
@@ -181,7 +183,18 @@ let test_map_emit_3 () =
   Signal.emit 10 s;
   Signal.emit "100" s';
   expect "map_emit_3"
-    [ `i 1; `i 1; `s "1"; `s "1"; `i 10; `i 10; `s "10"; `s "10"; `s "100"; `s "100" ]
+    [
+      `i 1;
+      `i 1;
+      `s "1";
+      `s "1";
+      `i 10;
+      `i 10;
+      `s "10";
+      `s "10";
+      `s "100";
+      `s "100";
+    ]
     o
 
 let test_map_emit_4 () =
@@ -270,17 +283,18 @@ let test_select_2 () =
   Signal.emit 31 s3;
   Signal.emit 40 s4;
   expect "select_2"
-    [ `s1 10
-    ; `s2 20
-    ; `s3 30
-    ; `s4 10
-    ; `s1 11
-    ; `s4 11
-    ; `s2 21
-    ; `s4 21
-    ; `s3 31
-    ; `s4 31
-    ; `s4 40
+    [
+      `s1 10;
+      `s2 20;
+      `s3 30;
+      `s4 10;
+      `s1 11;
+      `s4 11;
+      `s2 21;
+      `s4 21;
+      `s3 31;
+      `s4 31;
+      `s4 40;
     ]
     o
 

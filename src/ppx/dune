@@ -2,5 +2,6 @@
  (public_name helix.ppx)
  (name helix_ppx)
  (libraries compiler-libs.common ppxlib ppxlib.astlib)
- (preprocess (pps ppxlib.metaquot))
+ (preprocess
+  (pps ppxlib.metaquot))
  (kind ppx_rewriter))

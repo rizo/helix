@@ -96,7 +96,8 @@ module Obj = struct
     let _ = Helix_js_external.obj_call this f args in
     ()
 
-  let call0 obj f_k ~return () = return (Helix_js_external.obj_call obj f_k [||])
+  let call0 obj f_k ~return () =
+    return (Helix_js_external.obj_call obj f_k [||])
 
   let call1 obj f_k ~return encode a =
     return (Helix_js_external.obj_call obj f_k [| encode a |])
@@ -105,64 +106,77 @@ module Obj = struct
     return (Helix_js_external.obj_call obj f_k [| encode_a a; encode_b b |])
 
   let call3 obj f_k ~return encode_a encode_b encode_c a b c =
-    return (Helix_js_external.obj_call obj f_k [| encode_a a; encode_b b; encode_c c |])
+    return
+      (Helix_js_external.obj_call obj f_k
+         [| encode_a a; encode_b b; encode_c c |])
 
   let call4 obj f_k ~return encode_a encode_b encode_c encode_d a b c d =
     return
       (Helix_js_external.obj_call obj f_k
          [| encode_a a; encode_b b; encode_c c; encode_d d |])
 
-  let call5 obj f_k ~return encode_a encode_b encode_c encode_d encode_e a b c d e =
+  let call5 obj f_k ~return encode_a encode_b encode_c encode_d encode_e a b c d
+      e =
     return
       (Helix_js_external.obj_call obj f_k
          [| encode_a a; encode_b b; encode_c c; encode_d d; encode_e e |])
 
-  let call6 obj f_k ~return encode_a encode_b encode_c encode_d encode_e encode_f a b c d
-      e f =
+  let call6 obj f_k ~return encode_a encode_b encode_c encode_d encode_e
+      encode_f a b c d e f =
     return
       (Helix_js_external.obj_call obj f_k
-         [| encode_a a; encode_b b; encode_c c; encode_d d; encode_e e; encode_f f |])
-
-  let call7 obj f_k ~return encode_a encode_b encode_c encode_d encode_e encode_f encode_g
-      a b c d e f g =
-    return
-      (Helix_js_external.obj_call obj f_k
-         [| encode_a a
-          ; encode_b b
-          ; encode_c c
-          ; encode_d d
-          ; encode_e e
-          ; encode_f f
-          ; encode_g g
+         [|
+           encode_a a;
+           encode_b b;
+           encode_c c;
+           encode_d d;
+           encode_e e;
+           encode_f f;
          |])
 
-  let call8 obj f_k ~return encode_a encode_b encode_c encode_d encode_e encode_f encode_g
-      encode_h a b c d e f g h =
+  let call7 obj f_k ~return encode_a encode_b encode_c encode_d encode_e
+      encode_f encode_g a b c d e f g =
     return
       (Helix_js_external.obj_call obj f_k
-         [| encode_a a
-          ; encode_b b
-          ; encode_c c
-          ; encode_d d
-          ; encode_e e
-          ; encode_f f
-          ; encode_g g
-          ; encode_h h
+         [|
+           encode_a a;
+           encode_b b;
+           encode_c c;
+           encode_d d;
+           encode_e e;
+           encode_f f;
+           encode_g g;
          |])
 
-  let call9 obj f_k ~return encode_a encode_b encode_c encode_d encode_e encode_f encode_g
-      encode_h encode_i a b c d e f g h i =
+  let call8 obj f_k ~return encode_a encode_b encode_c encode_d encode_e
+      encode_f encode_g encode_h a b c d e f g h =
     return
       (Helix_js_external.obj_call obj f_k
-         [| encode_a a
-          ; encode_b b
-          ; encode_c c
-          ; encode_d d
-          ; encode_e e
-          ; encode_f f
-          ; encode_g g
-          ; encode_h h
-          ; encode_i i
+         [|
+           encode_a a;
+           encode_b b;
+           encode_c c;
+           encode_d d;
+           encode_e e;
+           encode_f f;
+           encode_g g;
+           encode_h h;
+         |])
+
+  let call9 obj f_k ~return encode_a encode_b encode_c encode_d encode_e
+      encode_f encode_g encode_h encode_i a b c d e f g h i =
+    return
+      (Helix_js_external.obj_call obj f_k
+         [|
+           encode_a a;
+           encode_b b;
+           encode_c c;
+           encode_d d;
+           encode_e e;
+           encode_f f;
+           encode_g g;
+           encode_h h;
+           encode_i i;
          |])
 
   let call0_unit obj f_k () = ignore (Helix_js_external.obj_call obj f_k [||])
@@ -174,64 +188,77 @@ module Obj = struct
     ignore (Helix_js_external.obj_call obj f_k [| encode_a a; encode_b b |])
 
   let call3_unit obj f_k encode_a encode_b encode_c a b c =
-    ignore (Helix_js_external.obj_call obj f_k [| encode_a a; encode_b b; encode_c c |])
+    ignore
+      (Helix_js_external.obj_call obj f_k
+         [| encode_a a; encode_b b; encode_c c |])
 
   let call4_unit obj f_k encode_a encode_b encode_c encode_d a b c d =
     ignore
       (Helix_js_external.obj_call obj f_k
          [| encode_a a; encode_b b; encode_c c; encode_d d |])
 
-  let call5_unit obj f_k encode_a encode_b encode_c encode_d encode_e a b c d e =
+  let call5_unit obj f_k encode_a encode_b encode_c encode_d encode_e a b c d e
+      =
     ignore
       (Helix_js_external.obj_call obj f_k
          [| encode_a a; encode_b b; encode_c c; encode_d d; encode_e e |])
 
-  let call6_unit obj f_k encode_a encode_b encode_c encode_d encode_e encode_f a b c d e f
-      =
+  let call6_unit obj f_k encode_a encode_b encode_c encode_d encode_e encode_f a
+      b c d e f =
     ignore
       (Helix_js_external.obj_call obj f_k
-         [| encode_a a; encode_b b; encode_c c; encode_d d; encode_e e; encode_f f |])
-
-  let call7_unit obj f_k encode_a encode_b encode_c encode_d encode_e encode_f encode_g a
-      b c d e f g =
-    ignore
-      (Helix_js_external.obj_call obj f_k
-         [| encode_a a
-          ; encode_b b
-          ; encode_c c
-          ; encode_d d
-          ; encode_e e
-          ; encode_f f
-          ; encode_g g
+         [|
+           encode_a a;
+           encode_b b;
+           encode_c c;
+           encode_d d;
+           encode_e e;
+           encode_f f;
          |])
 
-  let call8_unit obj f_k encode_a encode_b encode_c encode_d encode_e encode_f encode_g
-      encode_h a b c d e f g h =
+  let call7_unit obj f_k encode_a encode_b encode_c encode_d encode_e encode_f
+      encode_g a b c d e f g =
     ignore
       (Helix_js_external.obj_call obj f_k
-         [| encode_a a
-          ; encode_b b
-          ; encode_c c
-          ; encode_d d
-          ; encode_e e
-          ; encode_f f
-          ; encode_g g
-          ; encode_h h
+         [|
+           encode_a a;
+           encode_b b;
+           encode_c c;
+           encode_d d;
+           encode_e e;
+           encode_f f;
+           encode_g g;
          |])
 
-  let call9_unit obj f_k encode_a encode_b encode_c encode_d encode_e encode_f encode_g
-      encode_h encode_i a b c d e f g h i =
+  let call8_unit obj f_k encode_a encode_b encode_c encode_d encode_e encode_f
+      encode_g encode_h a b c d e f g h =
     ignore
       (Helix_js_external.obj_call obj f_k
-         [| encode_a a
-          ; encode_b b
-          ; encode_c c
-          ; encode_d d
-          ; encode_e e
-          ; encode_f f
-          ; encode_g g
-          ; encode_h h
-          ; encode_i i
+         [|
+           encode_a a;
+           encode_b b;
+           encode_c c;
+           encode_d d;
+           encode_e e;
+           encode_f f;
+           encode_g g;
+           encode_h h;
+         |])
+
+  let call9_unit obj f_k encode_a encode_b encode_c encode_d encode_e encode_f
+      encode_g encode_h encode_i a b c d e f g h i =
+    ignore
+      (Helix_js_external.obj_call obj f_k
+         [|
+           encode_a a;
+           encode_b b;
+           encode_c c;
+           encode_d d;
+           encode_e e;
+           encode_f f;
+           encode_g g;
+           encode_h h;
+           encode_i i;
          |])
 
   (* New *)
@@ -245,53 +272,60 @@ module Obj = struct
     Helix_js_external.obj_new obj [| encode_a a; encode_b b; encode_c c |]
 
   let new4 obj encode_a encode_b encode_c encode_d a b c d =
-    Helix_js_external.obj_new obj [| encode_a a; encode_b b; encode_c c; encode_d d |]
+    Helix_js_external.obj_new obj
+      [| encode_a a; encode_b b; encode_c c; encode_d d |]
 
   let new5 obj encode_a encode_b encode_c encode_d encode_e a b c d e =
     Helix_js_external.obj_new obj
       [| encode_a a; encode_b b; encode_c c; encode_d d; encode_e e |]
 
-  let new6 obj encode_a encode_b encode_c encode_d encode_e encode_f a b c d e f =
+  let new6 obj encode_a encode_b encode_c encode_d encode_e encode_f a b c d e f
+      =
     Helix_js_external.obj_new obj
-      [| encode_a a; encode_b b; encode_c c; encode_d d; encode_e e; encode_f f |]
-
-  let new7 obj encode_a encode_b encode_c encode_d encode_e encode_f encode_g a b c d e f
-      g =
-    Helix_js_external.obj_new obj
-      [| encode_a a
-       ; encode_b b
-       ; encode_c c
-       ; encode_d d
-       ; encode_e e
-       ; encode_f f
-       ; encode_g g
+      [|
+        encode_a a; encode_b b; encode_c c; encode_d d; encode_e e; encode_f f;
       |]
 
-  let new8 obj encode_a encode_b encode_c encode_d encode_e encode_f encode_g encode_h a b
-      c d e f g h =
+  let new7 obj encode_a encode_b encode_c encode_d encode_e encode_f encode_g a
+      b c d e f g =
     Helix_js_external.obj_new obj
-      [| encode_a a
-       ; encode_b b
-       ; encode_c c
-       ; encode_d d
-       ; encode_e e
-       ; encode_f f
-       ; encode_g g
-       ; encode_h h
+      [|
+        encode_a a;
+        encode_b b;
+        encode_c c;
+        encode_d d;
+        encode_e e;
+        encode_f f;
+        encode_g g;
       |]
 
-  let new9 obj encode_a encode_b encode_c encode_d encode_e encode_f encode_g encode_h
-      encode_i a b c d e f g h i =
+  let new8 obj encode_a encode_b encode_c encode_d encode_e encode_f encode_g
+      encode_h a b c d e f g h =
     Helix_js_external.obj_new obj
-      [| encode_a a
-       ; encode_b b
-       ; encode_c c
-       ; encode_d d
-       ; encode_e e
-       ; encode_f f
-       ; encode_g g
-       ; encode_h h
-       ; encode_i i
+      [|
+        encode_a a;
+        encode_b b;
+        encode_c c;
+        encode_d d;
+        encode_e e;
+        encode_f f;
+        encode_g g;
+        encode_h h;
+      |]
+
+  let new9 obj encode_a encode_b encode_c encode_d encode_e encode_f encode_g
+      encode_h encode_i a b c d e f g h i =
+    Helix_js_external.obj_new obj
+      [|
+        encode_a a;
+        encode_b b;
+        encode_c c;
+        encode_d d;
+        encode_e e;
+        encode_f f;
+        encode_g g;
+        encode_h h;
+        encode_i i;
       |]
 
   let new_js = Helix_js_external.obj_new
@@ -357,7 +391,9 @@ module Decoder = struct
   let bool = Helix_js_external.to_bool
   let string = Helix_js_external.to_string
   let array_js = Helix_js_external.to_js_array
-  let array of_js array_js = Array.map of_js (Helix_js_external.to_js_array array_js)
+
+  let array of_js array_js =
+    Array.map of_js (Helix_js_external.to_js_array array_js)
 
   let pair of_js_x of_js_y js =
     let array = Helix_js_external.to_js_array js in
@@ -391,64 +427,76 @@ module Fun = struct
     return (Helix_js_external.fun_call f_js [| encode_a a; encode_b b |])
 
   let call3 f_js ~return encode_a encode_b encode_c a b c =
-    return (Helix_js_external.fun_call f_js [| encode_a a; encode_b b; encode_c c |])
+    return
+      (Helix_js_external.fun_call f_js [| encode_a a; encode_b b; encode_c c |])
 
   let call4 f_js ~return encode_a encode_b encode_c encode_d a b c d =
     return
       (Helix_js_external.fun_call f_js
          [| encode_a a; encode_b b; encode_c c; encode_d d |])
 
-  let call5 f_js ~return encode_a encode_b encode_c encode_d encode_e a b c d e =
+  let call5 f_js ~return encode_a encode_b encode_c encode_d encode_e a b c d e
+      =
     return
       (Helix_js_external.fun_call f_js
          [| encode_a a; encode_b b; encode_c c; encode_d d; encode_e e |])
 
-  let call6 f_js ~return encode_a encode_b encode_c encode_d encode_e encode_f a b c d e f
-      =
+  let call6 f_js ~return encode_a encode_b encode_c encode_d encode_e encode_f a
+      b c d e f =
     return
       (Helix_js_external.fun_call f_js
-         [| encode_a a; encode_b b; encode_c c; encode_d d; encode_e e; encode_f f |])
-
-  let call7 f_js ~return encode_a encode_b encode_c encode_d encode_e encode_f encode_g a
-      b c d e f g =
-    return
-      (Helix_js_external.fun_call f_js
-         [| encode_a a
-          ; encode_b b
-          ; encode_c c
-          ; encode_d d
-          ; encode_e e
-          ; encode_f f
-          ; encode_g g
+         [|
+           encode_a a;
+           encode_b b;
+           encode_c c;
+           encode_d d;
+           encode_e e;
+           encode_f f;
          |])
 
-  let call8 f_js ~return encode_a encode_b encode_c encode_d encode_e encode_f encode_g
-      encode_h a b c d e f g h =
+  let call7 f_js ~return encode_a encode_b encode_c encode_d encode_e encode_f
+      encode_g a b c d e f g =
     return
       (Helix_js_external.fun_call f_js
-         [| encode_a a
-          ; encode_b b
-          ; encode_c c
-          ; encode_d d
-          ; encode_e e
-          ; encode_f f
-          ; encode_g g
-          ; encode_h h
+         [|
+           encode_a a;
+           encode_b b;
+           encode_c c;
+           encode_d d;
+           encode_e e;
+           encode_f f;
+           encode_g g;
          |])
 
-  let call9 f_js ~return encode_a encode_b encode_c encode_d encode_e encode_f encode_g
-      encode_h encode_i a b c d e f g h i =
+  let call8 f_js ~return encode_a encode_b encode_c encode_d encode_e encode_f
+      encode_g encode_h a b c d e f g h =
     return
       (Helix_js_external.fun_call f_js
-         [| encode_a a
-          ; encode_b b
-          ; encode_c c
-          ; encode_d d
-          ; encode_e e
-          ; encode_f f
-          ; encode_g g
-          ; encode_h h
-          ; encode_i i
+         [|
+           encode_a a;
+           encode_b b;
+           encode_c c;
+           encode_d d;
+           encode_e e;
+           encode_f f;
+           encode_g g;
+           encode_h h;
+         |])
+
+  let call9 f_js ~return encode_a encode_b encode_c encode_d encode_e encode_f
+      encode_g encode_h encode_i a b c d e f g h i =
+    return
+      (Helix_js_external.fun_call f_js
+         [|
+           encode_a a;
+           encode_b b;
+           encode_c c;
+           encode_d d;
+           encode_e e;
+           encode_f f;
+           encode_g g;
+           encode_h h;
+           encode_i i;
          |])
 
   let call_js = Helix_js_external.fun_call
@@ -464,7 +512,9 @@ module Dict = struct
   let empty = Obj.empty
 
   let of_array arr =
-    let arr = (Stdlib_obj.magic : (string * 'a) array -> (string * js) array) arr in
+    let arr =
+      (Stdlib_obj.magic : (string * 'a) array -> (string * js) array) arr
+    in
     Helix_js_external.obj arr
 
   let of_list l = of_array (Stdlib_array.of_list l)
@@ -479,10 +529,15 @@ module Dict = struct
     | _ -> invalid_arg "Object entries is not a pair"
 
   let entries dict =
-    Obj.call1 Obj.t "entries" ~return:(Decoder.array entry_of_js) Encoder.js dict
+    Obj.call1 Obj.t "entries"
+      ~return:(Decoder.array entry_of_js)
+      Encoder.js dict
 
-  let keys dict = Obj.call1 Obj.t "keys" ~return:Decoder.(array string) Encoder.js dict
-  let values dict = Obj.call1 Obj.t "values" ~return:Decoder.(array any) Encoder.js dict
+  let keys dict =
+    Obj.call1 Obj.t "keys" ~return:Decoder.(array string) Encoder.js dict
+
+  let values dict =
+    Obj.call1 Obj.t "values" ~return:Decoder.(array any) Encoder.js dict
 
   let map dict f =
     let out = empty () in
@@ -561,7 +616,10 @@ end
 
 let console = global "console"
 let log x = Obj.call_js_unit console "log" [| Encoder.any x |]
-let log2 x1 x2 = Obj.call_js_unit console "log" [| Encoder.any x1; Encoder.any x2 |]
+
+let log2 x1 x2 =
+  Obj.call_js_unit console "log" [| Encoder.any x1; Encoder.any x2 |]
 
 let log3 x1 x2 x3 =
-  Obj.call_js_unit console "log" [| Encoder.any x1; Encoder.any x2; Encoder.any x3 |]
+  Obj.call_js_unit console "log"
+    [| Encoder.any x1; Encoder.any x2; Encoder.any x3 |]

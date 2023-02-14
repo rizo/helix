@@ -10,13 +10,19 @@
         let count = Signal.reduce (fun total n -> total + n) 0 incr in
         let open Html in
         fragment
-          [ h2 [] [ text "Counter" ]
-          ; p [] [ text "Compute a count." ]
-          ; div []
-              [ button [ on_click (fun _ -> Signal.emit 1 incr) ] [ text "+" ]
-              ; button [ on_click (fun _ -> Signal.emit (-1) incr) ] [ text "-" ]
-              ; span [ style [ ("margin-left", "5px") ] ] [ View.show int count ]
-              ]
+          [
+            h2 [] [ text "Counter" ];
+            p [] [ text "Compute a count." ];
+            div []
+              [
+                button [ on_click (fun _ -> Signal.emit 1 incr) ] [ text "+" ];
+                button
+                  [ on_click (fun _ -> Signal.emit (-1) incr) ]
+                  [ text "-" ];
+                span
+                  [ style [ ("margin-left", "5px") ] ]
+                  [ View.show int count ];
+              ];
           ]
     ]}*)
 
@@ -66,8 +72,8 @@ end
 
 module View : sig
   val show : ('a -> Html.html) -> 'a Signal.t -> Html.html
-  (** [show to_html signal] is a dynamic HTML node created from [signal] values using
-      [to_html]. *)
+  (** [show to_html signal] is a dynamic HTML node created from [signal] values
+      using [to_html]. *)
 
   (* val show_conditional :
      ?on:bool Signal.t -> ('a -> Html.html) -> 'a Signal.t -> Html.html *)
@@ -76,7 +82,8 @@ module View : sig
       passed the resulting element is only rendered if the signal is [true]. *)
 
   val each : ('a -> Html.html) -> 'a list Signal.t -> Html.html
-  (** [each to_html signal] reactively renders items from [signal] with [to_html].
+  (** [each to_html signal] reactively renders items from [signal] with
+      [to_html].
 
       {[
         let items = Signal.make [ 1; 2; 3 ] in
@@ -96,15 +103,16 @@ module View : sig
   (* val on : bool Signal.t -> Html.html -> Html.html *)
 
   val conditional : on:bool Signal.t -> Html.attr
-  (** [conditional on:signal] an attribute that shows the element if [signal] is [true]. *)
+  (** [conditional on:signal] an attribute that shows the element if [signal] is
+      [true]. *)
 
   (* val conditional_html : on:bool Signal.t -> Html.html -> Html.html *)
 
   (* val optional : ('a -> Html.html option) -> 'a Signal.t -> Html.html *)
 
   val assign : Html.attr Signal.t -> Html.attr
-  (** [attr attr_signal] dynamically binds the attributes produced by [attr_signal] to an
-      element.
+  (** [attr attr_signal] dynamically binds the attributes produced by
+      [attr_signal] to an element.
 
       {[
         let attr = Signal.make (Html.style_list [ ("color", "red") ]) in
@@ -112,15 +120,17 @@ module View : sig
       ]} *)
 
   val bind : ('a -> Html.attr) -> 'a Signal.t -> Html.attr
-  (** [bind to_attr signal] is a dynamic HTML attribute created from [signal] values using
-      [to_attr]. *)
+  (** [bind to_attr signal] is a dynamic HTML attribute created from [signal]
+      values using [to_attr]. *)
 
   val visible : on:bool Signal.t -> Html.attr
-  (** [visible ~on:signal] is a reactive attribute that controls the [display] style of
-      HTML elements. When [signal] is [false] this attribute is [display: none]. *)
+  (** [visible ~on:signal] is a reactive attribute that controls the [display]
+      style of HTML elements. When [signal] is [false] this attribute is
+      [display: none]. *)
 
   val toggle : on:bool Signal.t -> Html.attr -> Html.attr
-  (** [toggle ~on:signal attr] toggles an attribute based on the boolaen signal [signal]. *)
+  (** [toggle ~on:signal attr] toggles an attribute based on the boolaen signal
+      [signal]. *)
 end
 
 val render : Stdweb.Dom.Element.t -> html -> unit

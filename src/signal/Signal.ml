@@ -15,8 +15,12 @@ end = struct
   let dispatch x subs = List.iter (fun k -> k x) !subs
 end
 
-type 'a t =
-  { name : string; mutable value : 'a; emit : 'a -> unit; sub : ('a -> unit) -> unit }
+type 'a t = {
+  name : string;
+  mutable value : 'a;
+  emit : 'a -> unit;
+  sub : ('a -> unit) -> unit;
+}
 
 let base ~name value =
   let subs = Subs.empty () in
@@ -83,7 +87,8 @@ let pair s1 s2 =
 
 let triple s1 s2 s3 =
   let subs = Subs.empty () in
-  let rec s' = { name = "triple"; value = (s1.value, s2.value, s3.value); emit; sub }
+  let rec s' =
+    { name = "triple"; value = (s1.value, s2.value, s3.value); emit; sub }
   and emit x =
     s'.value <- x;
     Subs.dispatch x subs
@@ -97,7 +102,12 @@ let filter pred ~seed s =
   let subs = Subs.empty () in
   let sub k = Subs.add k subs in
   let rec s' =
-    { name = "filter"; value = (if pred s.value then s.value else seed); emit; sub }
+    {
+      name = "filter";
+      value = (if pred s.value then s.value else seed);
+      emit;
+      sub;
+    }
   and emit x =
     if pred x then (
       s'.value <- x;
@@ -110,13 +120,14 @@ let filter_map f ~seed s =
   let subs = Subs.empty () in
   let sub k = Subs.add k subs in
   let rec s' =
-    { name = "filter_map"
-    ; value =
+    {
+      name = "filter_map";
+      value =
         (match f s.value with
         | Some x -> x
-        | None -> seed)
-    ; emit
-    ; sub
+        | None -> seed);
+      emit;
+      sub;
     }
   and emit x =
     s'.value <- x;
@@ -190,7 +201,8 @@ let map2 f s1 s2 =
 
 let map3 f s1 s2 s3 =
   let subs = Subs.empty () in
-  let rec s' = { name = "map3"; value = f s1.value s2.value s3.value; emit; sub }
+  let rec s' =
+    { name = "map3"; value = f s1.value s2.value s3.value; emit; sub }
   and emit x =
     s'.value <- x;
     Subs.dispatch x subs

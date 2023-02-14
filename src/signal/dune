@@ -1,5 +1,4 @@
-
 (library
  (public_name helix.signal)
  (name signal)
- (libraries ))
+ (libraries))
