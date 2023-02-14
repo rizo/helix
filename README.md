@@ -1,5 +1,7 @@
 # Helix
 
+Build reactive web interfaces in OCaml. 
+
 ## Example
 
 ```ocaml
