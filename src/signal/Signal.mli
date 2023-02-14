@@ -3,6 +3,8 @@
 type 'a t
 (** The type for signals that emit values of type ['a]. *)
 
+(** {2 Creating signals} *)
+
 val make : 'a -> 'a t
 (** [make x] is a signal with an initial value [x]. *)
 
@@ -28,17 +30,26 @@ val reducer : ('acc -> 'a -> 'acc) -> 'acc -> 'acc t * ('a -> unit)
     [init]. Whenever [dispatch] is called with a value, the accumulator is
     updated using [f] and emitted to [signal]. *)
 
-val emit : 'a -> 'a t -> unit
-(** [emit x s] emits value [x] to signal [s]. The emitted value will be
-    dispatched to all subscribers of [s]. *)
-
 val never : unit t
 (** [never] is a constant signal of [()]. It ignores it's subscribers and
     ignores values emitted to it. *)
 
-val const : 'a -> _ t -> 'a t
-(** [const x s] is a constant signal transformer for [s]. That is, it will
-    {e always} emits [x] whenever values are emitted to [s]. *)
+(** {2 Emitting values} *)
+
+val emit : 'a -> 'a t -> unit
+(** [emit x s] emits value [x] to signal [s]. The emitted value will be
+    dispatched to all subscribers of [s]. *)
+
+val update : ('a -> 'a) -> 'a t -> unit
+(** [update f s] changes the current value of [s] using [f], emitting the
+    result. *)
+
+(** {2 Getting values} *)
+
+val get : 'a t -> 'a
+(** [get s] is the current value of signal [s]. *)
+
+(** {2 Subscribing to values} *)
 
 val use : ('a -> unit) -> 'a t -> unit
 (** [use f s] permanently subscribes to [s] and immediately calls the callback
@@ -57,17 +68,24 @@ val sub2 : ('a -> 'b -> unit) -> 'a t -> 'b t -> unit
     calling [f], instead [f] is called when new values are emitted to [s1] or
     [s2]. *)
 
-val get : 'a t -> 'a
-(** [get s] is the current value of signal [s]. *)
-
-val update : ('a -> 'a) -> 'a t -> unit
-(** [update f s] changes the current value of [s] using [f], emitting the
-    result. *)
+(** {2 Transforming signals} *)
 
 val map : ('a -> 'b) -> 'a t -> 'b t
 (** [map f s] is a signal derived from [s] with the values mapped using [f].
 
     Note that the resulting signal can be subsribed to independently from [s]. *)
+
+val map2 : ('a -> 'b -> 'r) -> 'a t -> 'b t -> 'r t
+(** [map f s1 s2] is a signal that combines the values from [s1] and [s2] using
+    [f]. *)
+
+val map3 : ('a -> 'b -> 'c -> 'r) -> 'a t -> 'b t -> 'c t -> 'r t
+(** [map f s1 s2 s3] is a signal that combines the values from [s1], [s2] and
+    [s3] using [f]. *)
+
+val const : 'a -> _ t -> 'a t
+(** [const x s] is a constant signal transformer for [s]. That is, it will
+    {e always} emits [x] whenever values are emitted to [s]. *)
 
 val tap : ('a -> unit) -> 'a t -> 'a t
 (** [tap f s] intercepts all values emitted by signal [s] and calls the
@@ -93,16 +111,18 @@ val reduce : ('acc -> 'a -> 'acc) -> 'acc -> 'a t -> 'acc t
 
     Emitting values directly to this signal will reset the internal accumulator. *)
 
-val select : 'a t list -> 'a t
-(** [select l] is a signal that selects values emitted by all signals in list
-    [l].
-
-    @raise [Invalid_argument] if [l] is empty. *)
-
 val uniq : ?equal:('a -> 'a -> bool) -> 'a t -> 'a t
 (** [uniq ?equal s] is a signal that prevents emitting values to subscribers
     that are considered equal according to [equal]. By default physical equality
     is used for [equal]. *)
+
+(** {2 Combining signals} *)
+
+val select : 'a t list -> 'a t
+(** [select l] is a signal that selects values emitted by all signals in list
+    [l].
+
+    {b Raises}: [Invalid_argument] if [l] is empty. *)
 
 val pair : 'a t -> 'b t -> ('a * 'b) t
 (** [pair s1 s2] is a signal that combines the values from [s1] and [s2] and
@@ -112,14 +132,6 @@ val triple : 'a t -> 'b t -> 'c t -> ('a * 'b * 'c) t
 (** [triple s1 s2 s3] is a signal that combines the values from [s1], [s2] and
     [s3] and emits them as triple. *)
 
-val map2 : ('a -> 'b -> 'r) -> 'a t -> 'b t -> 'r t
-(** [map f s1 s2] is a signal that combines the values from [s1] and [s2] using
-    [f]. *)
-
-val map3 : ('a -> 'b -> 'c -> 'r) -> 'a t -> 'b t -> 'c t -> 'r t
-(** [map f s1 s2 s3] is a signal that combines the values from [s1], [s2] and
-    [s3] using [f]. *)
-
 val apply : ('a -> 'b) t -> 'a t -> 'b t
 (** [apply f_s x_s] is a signal produced from applying values from signal [x_s]
     to the functions in signal [f_s]. *)
@@ -128,9 +140,8 @@ val sample : on:_ t -> 'b t -> 'b t
 (** [sample ~on:s1 s2] samples values from [s2] any time a value is emitted to
     [s1]. *)
 
-(* val not *)
-
-(** {2 Syntax definitions} *)
+(* Currently defined in [Signal_syntax] for compatibility with ReScript. *)
+(* {2 Syntax definitions} *)
 
 (* module Syntax : sig
      (** Syntax for working with signal values.
