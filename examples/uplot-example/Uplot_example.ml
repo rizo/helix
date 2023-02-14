@@ -40,7 +40,6 @@ let data2 =
 let main () =
   let flag = Signal.make true in
   let uplot = ref None in
-  let mount_uplot el = uplot := Some (Uplot.make ~options ~data:data1 el) in
   let adjust_data flag =
     match !uplot with
     | None -> Console.log "uplot not loaded"
@@ -53,7 +52,7 @@ let main () =
       button
         [ on_click (fun _ -> Signal.update not flag) ]
         [ text "Toggle data" ];
-      div [ Attr.on_mount mount_uplot ] [];
+      div [ Uplot.mount ~options ~data:data1 uplot ] [];
     ]
 
 let () =

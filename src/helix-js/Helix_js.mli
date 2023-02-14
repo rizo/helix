@@ -25,6 +25,9 @@ val is_null : js -> bool
 val is_undefined : js -> bool
 (** [is_undefined t] is [t == undefined]. *)
 
+val is_defined : js -> bool
+(** [is_defined t] is [t /= undefined]. *)
+
 (** {2 Type helpers} *)
 
 val type_of : js -> string
@@ -139,6 +142,11 @@ module Obj : sig
 
   val del : t -> string -> unit
   val del_js : t -> js -> unit
+
+  (** {2 Check properties} *)
+
+  val has : t -> string -> bool
+  val has_js : t -> js -> bool
 
   (** {2 Function properties} *)
 

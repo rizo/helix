@@ -15,6 +15,7 @@ let type_of x = Helix_js_external.to_string (Helix_js_external.typeof x)
 let instance_of x ~constructor = Helix_js_external.instanceof x constructor
 let is_null v = v == null
 let is_undefined v = v == undefined
+let is_defined v = v != undefined
 
 exception Undefined_property of string
 
@@ -87,6 +88,16 @@ module Obj = struct
 
   let del = Helix_js_external.obj_del
   let del_js = Helix_js_external.obj_del
+
+  (* Has *)
+
+  let has obj k =
+    let x = Helix_js_external.obj_get obj k in
+    is_defined x
+
+  let has_js obj k_js =
+    let x = Helix_js_external.obj_get obj k_js in
+    is_defined x
 
   (* Function *)
 

@@ -4,3 +4,4 @@
 - [ ] Rename Html.fragment to list or inline. Fragments are not real document fragments.
 - [ ] Signal.not.
 - [ ] Test toggle + conditional attr.
+- [ ] Add Js.String module.
