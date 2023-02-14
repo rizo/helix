@@ -13,8 +13,7 @@
     { "dir": "src/signal", "public": [] },
     { "dir": "src/stdweb", "public": ["Stdweb"] },
     { "dir": "examples/demo-rescript", "public": [] },
-    { "dir": "examples/uplot-example", "public": [] },
-    { "dir": "tests", "public": [] }
+    { "dir": "examples/uplot-example", "public": [] }
   ],
   "package-specs": {
     "module": "es6",
