@@ -27,6 +27,6 @@ let counter () =
 
 let () =
   match Dom.Document.get_element_by_id "root" with
-  | Some root -> Html.render root (main ())
+  | Some root -> Html.render root (counter ())
   | None -> failwith "No #root element found"
 ```
