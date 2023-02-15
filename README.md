@@ -4,6 +4,10 @@
 
 Build reactive web interfaces in OCaml.
 
+> Note: this project is experimental. The core functionality is stable but the
+> API may break before the official release.
+
+
 ## Features
 
 - Reactive signals with
