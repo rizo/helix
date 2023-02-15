@@ -23,7 +23,6 @@ let counter () =
           span [ style [ ("margin-left", "5px") ] ] [ View.show int count ];
         ];
     ]
-    
 
 let () =
   match Dom.Document.get_element_by_id "root" with
