@@ -2,11 +2,10 @@
 
 **Build reactive web interfaces in OCaml.**
 
-[**API Docs**](https://odis-labs.github.io/helix/helix/Helix/index.html) • [**Examples**](https://github.com/odis-labs/helix/tree/master/examples)
-
 > Note: this project is experimental. The core functionality is stable but the
 > API may break before the official release.
 
+[**API Docs**](https://odis-labs.github.io/helix/helix/Helix/index.html) • [**Examples**](https://github.com/odis-labs/helix/tree/master/examples)
 
 ## Features
 
