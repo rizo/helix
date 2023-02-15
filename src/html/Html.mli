@@ -1,7 +1,4 @@
-(** Utilities for constructing and generating HTML content.
-
-    {b Note}: Whenever an element or attribute name conflicts with an OCaml
-    keyword we prime it, see for example {!type'}. *)
+(** Build HTML content. *)
 
 open Stdweb
 
