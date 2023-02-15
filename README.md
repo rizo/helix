@@ -68,7 +68,7 @@ let () =
 ## Acknowledgements
 
 This library is based on ideas found in other libraries and projects such as:
-[SolidJS](https://www.solidjs.com/),
+[Elm](https://elm-lang.org/), [SolidJS](https://www.solidjs.com/),
 [petite-vue](https://github.com/vuejs/petite-vue),
 [Surplus](https://github.com/adamhaile/surplus) libraries,
 [Brr](https://erratique.ch/software/brr) and [ReactJS](https://reactjs.org/).
