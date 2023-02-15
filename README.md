@@ -62,6 +62,7 @@ let () =
 
 ## Roadmap
 
+- An interactive demo to showcase the API.
 - Server-side rendering.
 - Declarative JS binding generation.
 - Support for scoped CSS styling using web-components.
