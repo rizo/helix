@@ -16,7 +16,7 @@ dynamic state in your application.
 - Declarative HTML with [`Helix.Html`](https://odis-labs.github.io/helix/helix/Helix/Html/index.html): write your HTML templates directly in OCaml.
 - Fine-grained reactivity without Virtual DOM using
   [`Helix.View`](https://odis-labs.github.io/helix/helix/Helix/View/index.html):
-updates are directly applied to the real DOM nodes and attributes based on
+updates are directly applied to the DOM tree based on
 values emited by reactive signals.
 - Js-compatibility library
   [`Helix.Js`](https://odis-labs.github.io/helix/helix/Helix/Js/index.html):
