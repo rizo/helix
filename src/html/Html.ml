@@ -120,6 +120,17 @@ let on_input = on Dom.Event.input
 let on_keydown = on Dom.Event.keydown
 
 type html = { mount : Dom.Node.t -> unit; remove : unit -> unit }
+type node = Dom.Node.t
+
+let node name (attrs : attr list) (children : node list) : node =
+  let elem = Dom.Document.create_element name in
+  let node = Dom.Element.to_node elem in
+
+  List.iter
+    (fun (child : node) -> Dom.Node.append_child ~parent:node child)
+    children;
+  List.iter (Attr.add elem) attrs;
+  node
 
 let elem name (attrs : attr list) (children : html list) : html =
   let elem = Dom.Document.create_element name in
@@ -279,7 +290,7 @@ let video attrs children = elem "video" attrs children
 let wbr attrs = elem "wbr" attrs []
 
 (* Extra constructors. *)
-module Node = struct
+module Elem = struct
   type t = html
 
   let of_some to_html option =

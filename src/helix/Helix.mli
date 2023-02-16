@@ -102,6 +102,8 @@ module View : sig
   (* val conditional : on:bool Signal.t -> 'a Signal.t -> Html.html *)
   (* val on : bool Signal.t -> Html.html -> Html.html *)
 
+  val conditional_node : on:bool Signal.t -> Html.attr
+
   val conditional : on:bool Signal.t -> Html.attr
   (** [conditional on:signal] an attribute that shows the element if [signal] is
       [true]. *)

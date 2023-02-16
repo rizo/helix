@@ -2,6 +2,8 @@
 
 open Stdweb
 
+type node = Dom.Node.t
+
 type html
 (** The type for HTML elements or character data. *)
 
@@ -250,6 +252,8 @@ module Attr : sig
 end
 
 (** {1:elem Elements} *)
+
+val node : string -> attr list -> node list -> node
 
 val elem : string -> attr list -> html list -> html
 (** [elem name attrs children] is an HTML element named [name] with attributes
@@ -641,7 +645,7 @@ val wbr : attr list -> html
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/wbr} wbr}. *)
 
 (** Additional element operations. *)
-module Node : sig
+module Elem : sig
   type t = html
   (** Type alias for HTML elements. *)
 

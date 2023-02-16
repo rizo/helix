@@ -32,7 +32,7 @@ let show (to_html : 'a -> Html.html) signal : Html.html =
 
   (* Create initial html. *)
   let init = to_html (Signal.get signal) in
-  let init = Html.Node.Internal.of_html init in
+  let init = Html.Elem.Internal.of_html init in
 
   (* Store reference to prev html. *)
   let prev = ref init in
@@ -52,7 +52,7 @@ let show (to_html : 'a -> Html.html) signal : Html.html =
       (fun x ->
         (* Create next html. *)
         let next = to_html x in
-        let next = Html.Node.Internal.of_html next in
+        let next = Html.Elem.Internal.of_html next in
 
         (* Remove prev node. *)
         !prev.remove ();
@@ -66,7 +66,7 @@ let show (to_html : 'a -> Html.html) signal : Html.html =
       signal
   in
   let remove () = !prev.remove () in
-  Html.Node.Internal.to_html { mount; remove }
+  Html.Elem.Internal.to_html { mount; remove }
 
 let gen_conditional_id =
   let i = ref (-1) in
@@ -125,7 +125,7 @@ let conditional ~on:active_sig : Attr.t =
    Node.append_child ~parent:fragment anchor;
    let prev_ref = ref None in
    if Signal.get condition_s then begin
-     let node0 = Html.Node.Internal.of_html html in
+     let node0 = Html.Elem.Internal.of_html html in
      Node.append_child ~parent:fragment node0;
      prev_ref := Some node0
    end;
@@ -137,7 +137,7 @@ let conditional ~on:active_sig : Attr.t =
          | None -> failwith "Html.show: cannot update unmounted element"
        in
        if condition then (
-         let next = Html.Node.Internal.of_html html in
+         let next = Html.Elem.Internal.of_html html in
          match !prev_ref with
          | None ->
            insert_after_anchor ~parent ~anchor next;
@@ -152,7 +152,7 @@ let conditional ~on:active_sig : Attr.t =
            Node.remove_child ~parent prev;
            prev_ref := None)
      condition_s;
-   Html.Node.Internal.to_html fragment
+   Html.Elem.Internal.to_html fragment
 *)
 
 module Each = struct
@@ -171,8 +171,8 @@ module Each = struct
     val make : unit -> t
     val set : t -> key:key -> slots -> unit
     val get : t -> key:key -> slots option
-    val get_slot : slots -> int * Html.Node.Internal.t
-    val add_slot : t -> key:key -> int -> Html.Node.Internal.t -> unit
+    val get_slot : slots -> int * Html.Elem.Internal.t
+    val add_slot : t -> key:key -> int -> Html.Elem.Internal.t -> unit
     val del_slot : t -> key:key -> slots -> int -> unit
     val clear : t -> unit
   end = struct
@@ -180,7 +180,7 @@ module Each = struct
     module Iterator = Stdweb.Iterator
 
     type key = string
-    type slots = Html.Node.Internal.t Map.t
+    type slots = Html.Elem.Internal.t Map.t
     type t = slots Js.Dict.t
 
     let key x = string_of_int (Hashtbl.hash x)
@@ -215,7 +215,7 @@ module Each = struct
       Js.Dict.iter cache (fun slots ->
           let values = Map.values slots in
           Iterator.iter
-            (fun (html : Html.Node.Internal.t) -> html.remove ())
+            (fun (html : Html.Elem.Internal.t) -> html.remove ())
             values;
           Map.clear slots)
   end
@@ -233,7 +233,7 @@ module Each = struct
     List.iteri
       (fun i item ->
         let key = Cache.key item in
-        let html = Html.Node.Internal.of_html (render item) in
+        let html = Html.Elem.Internal.of_html (render item) in
         html.mount fragment;
         Cache.add_slot !old_cache ~key i html)
       items0;
@@ -253,7 +253,7 @@ module Each = struct
               match Cache.get !old_cache ~key with
               | None ->
                 (* New. *)
-                let html = Html.Node.Internal.of_html (render item) in
+                let html = Html.Elem.Internal.of_html (render item) in
                 html.mount fragment;
                 Cache.add_slot new_cache ~key j html
               | Some old_slots ->
@@ -278,7 +278,7 @@ module Each = struct
         items_signal
     in
     let remove () = Cache.clear !old_cache in
-    Html.Node.Internal.to_html { mount; remove }
+    Html.Elem.Internal.to_html { mount; remove }
 end
 
 let each = Each.make
@@ -332,3 +332,52 @@ let toggle ~on:active_sig attr0 : Attr.t =
 
 let visible ~on:cond : Attr.t =
   toggle ~on:(Signal.map not cond) (Html.style [ ("display", "none") ])
+
+(* New experimental node api *)
+
+let conditional_node ~on:active_sig : Attr.t =
+  (* Dedup the boolean signal. *)
+  let active_sig = Signal.uniq ~equal:( == ) active_sig in
+
+  (* Anchor for the conditional node. *)
+  let anchor = Comment.to_node (Comment.make (gen_conditional_id ())) in
+
+  (* Initial state. *)
+  let should_activate0 = Signal.get active_sig in
+
+  let set elem =
+    let node = Element.to_node elem in
+
+    (* The node is mounted initially. Do we unmount? *)
+    (* if not should_activate0 then *)
+    (*   Node.replace_child ~parent ~reference:node anchor; *)
+
+    (* Subscribe to updates. *)
+    Signal.sub
+      (fun should_activate ->
+        let parent =
+          match Node.parent_node node with
+          | Some parent -> parent
+          | None ->
+            failwith
+              "[BUG]: View.conditional_node: element does not have a parent"
+        in
+
+        if should_activate then
+          Node.replace_child ~parent ~reference:anchor node
+        else Node.replace_child ~parent ~reference:node anchor)
+      active_sig
+  in
+  let remove elem =
+    let node = Element.to_node elem in
+    let parent =
+      match Node.parent_node node with
+      | Some parent -> parent
+      | None ->
+        failwith "[BUG]: View.conditional: element does not have a parent"
+    in
+    (* Put to the original state. *)
+    if not should_activate0 then
+      Node.replace_child ~parent ~reference:anchor node
+  in
+  Attr.Internal.to_attr { set; remove }
