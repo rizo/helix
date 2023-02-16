@@ -178,13 +178,14 @@ module Each = struct
   end = struct
     module Map = Stdweb.Map
     module Iterator = Stdweb.Iterator
+    module Dict = Stdweb.Dict
 
     type key = string
     type slots = Html.Elem.Internal.t Map.t
-    type t = slots Js.Dict.t
+    type t = slots Dict.t
 
     let key x = string_of_int (Hashtbl.hash x)
-    let make () = Js.Dict.empty ()
+    let make () = Dict.empty ()
     let make_slots = Map.make
 
     let get_slot slots =
@@ -195,8 +196,8 @@ module Each = struct
         let html = Map.get slots idx_js in
         (idx, html)
 
-    let set cache ~key slots = Js.Dict.set cache key slots
-    let get cache ~key = Js.Dict.get_opt cache key
+    let set cache ~key slots = Dict.set cache key slots
+    let get cache ~key = Dict.get_opt cache key
 
     let add_slot cache ~key idx html =
       let slots =
@@ -209,10 +210,10 @@ module Each = struct
 
     let del_slot cache ~key slots idx =
       Map.delete slots (Js.Encoder.int idx);
-      if Map.size slots = 0 then Js.Dict.del cache key
+      if Map.size slots = 0 then Dict.del cache key
 
     let clear cache =
-      Js.Dict.iter cache (fun slots ->
+      Dict.iter cache (fun slots ->
           let values = Map.values slots in
           Iterator.iter
             (fun (html : Html.Elem.Internal.t) -> html.remove ())

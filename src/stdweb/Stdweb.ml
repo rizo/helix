@@ -1,10 +1,146 @@
 module Js = Helix_js
+module Stdlib_obj = Obj
+module Stdlib_array = Array
 
 module Global = struct
   let this = Js.global_this
   let window = Js.global "window"
   let document = Js.global "document"
   let console = Js.global "console"
+end
+
+module Dict = struct
+  type 'a t = Js.Obj.t
+
+  let to_js p = p
+  let of_js js = js
+  let to_obj p = p
+  let of_obj obj = obj
+  let empty = Js.Obj.empty
+
+  let of_array arr =
+    let arr =
+      (Stdlib_obj.magic : (string * 'a) array -> (string * Js.t) array) arr
+    in
+    Js.Obj.of_array arr
+
+  let of_list l = of_array (Stdlib_array.of_list l)
+  let get dict key = Js.Obj.get dict key Js.Decoder.any
+  let get_opt dict key = Js.Obj.get_opt dict key Js.Decoder.any
+  let set dict key x = Js.Obj.set dict key Js.Encoder.any x
+  let del = Js.Obj.del
+
+  let entry_of_js entry_js =
+    match Js.Decoder.array_js entry_js with
+    | [| key; v |] -> (Js.Decoder.string key, Js.Decoder.any v)
+    | _ -> invalid_arg "Object entries is not a pair"
+
+  let entries dict =
+    Js.Obj.call1 Js.Obj.t "entries"
+      ~return:(Js.Decoder.array entry_of_js)
+      Js.Encoder.js dict
+
+  let keys dict =
+    Js.Obj.call1 Js.Obj.t "keys"
+      ~return:Js.Decoder.(array string)
+      Js.Encoder.js dict
+
+  let values dict =
+    Js.Obj.call1 Js.Obj.t "values"
+      ~return:Js.Decoder.(array any)
+      Js.Encoder.js dict
+
+  let map dict f =
+    let out = empty () in
+    let keys = keys dict in
+    for i = 0 to Stdlib_array.length keys - 1 do
+      let key = Stdlib_array.unsafe_get keys i in
+      let x = get dict key in
+      let x' = f x in
+      set out key x'
+    done;
+    out
+
+  let update dict f =
+    let keys = keys dict in
+    for i = 0 to Stdlib_array.length keys - 1 do
+      let key = Stdlib_array.unsafe_get keys i in
+      let x = get dict key in
+      let x' = f x in
+      set dict key x'
+    done
+
+  let fold_left dict f init =
+    let acc = ref init in
+    let values = values dict in
+    for i = 0 to Stdlib_array.length values - 1 do
+      let x = Stdlib_array.unsafe_get values i in
+      acc := f !acc x
+    done;
+    !acc
+
+  let iter dict f =
+    let values = values dict in
+    for i = 0 to Stdlib_array.length values - 1 do
+      let x = Stdlib_array.unsafe_get values i in
+      f x
+    done
+end
+
+module Array = struct
+  type 'a t = Js.t
+
+  let t = Js.global "Array"
+  let to_js p = p
+  let of_js js = js
+  let make n = Js.Obj.new1 t Js.Encoder.int n
+  let empty () = make 0
+
+  let set arr (i : int) x =
+    Js.Obj.set_js arr (Js.Encoder.int i) (Js.Encoder.any x)
+
+  let init n f =
+    let out = make n in
+    for i = 0 to n - 1 do
+      set out i (f i)
+    done;
+    out
+
+  let get arr i = Js.Decoder.any (Js.Obj.get_js arr (Js.Encoder.int i))
+
+  let get_opt arr i =
+    let x = get arr i in
+    let x_js = Js.Encoder.any x in
+    if Js.is_undefined x_js then raise Not_found else x
+
+  let push arr x = Js.Obj.call1_unit arr "push" Js.Encoder.any x
+  let pop arr = Js.Obj.call0 arr "pop" ~return:Js.Decoder.any ()
+  let pop_opt arr = Js.Obj.call0 arr "pop" ~return:Js.Decoder.(optional any) ()
+  let length arr = Js.Obj.get arr "length" Js.Decoder.int
+  let iter arr f = Js.Obj.call1_unit arr "forEach" Js.Encoder.fun1 f
+
+  let of_list l =
+    match l with
+    | [] -> empty ()
+    | hd :: tl ->
+      let out = make 1 in
+      set out 0 hd;
+      List.iteri (fun i x -> set out (i + 1) x) tl;
+      out
+end
+
+module Promise = struct
+  type 'a t = Js.t
+  type ('a, 'err) executor = ('a -> unit) -> ('err -> unit) -> unit
+
+  let to_js p = p
+  let of_js js = js
+  let t = Js.global "Promise"
+  let make executor = Js.Obj.new1 t Js.Encoder.fun1 executor
+  let resolve v = Js.Obj.call1 t "resolve" ~return:of_js Js.Encoder.any v
+  let reject err = Js.Obj.call1 t "reject" ~return:of_js Js.Encoder.any err
+  let and_then f p = Js.Obj.call1 p "then" ~return:of_js Js.Encoder.fun1 f
+  let use f p = Js.Obj.call1_unit p "then" Js.Encoder.fun1 f
 end
 
 module Dom = struct
@@ -258,10 +394,14 @@ module Dom = struct
 end
 
 module Console = struct
-  type t
-
   let t = Global.console
-  let log x = Js.Obj.call_js_unit Global.console "log" [| Js.Encoder.any x |]
+  let log x = Js.Obj.call1_unit t "log" Js.Encoder.any x
+  let error x = Js.Obj.call1_unit t "error" Js.Encoder.any x
+  let info x = Js.Obj.call1_unit t "info" Js.Encoder.any x
+  let warn x = Js.Obj.call1_unit t "warn" Js.Encoder.any x
+
+  let ensure b x =
+    Js.Obj.call2_unit t "assert" Js.Encoder.bool Js.Encoder.any b x
 end
 
 module Iterator = struct

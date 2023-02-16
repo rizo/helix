@@ -1,10 +1,112 @@
 module Js = Helix_js
 
 module Console : sig
-  type t
+  val t : Js.t
+  (** See {{:https://developer.mozilla.org/en-US/docs/Web/API/console}
+      [console]}. *)
+
+  val log : 'a -> unit
+  (** See {{:https://developer.mozilla.org/en-US/docs/Web/API/console/log}
+      [log]}. *)
+
+  val error : 'a -> unit
+  (** See {{:https://developer.mozilla.org/en-US/docs/Web/API/console/error}
+      [error]}. *)
+
+  val info : 'a -> unit
+  (** See {{:https://developer.mozilla.org/en-US/docs/Web/API/console/info}
+      [info]}. *)
+
+  val warn : 'a -> unit
+  (** See {{:https://developer.mozilla.org/en-US/docs/Web/API/console/warn}
+      [warn]}. *)
+
+  val ensure : bool -> 'a -> unit
+  (** See {{:https://developer.mozilla.org/en-US/docs/Web/API/console/assert}
+      [assert]}. *)
+end
+
+module Array : sig
+  type 'a t
+
+  val of_js : Js.t -> 'a t
+  val to_js : 'a t -> Js.t
+  val empty : unit -> 'a t
+  val make : int -> 'a t
+  val init : int -> (int -> 'a) -> 'a t
+  val of_list : 'a list -> 'a t
+  val length : 'a t -> int
+  val get : 'a t -> int -> 'a
+  val get_opt : 'a t -> int -> 'a option
+  val set : 'a t -> int -> 'a -> unit
+  val push : 'a t -> 'a -> unit
+  val pop : 'a t -> 'a
+  val pop_opt : 'a t -> 'a option
+  val iter : 'a t -> ('a -> unit) -> unit
+end
+
+module Dict : sig
+  type 'a t
+
+  val of_js : Js.t -> 'a t
+  val to_js : 'a t -> Js.t
+  val of_obj : Js.Obj.t -> 'a t
+  val to_obj : 'a t -> Js.Obj.t
+  val empty : unit -> 'a t
+  val of_list : (string * 'a) list -> 'a t
+  val of_array : (string * 'a) array -> 'a t
+  val get : 'a t -> string -> 'a
+  val get_opt : 'a t -> string -> 'a option
+  val set : 'a t -> string -> 'a -> unit
+  val del : 'a t -> string -> unit
+  val entries : 'a t -> (string * 'a) array
+  val keys : 'a t -> string array
+  val values : 'a t -> 'a array
+  val map : 'a t -> ('a -> 'b) -> 'b t
+  val update : 'a t -> ('a -> 'a) -> unit
+  val fold_left : 'a t -> ('acc -> 'a -> 'acc) -> 'acc -> 'acc
+  val iter : 'a t -> ('a -> unit) -> unit
+end
+
+module Promise : sig
+  type 'a t
+  type ('a, 'err) executor = ('a -> unit) -> ('err -> unit) -> unit
 
   val t : Js.t
-  val log : 'a -> unit
+  val of_js : Js.t -> 'a t
+  val to_js : 'a t -> Js.t
+  val make : ('a, 'err) executor -> 'a t
+  val resolve : 'a -> 'a t
+  val reject : 'err -> 'a t
+  val and_then : ('a -> 'b t) -> 'a t -> 'b t
+  val use : ('a -> unit) -> 'a t -> unit
+end
+
+module Iterator : sig
+  type 'a t
+  type 'a next
+
+  val next : 'a t -> 'a next
+  val next_is_done : 'a next -> bool
+  val next_value : 'a next -> 'a
+  val iter : ('a -> unit) -> 'a t -> unit
+end
+
+module Map : sig
+  type 'a t
+
+  val t : Js.t
+  val of_js : Js.t -> 'a t
+  val to_js : 'a t -> Js.t
+  val make : unit -> 'a t
+  val clear : 'a t -> unit
+  val set : 'a t -> Js.t -> 'a -> unit
+  val get : 'a t -> Js.t -> 'a
+  val delete : 'a t -> Js.t -> unit
+  val keys : 'a t -> Js.t Iterator.t
+  val size : 'a t -> int
+  val values : 'a t -> 'a Iterator.t
+  val first_key : 'a t -> Js.t option
 end
 
 module Dom : sig
@@ -227,31 +329,4 @@ module Global : sig
   val this : Js.t
   val document : Dom.Document.t
   val window : Dom.Window.t
-end
-
-module Iterator : sig
-  type 'a t
-  type 'a next
-
-  val next : 'a t -> 'a next
-  val next_is_done : 'a next -> bool
-  val next_value : 'a next -> 'a
-  val iter : ('a -> unit) -> 'a t -> unit
-end
-
-module Map : sig
-  type 'a t
-
-  val t : Js.t
-  val of_js : Js.t -> 'a t
-  val to_js : 'a t -> Js.t
-  val make : unit -> 'a t
-  val clear : 'a t -> unit
-  val set : 'a t -> Js.t -> 'a -> unit
-  val get : 'a t -> Js.t -> 'a
-  val delete : 'a t -> Js.t -> unit
-  val keys : 'a t -> Js.t Iterator.t
-  val size : 'a t -> int
-  val values : 'a t -> 'a Iterator.t
-  val first_key : 'a t -> Js.t option
 end

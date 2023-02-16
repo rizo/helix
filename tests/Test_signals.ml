@@ -6,10 +6,13 @@ open struct
 
   let expect msg e a =
     if e <> !a then
-      let e_js = Js.Array.of_list e in
-      let a_js = Js.Array.of_list !a in
-      Js.log2 (Js.Encoder.string msg)
-        (Js.Dict.of_array [| ("expected", e_js); ("actual", a_js) |])
+      let e_js = Stdweb.Array.of_list e in
+      let a_js = Stdweb.Array.of_list !a in
+      let out =
+        Js.Encoder.(pair string Stdweb.Dict.to_js)
+          (msg, Stdweb.Dict.of_array [| ("expected", e_js); ("actual", a_js) |])
+      in
+      Js.log out
 
   let reject msg = Js.log ("rejected: " ^ msg)
   let push out x = out := List.append !out [ x ]
@@ -183,17 +186,16 @@ let test_map_emit_3 () =
   Signal.emit 10 s;
   Signal.emit "100" s';
   expect "map_emit_3"
-    [
-      `i 1;
-      `i 1;
-      `s "1";
-      `s "1";
-      `i 10;
-      `i 10;
-      `s "10";
-      `s "10";
-      `s "100";
-      `s "100";
+    [ `i 1
+    ; `i 1
+    ; `s "1"
+    ; `s "1"
+    ; `i 10
+    ; `i 10
+    ; `s "10"
+    ; `s "10"
+    ; `s "100"
+    ; `s "100"
     ]
     o
 
@@ -283,18 +285,17 @@ let test_select_2 () =
   Signal.emit 31 s3;
   Signal.emit 40 s4;
   expect "select_2"
-    [
-      `s1 10;
-      `s2 20;
-      `s3 30;
-      `s4 10;
-      `s1 11;
-      `s4 11;
-      `s2 21;
-      `s4 21;
-      `s3 31;
-      `s4 31;
-      `s4 40;
+    [ `s1 10
+    ; `s2 20
+    ; `s3 30
+    ; `s4 10
+    ; `s1 11
+    ; `s4 11
+    ; `s2 21
+    ; `s4 21
+    ; `s3 31
+    ; `s4 31
+    ; `s4 40
     ]
     o
 

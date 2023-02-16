@@ -15,23 +15,34 @@ exception Undefined_property of string
     encountered. *)
 
 val debugger : unit -> unit
+(** See
+    {{:https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/debugger}
+    [debugger]}. *)
+
 val log : 'a -> unit
-val log2 : 'a -> 'b -> unit
-val log3 : 'a -> 'b -> 'c -> unit
+(** See {{:https://developer.mozilla.org/en-US/docs/Web/API/Console/log}
+    [console.log]}. *)
 
 val is_null : js -> bool
-(** [is_null t] is [t == null]. *)
+(** [is_null js] is [js == null]. *)
 
 val is_undefined : js -> bool
-(** [is_undefined t] is [t == undefined]. *)
+(** [is_undefined js] is [js == undefined]. *)
 
 val is_defined : js -> bool
-(** [is_defined t] is [t /= undefined]. *)
+(** [is_defined js] is [js != undefined]. *)
 
 (** {2 Type helpers} *)
 
 val type_of : js -> string
-val instance_of : js -> constructor:js -> bool
+(** See
+    {{:https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof}
+    [typeof]}. *)
+
+val instance_of : js -> constr:js -> bool
+(** See
+    {{:https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof}
+    [instanceof]}. *)
 
 (** {2 Equality} *)
 
@@ -108,10 +119,24 @@ end
 
 module Obj : sig
   type t = js
+  (** JavaScript objects. *)
+
+  val t : t
+  (** See
+      {{:https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object}
+      [Object]}. *)
+
+  val of_js : js -> t
+  val to_js : t -> js
 
   val empty : unit -> t
+  (** [empty ()] is [{}] in JavaScript. *)
+
   val of_list : (string * js) list -> t
+  (** Create an object from a list of entries. *)
+
   val of_array : (string * js) array -> t
+  (** Create an object from a array of entries. *)
 
   (** {2 Get properties} *)
 
@@ -154,263 +179,263 @@ module Obj : sig
   val call1 : t -> string -> return:'r decoder -> 'a encoder -> 'a -> 'r
 
   val call2 :
-    t ->
-    string ->
-    return:'r decoder ->
-    'a encoder ->
-    'b encoder ->
-    'a ->
-    'b ->
-    'r
+       t
+    -> string
+    -> return:'r decoder
+    -> 'a encoder
+    -> 'b encoder
+    -> 'a
+    -> 'b
+    -> 'r
 
   val call3 :
-    t ->
-    string ->
-    return:'r decoder ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'r
+       t
+    -> string
+    -> return:'r decoder
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'r
 
   val call4 :
-    t ->
-    string ->
-    return:'r decoder ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'r
+       t
+    -> string
+    -> return:'r decoder
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'r
 
   val call5 :
-    t ->
-    string ->
-    return:'r decoder ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'r
+       t
+    -> string
+    -> return:'r decoder
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'r
 
   val call6 :
-    t ->
-    string ->
-    return:'r decoder ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'f encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'f ->
-    'r
+       t
+    -> string
+    -> return:'r decoder
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'r
 
   val call7 :
-    t ->
-    string ->
-    return:'r decoder ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'f encoder ->
-    'g encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'f ->
-    'g ->
-    'r
+       t
+    -> string
+    -> return:'r decoder
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'g encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'g
+    -> 'r
 
   val call8 :
-    t ->
-    string ->
-    return:'r decoder ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'f encoder ->
-    'g encoder ->
-    'h encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'f ->
-    'g ->
-    'h ->
-    'r
+       t
+    -> string
+    -> return:'r decoder
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'g encoder
+    -> 'h encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'g
+    -> 'h
+    -> 'r
 
   val call9 :
-    t ->
-    string ->
-    return:'r decoder ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'f encoder ->
-    'g encoder ->
-    'h encoder ->
-    'i encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'f ->
-    'g ->
-    'h ->
-    'i ->
-    'r
+       t
+    -> string
+    -> return:'r decoder
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'g encoder
+    -> 'h encoder
+    -> 'i encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'g
+    -> 'h
+    -> 'i
+    -> 'r
 
   val call0_unit : t -> string -> unit -> unit
   val call1_unit : t -> string -> 'a encoder -> 'a -> unit
   val call2_unit : t -> string -> 'a encoder -> 'b encoder -> 'a -> 'b -> unit
 
   val call3_unit :
-    t ->
-    string ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'a ->
-    'b ->
-    'c ->
-    unit
+       t
+    -> string
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> unit
 
   val call4_unit :
-    t ->
-    string ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    unit
+       t
+    -> string
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> unit
 
   val call5_unit :
-    t ->
-    string ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    unit
+       t
+    -> string
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> unit
 
   val call6_unit :
-    t ->
-    string ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'f encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'f ->
-    unit
+       t
+    -> string
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> unit
 
   val call7_unit :
-    t ->
-    string ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'f encoder ->
-    'g encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'f ->
-    'g ->
-    unit
+       t
+    -> string
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'g encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'g
+    -> unit
 
   val call8_unit :
-    t ->
-    string ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'f encoder ->
-    'g encoder ->
-    'h encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'f ->
-    'g ->
-    'h ->
-    unit
+       t
+    -> string
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'g encoder
+    -> 'h encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'g
+    -> 'h
+    -> unit
 
   val call9_unit :
-    t ->
-    string ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'f encoder ->
-    'g encoder ->
-    'h encoder ->
-    'i encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'f ->
-    'g ->
-    'h ->
-    'i ->
-    unit
+       t
+    -> string
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'g encoder
+    -> 'h encoder
+    -> 'i encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'g
+    -> 'h
+    -> 'i
+    -> unit
 
   val call_js : t -> string -> t array -> js
   val call_js_unit : t -> string -> t array -> unit
@@ -423,106 +448,106 @@ module Obj : sig
   val new3 : t -> 'a encoder -> 'b encoder -> 'c encoder -> 'a -> 'b -> 'c -> t
 
   val new4 :
-    t ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    t
+       t
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> t
 
   val new5 :
-    t ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    t
+       t
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> t
 
   val new6 :
-    t ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'f encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'f ->
-    t
+       t
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> t
 
   val new7 :
-    t ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'f encoder ->
-    'g encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'f ->
-    'g ->
-    t
+       t
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'g encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'g
+    -> t
 
   val new8 :
-    t ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'f encoder ->
-    'g encoder ->
-    'h encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'f ->
-    'g ->
-    'h ->
-    t
+       t
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'g encoder
+    -> 'h encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'g
+    -> 'h
+    -> t
 
   val new9 :
-    t ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'f encoder ->
-    'g encoder ->
-    'h encoder ->
-    'i encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'f ->
-    'g ->
-    'h ->
-    'i ->
-    t
+       t
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'g encoder
+    -> 'h encoder
+    -> 'i encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'g
+    -> 'h
+    -> 'i
+    -> t
 
   val new_js : t -> t array -> t
 end
@@ -531,6 +556,7 @@ end
 
 module Fun : sig
   type t = js
+  (* JavaScript functions. *)
 
   val call0 : t -> return:'r decoder -> unit -> 'r
   val call1 : t -> return:'r decoder -> 'a encoder -> 'a -> 'r
@@ -539,160 +565,233 @@ module Fun : sig
     t -> return:'r decoder -> 'a encoder -> 'b encoder -> 'a -> 'b -> 'r
 
   val call3 :
-    t ->
-    return:'r decoder ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'r
+       t
+    -> return:'r decoder
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'r
 
   val call4 :
-    t ->
-    return:'r decoder ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'r
+       t
+    -> return:'r decoder
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'r
 
   val call5 :
-    t ->
-    return:'r decoder ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'r
+       t
+    -> return:'r decoder
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'r
 
   val call6 :
-    t ->
-    return:'r decoder ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'f encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'f ->
-    'r
+       t
+    -> return:'r decoder
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'r
 
   val call7 :
-    t ->
-    return:'r decoder ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'f encoder ->
-    'g encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'f ->
-    'g ->
-    'r
+       t
+    -> return:'r decoder
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'g encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'g
+    -> 'r
 
   val call8 :
-    t ->
-    return:'r decoder ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'f encoder ->
-    'g encoder ->
-    'h encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'f ->
-    'g ->
-    'h ->
-    'r
+       t
+    -> return:'r decoder
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'g encoder
+    -> 'h encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'g
+    -> 'h
+    -> 'r
 
   val call9 :
-    t ->
-    return:'r decoder ->
-    'a encoder ->
-    'b encoder ->
-    'c encoder ->
-    'd encoder ->
-    'e encoder ->
-    'f encoder ->
-    'g encoder ->
-    'h encoder ->
-    'i encoder ->
-    'a ->
-    'b ->
-    'c ->
-    'd ->
-    'e ->
-    'f ->
-    'g ->
-    'h ->
-    'i ->
-    'r
+       t
+    -> return:'r decoder
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'g encoder
+    -> 'h encoder
+    -> 'i encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'g
+    -> 'h
+    -> 'i
+    -> 'r
+
+  val call0_unit : t -> unit -> unit
+  val call1_unit : t -> 'a encoder -> 'a -> unit
+  val call2_unit : t -> 'a encoder -> 'b encoder -> 'a -> 'b -> unit
+
+  val call3_unit :
+    t -> 'a encoder -> 'b encoder -> 'c encoder -> 'a -> 'b -> 'c -> unit
+
+  val call4_unit :
+       t
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> unit
+
+  val call5_unit :
+       t
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> unit
+
+  val call6_unit :
+       t
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> unit
+
+  val call7_unit :
+       t
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'g encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'g
+    -> unit
+
+  val call8_unit :
+       t
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'g encoder
+    -> 'h encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'g
+    -> 'h
+    -> unit
+
+  val call9_unit :
+       t
+    -> 'a encoder
+    -> 'b encoder
+    -> 'c encoder
+    -> 'd encoder
+    -> 'e encoder
+    -> 'f encoder
+    -> 'g encoder
+    -> 'h encoder
+    -> 'i encoder
+    -> 'a
+    -> 'b
+    -> 'c
+    -> 'd
+    -> 'e
+    -> 'f
+    -> 'g
+    -> 'h
+    -> 'i
+    -> unit
 
   val call_js : t -> js array -> js
   val call_js_unit : t -> js array -> unit
-end
-
-module Array : sig
-  type 'a t
-
-  val empty : unit -> 'a t
-  val make : int -> 'a t
-  val init : int -> (int -> 'a) -> 'a t
-  val of_list : 'a list -> 'a t
-  val length : 'a t -> int
-  val get : 'a t -> int -> 'a
-  val get_opt : 'a t -> int -> 'a option
-  val set : 'a t -> int -> 'a -> unit
-  val push : 'a t -> 'a -> unit
-  val pop : 'a t -> 'a
-  val pop_opt : 'a t -> 'a option
-  val iter : 'a t -> ('a -> unit) -> unit
-end
-
-module Dict : sig
-  type 'a t
-
-  val empty : unit -> 'a t
-  val of_list : (string * 'a) list -> 'a t
-  val of_array : (string * 'a) array -> 'a t
-  val get : 'a t -> string -> 'a
-  val get_opt : 'a t -> string -> 'a option
-  val set : 'a t -> string -> 'a -> unit
-  val del : 'a t -> string -> unit
-  val entries : 'a t -> (string * 'a) array
-  val keys : 'a t -> string array
-  val values : 'a t -> 'a array
-  val map : 'a t -> ('a -> 'b) -> 'b t
-  val update : 'a t -> ('a -> 'a) -> unit
-  val fold_left : 'a t -> ('acc -> 'a -> 'acc) -> 'acc -> 'acc
-  val iter : 'a t -> ('a -> unit) -> unit
 end
