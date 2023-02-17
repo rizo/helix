@@ -38,6 +38,18 @@ module Jsx_runtime = struct
 
   let fragment ~loc =
     Builder.pexp_ident ~loc { loc; txt = Ldot (Lident "Jsx", "fragment") }
+
+  let syntax_option1 ~loc =
+    Builder.pexp_ident ~loc
+      { loc; txt = Ldot (Ldot (Lident "Jsx", "Syntax"), "option1") }
+
+  let syntax_option2 ~loc =
+    Builder.pexp_ident ~loc
+      { loc; txt = Ldot (Ldot (Lident "Jsx", "Syntax"), "option2") }
+
+  let syntax_option3 ~loc =
+    Builder.pexp_ident ~loc
+      { loc; txt = Ldot (Ldot (Lident "Jsx", "Syntax"), "option3") }
 end
 
 let getLabel str =
@@ -83,12 +95,48 @@ let transformChildrenIfList ~loc ~mapper theList =
   in
   transformChildren_ theList []
 
-let transformPropToApply ~loc (arg_lab, exp) =
-  let lab = getLabel arg_lab in
-  [ Builder.pexp_apply ~loc (Jsx_runtime.attr lab ~loc) [ (Nolabel, exp) ] ]
+let prop_to_apply ~loc:loc0 (arg_l, arg_e) =
+  match (arg_l, arg_e) with
+  (* ?l:(val_1, val_2) *)
+  | ( Optional l
+    , { pexp_desc = Pexp_tuple [ val_1; val_2 ]
+      ; pexp_loc = loc
+      ; pexp_attributes
+      ; pexp_loc_stack = _
+      } ) ->
+    let syn_fun = Jsx_runtime.syntax_option2 ~loc in
+    let syn_attr = Jsx_runtime.attr l ~loc in
+    Builder.pexp_apply ~loc:loc0 syn_fun ~attrs:pexp_attributes
+      [ (Labelled "attr", syn_attr); (Nolabel, val_1); (Nolabel, val_2) ]
+  (* ?l:(val_1, val_2, val_3) *)
+  | ( Optional l
+    , { pexp_desc = Pexp_tuple [ val_1; val_2; val_3 ]
+      ; pexp_loc = loc
+      ; pexp_attributes
+      ; pexp_loc_stack = _
+      } ) ->
+    let syn_fun = Jsx_runtime.syntax_option3 ~loc in
+    let syn_attr = Jsx_runtime.attr l ~loc in
+    Builder.pexp_apply ~loc:loc0 syn_fun ~attrs:pexp_attributes
+      [ (Labelled "attr", syn_attr)
+      ; (Nolabel, val_1)
+      ; (Nolabel, val_2)
+      ; (Nolabel, val_3)
+      ]
+  (* ?l:val_1 *)
+  | Optional l, val_1 ->
+    let syn_fun = Jsx_runtime.syntax_option1 ~loc:loc0 in
+    let syn_attr = Jsx_runtime.attr l ~loc:loc0 in
+    Builder.pexp_apply ~loc:loc0 syn_fun
+      [ (Labelled "attr", syn_attr); (Nolabel, val_1) ]
+  (* ~l *)
+  | Labelled l, _ ->
+    let attr_fun = Jsx_runtime.attr l ~loc:loc0 in
+    Builder.pexp_apply ~loc:loc0 attr_fun [ (Nolabel, arg_e) ]
+  | Nolabel, _ -> assert false
 
-let transformPropsToArray ~loc (props : (arg_label * expression) list) =
-  let propsApplies = List.concat_map (transformPropToApply ~loc) props in
+let prop_list_to_array ~loc (props : (arg_label * expression) list) =
+  let propsApplies = List.map (prop_to_apply ~loc) props in
   Builder.pexp_array ~loc propsApplies
 
 let extractChildren ?(removeLastPositionUnit = false) ~loc propsAndChildren =
@@ -224,7 +272,7 @@ let rewritter =
         Ldot (fullPath, caller)
       | modulePath -> modulePath
     in
-    let propsArray = transformPropsToArray ~loc props in
+    let propsArray = prop_list_to_array ~loc props in
     (* handle key, ref, children *)
     (* React.createElement(Component.make, props, ...children) *)
     match childrenExpr with
@@ -240,6 +288,9 @@ let rewritter =
   in
 
   let transformLowercaseCall3 mapper loc attrs callArguments id =
+    List.iter
+      (fun (l, e) -> pr "args: %s = %a" (getLabel l) Pprintast.expression e)
+      callArguments;
     let children, nonChildrenProps =
       extractChildren ~removeLastPositionUnit:true ~loc callArguments
     in
@@ -262,9 +313,8 @@ let rewritter =
     in
     let props =
       nonChildrenProps
-      |> List.map (fun (label, expression) ->
-             (label, mapper#expression expression))
-      |> transformPropsToArray ~loc
+      |> List.map (fun (label, e) -> (label, mapper#expression e))
+      |> prop_list_to_array ~loc
     in
     let args =
       match childrenExpr with

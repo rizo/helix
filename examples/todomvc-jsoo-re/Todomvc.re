@@ -1,7 +1,7 @@
 open Helix;
 module Dom = Stdweb.Dom;
 
-module X = Jsx_text;
+// module X = Jsx_text;
 
 module Jsx = {
   let fragment = arr => Html.fragment(Array.to_list(arr));
@@ -26,13 +26,24 @@ module Jsx = {
     let on_click = Html.on_click;
     let autofocus = v => if (v) {Html.autofocus} else {Html.Attr.empty};
   };
+  module Syntax = {
+    let option1 = (~attr, opt) =>
+      switch (opt) {
+      | Some(x) => attr(x)
+      | None => Html.Attr.empty
+      };
+
+    let option2 = (~attr, v1, v2) => View.toggle(~on=v1, attr(v2));
+  };
   let text = Html.text;
 };
 
 let main = () => {
   let flag = Signal.make(false);
-  <section class_list=["todoapp"]>
-    <header class_list=["header"]>
+  let class_list = ["todoapp"];
+  let class_list_header = ["header"];
+  <section class_list>
+    <header class_list=class_list_header>
       <h1> {Html.text("todos")} </h1>
       <input
         autofocus=true
@@ -45,6 +56,9 @@ let main = () => {
       style=[("padding", "2em"), ("border", "1px solid grey")]>
       {Html.text("click")}
     </button>
+    <div style=?(flag, [("background", "red")])>
+      {Html.text("hello")}
+    </div>
   </section>;
 };
 
