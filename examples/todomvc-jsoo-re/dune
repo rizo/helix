@@ -1,0 +1,12 @@
+; Todomvc jsoo
+
+(executable
+ (name todomvc)
+ (libraries helix helix.stdweb helix.jsoo)
+ (preprocess
+  (pps helix.ppx))
+ (modes js))
+
+(alias
+ (name all)
+ (deps index.html index.css))

@@ -1,7 +1,7 @@
 module Event = Stdweb.Dom.Event
 open Helix
 open Stdweb
-open Signal_syntax
+open Signal.Syntax
 
 module Todos = struct
   type t =

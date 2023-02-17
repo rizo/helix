@@ -3,7 +3,7 @@
    "repositories": [
      {
        "url": "https://github.com/ocaml/opam-repository.git",
-       "rev": "ed47929e043d7aed08f19f441dd3d4355948e7a3"
+       "rev": "0fd96b90e04599bcce3b6ae8ba54febdafeddb11"
      }
    ],
    "packages" : {
@@ -126,10 +126,10 @@
        ]
      },
      "dune": {
-       "version": "3.6.2",
+       "version": "dev",
        "src": {
-         "url": "https://github.com/ocaml/dune/releases/download/3.6.2/dune-3.6.2.tbz",
-         "sha256": "b6d4ab848efb04aa2a325d0015d32ed4414ed7130ec7aa12f98158eff445cf3c"
+         "url": "git+https://github.com/ocaml/dune.git",
+         "rev": "05797cd3f505beca4d6d62c576506d7608a6d29d"
        },
        "depends": [
          "base-threads",
@@ -265,11 +265,13 @@
        "version": "dev",
        "src": { "url": "file://." },
        "depends": [
-         "ocaml"
+         "ocaml",
+         "ppxlib"
        ],
        "build-depends": [
          "dune",
-         "js_of_ocaml-compiler"
+         "js_of_ocaml-compiler",
+         "reason"
        ],
        "dev-setup-depends": [
          "ocaml-lsp-server",
@@ -341,6 +343,21 @@
          "ocaml"
        ],
        "build-depends": [
+         "dune"
+       ]
+     },
+     "merlin-extend": {
+       "version": "0.6.1",
+       "src": {
+         "url": "https://github.com/let-def/merlin-extend/releases/download/v0.6.1/merlin-extend-0.6.1.tbz",
+         "sha256": "5ec84b355ddb2d129a5948b132bfacc93adcbde2158c7de695f7bfc3650bead7"
+       },
+       "depends": [
+         "dune",
+         "ocaml"
+       ],
+       "build-depends": [
+         "cppo",
          "dune"
        ]
      },
@@ -417,10 +434,10 @@
        ]
      },
      "ocaml-version": {
-       "version": "3.6.0",
+       "version": "3.5.0",
        "src": {
-         "url": "https://github.com/ocurrent/ocaml-version/releases/download/v3.6.0/ocaml-version-3.6.0.tbz",
-         "sha256": "9c6a9c4e34444618c17fc15e8c5aebc879efd427087be083dae61ab65289dbfa"
+         "url": "https://github.com/ocurrent/ocaml-version/releases/download/v3.5.0/ocaml-version-3.5.0.tbz",
+         "sha256": "d63ca1c3970d6b14057f7176bfdae623e6c0176287c6a6e8b78cf50e2f7f635b"
        },
        "depends": [
          "dune",
@@ -635,10 +652,10 @@
        ]
      },
      "ppxlib": {
-       "version": "0.28.0",
+       "version": "0.29.1",
        "src": {
-         "url": "https://github.com/ocaml-ppx/ppxlib/releases/download/0.28.0/ppxlib-0.28.0.tbz",
-         "sha256": "d87ae5f9a081206308ca964809b50a66aeb8e83d254801e8b9675448b60cf377"
+         "url": "https://github.com/ocaml-ppx/ppxlib/releases/download/0.29.1/ppxlib-0.29.1.tbz",
+         "sha256": "c8ea8c8770414fdba6612e7f2d814b21a493daa974ea862a90c8e6c766e5dd79"
        },
        "depends": [
          "dune",
@@ -665,6 +682,27 @@
        ],
        "build-depends": [
          "dune"
+       ]
+     },
+     "reason": {
+       "version": "3.8.2",
+       "src": {
+         "url": "https://github.com/reasonml/reason/releases/download/3.8.2/reason-3.8.2.tbz",
+         "sha256": "7adcc45db20b8def82adf2712211fb8ed844328489752e8edf74281bc1eb2ef2"
+       },
+       "depends": [
+         "dune",
+         "fix",
+         "menhir",
+         "merlin-extend",
+         "ocaml",
+         "ppx_derivers",
+         "result"
+       ],
+       "build-depends": [
+         "dune",
+         "menhir",
+         "ocamlfind"
        ]
      },
      "result": {

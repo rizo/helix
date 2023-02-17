@@ -1,6 +1,6 @@
 (executable
  (name demo)
- (libraries helix helix.stdweb helix.jsoo helix.signal_syntax)
+ (libraries helix helix.stdweb helix.jsoo)
  (modes js))
 
 (alias

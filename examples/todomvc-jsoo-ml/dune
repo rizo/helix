@@ -1,6 +1,8 @@
+; Todomvc jsoo
+
 (executable
  (name todomvc)
- (libraries helix helix.stdweb helix.jsoo signal_syntax)
+ (libraries helix helix.stdweb helix.jsoo)
  (modes js))
 
 (alias

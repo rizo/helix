@@ -1,6 +1,8 @@
 (library
- (public_name helix.ppx)
  (name helix_ppx)
+ (public_name helix.ppx)
+ ; compiler-libs.common is needed to get OCaml_location,
+ ; can remove it in next releases of ppxlib https://github.com/ocaml-ppx/ppxlib/issues/377
  (libraries compiler-libs.common ppxlib ppxlib.astlib)
  (preprocess
   (pps ppxlib.metaquot))

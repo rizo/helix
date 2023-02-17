@@ -1,12 +1,4 @@
 
-.PHONY: lock
-lock:
-	nix develop -f default.nix -j8 -v lock
-
-.PHONY: shell
-shell:
-	nix develop -f default.nix -j8 -i -k TERM -k PATH -k HOME -v shell
-
 .PHONY: build
 build:
 	dune build
@@ -15,12 +7,10 @@ build:
 watch:
 	dune build -w
 
-bundle:
-	esbuild _build/default/examples/basic.bc.js --bundle --outdir=examples
+.PHONY: jsoo-lock
+jsoo-lock:
+	nix develop -f default.nix -j8 -v jsoo.lock
 
-rescript-bundle-demo:
-	esbuild lib/es6/examples/demo/Demo.bs.js --bundle --outdir=examples/demo
-
-rescript-serve-demo:
-	npm exec -- \
-		esbuild lib/es6/examples/demo-rescript/Demo.bs.js --bundle --servedir=examples/demo-rescript --outfile=examples/demo-rescript/Demo.bs.js
+.PHONY: jsoo-shell
+jsoo-shell:
+	nix develop -f default.nix -j8 -i -k TERM -k PATH -k HOME -v jsoo.shell

@@ -356,7 +356,7 @@ let test_syntax_1 () =
   let s2 = Signal.make 100 in
   Signal.use (fun x -> push o (`s2 x)) s2;
   let s3 =
-    let open Signal_syntax in
+    let open Signal.Syntax in
     let+ x1 = s1 and+ x2 = s2 in
     x1 + x2
   in

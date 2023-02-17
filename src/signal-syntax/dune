@@ -1,4 +1,0 @@
-(library
- (public_name helix.signal_syntax)
- (name signal_syntax)
- (libraries signal))

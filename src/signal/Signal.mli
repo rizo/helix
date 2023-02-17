@@ -143,20 +143,19 @@ val sample : on:_ t -> 'b t -> 'b t
 (* Currently defined in [Signal_syntax] for compatibility with ReScript. *)
 (* {2 Syntax definitions} *)
 
-(* module Syntax : sig
-     (** Syntax for working with signal values.
+module Syntax : sig
+  (** Syntax for working with signal values.
 
-         {[
-           open Signal.Syntax
+      {[
+        open Signal.Syntax
 
-           let sum_signal s1 s2 =
-             let+ x1 = s1 and+ x2 = s2 in
-             x1 + x2
-         ]} *)
+        let sum_signal s1 s2 =
+          let+ x1 = s1 and+ x2 = s2 in
+          x1 + x2
+      ]} *)
 
-     val ( let+ ) : 'a t -> ('a -> 'b) -> 'b t
-     val ( and+ ) : 'a t -> 'b t -> ('a * 'b) t
-     val ( <~ ) : ('a -> 'b) -> 'a t -> 'b t
-     val ( ~~ ) : ('a -> 'b) t -> 'a t -> 'b t
-   end
-*)
+  val ( let+ ) : 'a t -> ('a -> 'b) -> 'b t
+  val ( and+ ) : 'a t -> 'b t -> ('a * 'b) t
+  val ( <~ ) : ('a -> 'b) -> 'a t -> 'b t
+  val ( ~~ ) : ('a -> 'b) t -> 'a t -> 'b t
+end
