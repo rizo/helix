@@ -49,4 +49,4 @@ let _ =
 let _ = X.make [|(Jsx.Attr.a 5)|]
 let _ = Y.make [|(Jsx.Attr.a 5)|] [|1;2|]
 let _ = Jsx.fragment [|5|]
-let _ = Jsx.Elem.t [|(Jsx.Attr.x (1, 2))|]
+let _ = Jsx.Elem.t [|Jsx.Syntax.option2 ~attr:x 1 2|]
