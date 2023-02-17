@@ -21,14 +21,8 @@ values emited by reactive signals.
 - Js-compatibility library
   [`Helix.Js`](https://odis-labs.github.io/helix/helix/Helix/Js/index.html):
 write bindings to interact withe the JavaScript ecosystem.
-- Supported compilation backends:
-    - [Js_of_ocaml](https://ocsigen.org/js_of_ocaml/latest/manual/overview)
-    - [Melange](https://github.com/melange-re/melange)
-    - [ReScript](https://rescript-lang.org/)
-- Supported compilation frontends:
-    - [OCaml](https://ocaml.org)
-    - [Reason](https://reasonml.github.io)
-    - [ReScript](https://rescript-lang.org)
+- Supported compilation backends: [Js_of_ocaml](https://ocsigen.org/js_of_ocaml/latest/manual/overview), [Melange](https://github.com/melange-re/melange), [ReScript](https://rescript-lang.org/).
+- Supported compilation frontends: [OCaml](https://ocaml.org), [Reason](https://reasonml.github.io), [ReScript](https://rescript-lang.org).
 
 
 ## Example
