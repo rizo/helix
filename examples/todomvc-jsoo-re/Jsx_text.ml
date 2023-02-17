@@ -16,6 +16,7 @@ module Jsx = struct
     let x _a _c = ()
     let l _a _c = ()
     let t _a _c = ()
+    let o _a _c = ()
   end
 end
 
@@ -34,7 +35,10 @@ end
    <t a x=1 ?o m=?mi>5</t>;
    <X a=5 />;
    <Y a=5>1 2</Y>;
-   <>5</>; *)
+   <>5</>;
+
+   <t x=?(s, c) />;
+*)
 let a = 101
 let o = 102
 let mi = 103
@@ -46,3 +50,6 @@ let _ = t ~a ~x:1 ?o ?m:mi ~children:[ 5 ] () [@JSX]
 let _ = X.createElement ~a:5 ~children:[] () [@JSX]
 let _ = Y.createElement ~a:5 ~children:[ 1; 2 ] () [@JSX]
 let _ = [ 5 ] [@JSX]
+
+(* Reactive syntax *)
+let _ = o ?x:(1, 2) ~children:[] () [@JSX]

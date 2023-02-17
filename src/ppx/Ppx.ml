@@ -3,7 +3,7 @@ module OCaml_Location = Location
 open Ppxlib
 module Helper = Ppxlib.Ast_helper
 
-let pr fmt = Format.kasprintf print_endline fmt
+let pr fmt = Format.kasprintf (fun x -> print_endline x) fmt
 
 module Builder = struct
   (* Ast_builder.Default assigns attributes to be the empty.
@@ -32,7 +32,6 @@ module Jsx_runtime = struct
   let attr name ~loc =
     Builder.pexp_ident ~loc
       { loc; txt = Ldot (Ldot (Lident "Jsx", "Attr"), name) }
-  (* Builder.pexp_ident ~loc { loc; txt = Ldot (Lident "Jsx", "attr") } *)
 
   let null ~loc =
     Builder.pexp_ident ~loc { loc; txt = Ldot (Lident "Jsx", "null") }
@@ -41,70 +40,31 @@ module Jsx_runtime = struct
     Builder.pexp_ident ~loc { loc; txt = Ldot (Lident "Jsx", "fragment") }
 end
 
-let rec find_opt p = function
-  | [] -> None
-  | x :: l -> if p x then Some x else find_opt p l
-
-let nolabel = Nolabel
-let labelled str = Labelled str
-let optional str = Optional str
-
-let isOptional str =
-  match str with
-  | Optional _ -> true
-  | _ -> false
-
-let isLabelled str =
-  match str with
-  | Labelled _ -> true
-  | _ -> false
-
 let getLabel str =
   match str with
   | Optional str | Labelled str -> str
   | Nolabel -> ""
 
-let optionIdent = Lident "option"
-
-let constantString ~loc str =
-  Builder.pexp_constant ~loc (Pconst_string (str, Location.none, None))
-
-let safeTypeFromValue valueStr =
-  let valueStr = getLabel valueStr in
-  match String.sub valueStr 0 1 with
-  | "_" -> "T" ^ valueStr
-  | _ -> valueStr
-  [@@raises Invalid_argument]
-
-let keyType loc =
-  Builder.ptyp_constr ~loc { loc; txt = optionIdent }
-    [ Builder.ptyp_constr ~loc { loc; txt = Lident "string" } [] ]
-
-type 'a children = ListLiteral of 'a | Exact of 'a
-type componentConfig = { propsName : string }
-
 (* if children is a list, convert it to an array while mapping each element. If not, just map over it, as usual *)
-let transformChildrenIfListUpper ~loc ~mapper theList =
-  let rec transformChildren_ theList accum =
-    (* not in the sense of converting a list to an array; convert the AST
-       reprensentation of a list to the AST reprensentation of an array *)
-    match theList with
+let children_to_ast_array ~loc ~mapper l0 =
+  let rec loop l acc =
+    match l with
     (* [] *)
     | { pexp_desc = Pexp_construct ({ txt = Lident "[]"; _ }, None); _ } -> (
-      match accum with
-      | [ singleElement ] -> Exact singleElement
-      | accum -> ListLiteral (Builder.pexp_array ~loc (List.rev accum)))
+      match acc with
+      | [] -> None
+      | _ -> Some (Builder.pexp_array ~loc (List.rev acc)))
     (* _::_ *)
     | { pexp_desc =
           Pexp_construct
             ( { txt = Lident "::"; _ }
-            , Some { pexp_desc = Pexp_tuple [ v; acc ]; _ } )
+            , Some { pexp_desc = Pexp_tuple [ x; l' ]; _ } )
       ; _
-      } -> transformChildren_ acc (mapper#expression v :: accum)
-    (* other *)
-    | notAList -> Exact (mapper#expression notAList)
+      } -> loop l' (mapper#expression x :: acc)
+    (* not a list *)
+    | not_a_list -> Some (mapper#expression not_a_list)
   in
-  transformChildren_ theList []
+  loop l0 []
 
 let transformChildrenIfList ~loc ~mapper theList =
   let rec transformChildren_ theList accum =
@@ -151,7 +111,7 @@ let extractChildren ?(removeLastPositionUnit = false) ~loc propsAndChildren =
   in
   match
     List.partition
-      (fun (label, _) -> label = labelled "children")
+      (fun (label, _) -> label = Labelled "children")
       propsAndChildren
   with
   | [], props ->
@@ -165,136 +125,34 @@ let extractChildren ?(removeLastPositionUnit = false) ~loc propsAndChildren =
       (Invalid_argument "JSX: somehow there's more than one `children` label")
   [@@raises Invalid_argument]
 
-let unerasableIgnore loc =
-  { attr_name = { loc; txt = "warning" }
-  ; attr_payload =
-      PStr [ Builder.pstr_eval ~loc (constantString ~loc "-16") [] ]
-  ; attr_loc = loc
-  }
-
-let merlinFocus =
-  { attr_name = { loc = Location.none; txt = "merlin.focus" }
-  ; attr_payload = PStr []
-  ; attr_loc = Location.none
-  }
-
-(* Helper method to look up the [@react.component] attribute *)
-let hasAttr { attr_name = loc; _ } = loc.txt = "react.component"
-
-(* Helper method to filter out any attribute that isn't [@react.component] *)
-let otherAttrsPure { attr_name = loc; _ } = loc.txt <> "react.component"
-
-(* Iterate over the attributes and try to find the [@react.component] attribute *)
-let hasAttrOnBinding { pvb_attributes; _ } =
-  find_opt hasAttr pvb_attributes <> None
-
-(* Finds the name of the variable the binding is assigned to, otherwise raises Invalid_argument *)
-let getFnName binding =
-  match binding with
-  | { pvb_pat = { ppat_desc = Ppat_var { txt; _ }; _ }; _ } -> txt
-  | _ ->
-    raise (Invalid_argument "react.component calls cannot be destructured.")
-  [@@raises Invalid_argument]
-
-let makeNewBinding binding expression newName =
-  match binding with
-  | { pvb_pat = { ppat_desc = Ppat_var ppat_var; _ } as pvb_pat; _ } ->
-    { binding with
-      pvb_pat =
-        { pvb_pat with ppat_desc = Ppat_var { ppat_var with txt = newName } }
-    ; pvb_expr = expression
-    ; pvb_attributes = [ merlinFocus ]
-    }
-  | _ ->
-    raise (Invalid_argument "react.component calls cannot be destructured.")
-  [@@raises Invalid_argument]
-
-(* Lookup the value of `props` otherwise raise Invalid_argument error *)
-let getPropsNameValue _acc (loc, exp) =
-  match (loc, exp) with
-  | ( { txt = Lident "props"; _ }
-    , { pexp_desc = Pexp_ident { txt = Lident str; _ }; _ } ) ->
-    { propsName = str }
-  | { txt; _ }, _ ->
-    raise
-      (Invalid_argument
-         ("react.component only accepts props as an option, given: "
-         ^ Longident.last_exn txt))
-  [@@raises Invalid_argument]
-
-(* Lookup the `props` record or string as part of [@react.component] and store the name for use when rewriting *)
-let getPropsAttr payload =
-  let defaultProps = { propsName = "Props" } in
-  match payload with
-  | Some
-      (PStr
-        ({ pstr_desc =
-             Pstr_eval ({ pexp_desc = Pexp_record (recordFields, None); _ }, _)
-         ; _
-         }
-        :: _rest)) -> List.fold_left getPropsNameValue defaultProps recordFields
-  | Some
-      (PStr
-        ({ pstr_desc =
-             Pstr_eval
-               ({ pexp_desc = Pexp_ident { txt = Lident "props"; _ }; _ }, _)
-         ; _
-         }
-        :: _rest)) -> { propsName = "props" }
-  | Some (PStr ({ pstr_desc = Pstr_eval (_, _); _ } :: _rest)) ->
-    raise
-      (Invalid_argument
-         "react.component accepts a record config with props as an options.")
-  | _ -> defaultProps
-  [@@raises Invalid_argument]
-
-(* Plucks the label, loc, and type_ from an AST node *)
-let pluckLabelDefaultLocType (label, default, _, _, loc, type_) =
-  (label, default, loc, type_)
-
-(* Lookup the filename from the location information on the AST node and turn it into a valid module identifier *)
-let filenameFromLoc (pstr_loc : Location.t) =
-  let fileName =
-    match pstr_loc.loc_start.pos_fname with
-    | "" -> !OCaml_Location.input_name
-    | fileName -> fileName
-  in
-  let fileName =
-    try Filename.chop_extension (Filename.basename fileName)
-    with Invalid_argument _ -> fileName
-  in
-  String.capitalize_ascii fileName
-
-(* Build a string representation of a module name with segments separated by $ *)
-let makeModuleName fileName nestedModules fnName =
-  let fullModuleName =
-    match (fileName, nestedModules, fnName) with
-    (* TODO: is this even reachable? It seems like the fileName always exists *)
-    | "", nestedModules, "make" -> nestedModules
-    | "", nestedModules, fnName -> List.rev (fnName :: nestedModules)
-    | fileName, nestedModules, "make" -> fileName :: List.rev nestedModules
-    | fileName, nestedModules, fnName ->
-      fileName :: List.rev (fnName :: nestedModules)
-  in
-  let fullModuleName = String.concat "$" fullModuleName in
-  fullModuleName
-
 (*
   AST node builders
   These functions help us build AST nodes that are needed when transforming a [@react.component] into a
   constructor and a props external
 *)
 
+let __isOptional str =
+  match str with
+  | Optional _ -> true
+  | _ -> false
+
+let __safeTypeFromValue valueStr =
+  let valueStr = getLabel valueStr in
+  match String.sub valueStr 0 1 with
+  | "_" -> "T" ^ valueStr
+  | _ -> valueStr
+  [@@raises Invalid_argument]
+
 (* Build an AST node representing all named args for the `external` definition for a component's props *)
-let rec recursivelyMakeNamedArgsForExternal list args =
+let rec __recursivelyMakeNamedArgsForExternal list args =
   match list with
   | (label, default, loc, interiorType) :: tl ->
-    recursivelyMakeNamedArgsForExternal tl
+    __recursivelyMakeNamedArgsForExternal tl
       (Builder.ptyp_arrow ~loc label
          (match (label, interiorType, default) with
          (* ~foo=1 *)
          | label, None, Some _ ->
-           { ptyp_desc = Ptyp_var (safeTypeFromValue label)
+           { ptyp_desc = Ptyp_var (__safeTypeFromValue label)
            ; ptyp_loc = loc
            ; ptyp_loc_stack = []
            ; ptyp_attributes = []
@@ -319,17 +177,17 @@ let rec recursivelyMakeNamedArgsForExternal list args =
            , _ )
          (* ~foo: int=? - note this isnt valid. but we want to get a type error *)
          | label, Some type_, _
-           when isOptional label -> type_
+           when __isOptional label -> type_
          (* ~foo=? *)
-         | label, None, _ when isOptional label ->
-           { ptyp_desc = Ptyp_var (safeTypeFromValue label)
+         | label, None, _ when __isOptional label ->
+           { ptyp_desc = Ptyp_var (__safeTypeFromValue label)
            ; ptyp_loc = loc
            ; ptyp_loc_stack = []
            ; ptyp_attributes = []
            }
          (* ~foo *)
          | label, None, _ ->
-           { ptyp_desc = Ptyp_var (safeTypeFromValue label)
+           { ptyp_desc = Ptyp_var (__safeTypeFromValue label)
            ; ptyp_loc_stack = []
            ; ptyp_loc = loc
            ; ptyp_attributes = []
@@ -337,65 +195,6 @@ let rec recursivelyMakeNamedArgsForExternal list args =
          | _label, Some type_, _ -> type_)
          args)
   | [] -> args
-
-(* Build an AST node for the [@bs.obj] representing props for a component *)
-let makePropsValue fnName loc namedArgListWithKeyAndRef propsType =
-  let propsName = { txt = fnName ^ "Props"; loc } in
-  let type_ =
-    recursivelyMakeNamedArgsForExternal namedArgListWithKeyAndRef
-      (Builder.ptyp_arrow ~loc nolabel
-         (Builder.ptyp_constr ~loc { txt = Lident "unit"; loc } [])
-         propsType)
-  in
-  let bsobj =
-    Builder.attribute ~loc ~name:{ txt = "bs.obj"; loc } ~payload:(PStr [])
-  in
-  Builder.value_description ~loc ~name:propsName ~type_ ~prim:[ "" ]
-    ~attrs:[ bsobj ]
-  [@@raises Invalid_argument]
-
-(* Build an AST node representing an `external` with the definition of the [@bs.obj] *)
-let makePropsExternal fnName loc namedArgListWithKeyAndRef propsType =
-  Builder.pstr_primitive ~loc
-    (makePropsValue fnName loc namedArgListWithKeyAndRef propsType)
-
-(* Build an AST node for the signature of the `external` definition *)
-let makePropsExternalSig fnName loc namedArgListWithKeyAndRef propsType =
-  { psig_loc = loc
-  ; psig_desc =
-      Psig_value (makePropsValue fnName loc namedArgListWithKeyAndRef propsType)
-  }
-  [@@raises Invalid_argument]
-
-(* Build an AST node for the props name when converted to an object inside the function signature  *)
-let makePropsName ~loc name =
-  { ppat_desc = Ppat_var { txt = name; loc }
-  ; ppat_loc = loc
-  ; ppat_loc_stack = []
-  ; ppat_attributes = []
-  }
-
-let makeObjectField loc (str, attrs, type_) =
-  { pof_desc = Otag ({ loc; txt = str }, type_)
-  ; pof_loc = loc
-  ; pof_attributes = attrs
-  }
-
-(* Build an AST node representing a "closed" object representing a component's props *)
-let makePropsType ~loc namedTypeList =
-  Builder.ptyp_constr ~loc
-    { txt = Ldot (Lident "Js", "t"); loc }
-    [ Builder.ptyp_object ~loc
-        (List.map (makeObjectField loc) namedTypeList)
-        Closed
-    ]
-
-(* Builds an AST node for the entire `external` definition of props *)
-let makeExternalDecl fnName loc namedArgListWithKeyAndRef namedTypeList =
-  makePropsExternal fnName loc
-    (List.map pluckLabelDefaultLocType namedArgListWithKeyAndRef)
-    (makePropsType ~loc namedTypeList)
-  [@@raises Invalid_argument]
 
 (* TODO: some line number might still be wrong *)
 let rewritter =
@@ -405,17 +204,11 @@ let rewritter =
       extractChildren ~loc ~removeLastPositionUnit:true callArguments
     in
     let argsForMake = argsWithLabels in
-    let childrenExpr = transformChildrenIfListUpper ~loc ~mapper children in
+    let childrenExpr = children_to_ast_array ~loc ~mapper children in
     let recursivelyTransformedArgsForMake =
       argsForMake
       |> List.map (fun (label, expression) ->
              (label, mapper#expression expression))
-    in
-    let childrenArg =
-      match childrenExpr with
-      | Exact children -> Some children
-      | ListLiteral { pexp_desc = Pexp_array []; _ } -> None
-      | ListLiteral expression -> Some expression
     in
     let props = recursivelyTransformedArgsForMake in
     let isCap str =
@@ -434,15 +227,15 @@ let rewritter =
     let propsArray = transformPropsToArray ~loc props in
     (* handle key, ref, children *)
     (* React.createElement(Component.make, props, ...children) *)
-    match childrenArg with
+    match childrenExpr with
     | None ->
       Builder.pexp_apply ~loc ~attrs
         (Builder.pexp_ident ~loc { txt = ident; loc })
-        [ (nolabel, propsArray) ]
+        [ (Nolabel, propsArray) ]
     | Some children ->
       Builder.pexp_apply ~loc ~attrs
         (Builder.pexp_ident ~loc { txt = ident; loc })
-        [ (nolabel, propsArray); (nolabel, children) ]
+        [ (Nolabel, propsArray); (Nolabel, children) ]
     [@@raises Invalid_argument]
   in
 
@@ -450,7 +243,7 @@ let rewritter =
     let children, nonChildrenProps =
       extractChildren ~removeLastPositionUnit:true ~loc callArguments
     in
-    let childrenExpr = transformChildrenIfList ~loc ~mapper children in
+    let childrenExpr = children_to_ast_array ~loc ~mapper children in
     let createElementCall =
       match children with
       (* [@JSX] div(~children=[a]), coming from <div> a </div> *)
@@ -467,20 +260,25 @@ let rewritter =
              "A spread as a DOM element's children don't make sense written \
               together. You can simply remove the spread.")
     in
-    let args =
-      let props =
-        nonChildrenProps
-        |> List.map (fun (label, expression) ->
-               (label, mapper#expression expression))
-      in
-      let propsArray = transformPropsToArray ~loc props in
-      [ (* [|Jsx.Attr.className blabla; JsxAttr.foo bar|] *)
-        (nolabel, propsArray)
-      ; (* [|moreCreateElementCallsHere|] *)
-        (nolabel, childrenExpr)
-      ]
+    let props =
+      nonChildrenProps
+      |> List.map (fun (label, expression) ->
+             (label, mapper#expression expression))
+      |> transformPropsToArray ~loc
     in
-
+    let args =
+      match childrenExpr with
+      | None ->
+        [ (* [|Jsx.Attr.className blabla; JsxAttr.foo bar|] *)
+          (Nolabel, props)
+        ]
+      | Some children ->
+        [ (* [|Jsx.Attr.className blabla; JsxAttr.foo bar|] *)
+          (Nolabel, props)
+        ; (* [|moreCreateElementCallsHere|] *)
+          (Nolabel, children)
+        ]
+    in
     Builder.pexp_apply
       ~loc (* throw away the [@JSX] attribute and keep the others, if any *)
       ~attrs (* React.createElement *)
@@ -567,7 +365,7 @@ let rewritter =
         | _, nonJSXAttributes ->
           let childrenExpr = transformChildrenIfList ~loc ~mapper listItems in
           let args =
-            [ (* [|moreCreateElementCallsHere|] *) (nolabel, childrenExpr) ]
+            [ (* [|moreCreateElementCallsHere|] *) (Nolabel, childrenExpr) ]
           in
           Builder.pexp_apply
             ~loc
