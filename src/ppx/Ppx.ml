@@ -25,37 +25,20 @@ module Builder = struct
 end
 
 module Jsx_runtime = struct
-  module React = struct
-    let createElement ~loc =
-      Builder.pexp_ident ~loc
-        { loc; txt = Ldot (Lident "React", "createElement") }
+  let elem name ~loc =
+    Builder.pexp_ident ~loc
+      { loc; txt = Ldot (Ldot (Lident "Jsx", "Elem"), name) }
 
-    let null ~loc =
-      Builder.pexp_ident ~loc { loc; txt = Ldot (Lident "React", "null") }
+  let attr name ~loc =
+    Builder.pexp_ident ~loc
+      { loc; txt = Ldot (Ldot (Lident "Jsx", "Attr"), name) }
+  (* Builder.pexp_ident ~loc { loc; txt = Ldot (Lident "Jsx", "attr") } *)
 
-    let componentLike ~loc =
-      { loc; txt = Ldot (Lident "React", "componentLike") }
-  end
+  let null ~loc =
+    Builder.pexp_ident ~loc { loc; txt = Ldot (Lident "Jsx", "null") }
 
-  module ReactDOM = struct
-    let domProps ~loc =
-      Builder.pexp_ident ~loc
-        { loc; txt = Ldot (Lident "ReactDOM", "domProps") }
-  end
-
-  module ReactDOMRe = struct
-    let createDOMElementVariadic ~loc =
-      Builder.pexp_ident ~loc { loc; txt = Ldot (Lident "Jsx", "elem") }
-
-    let createElement ~loc =
-      Builder.pexp_ident ~loc { loc; txt = Ldot (Lident "Jsx", "elem") }
-  end
-
-  module ReasonReact = struct
-    let fragment ~loc =
-      Builder.pexp_ident ~loc
-        { loc; txt = Ldot (Lident "ReasonReact", "fragment") }
-  end
+  let fragment ~loc =
+    Builder.pexp_ident ~loc { loc; txt = Ldot (Lident "Jsx", "fragment") }
 end
 
 let rec find_opt p = function
@@ -106,16 +89,19 @@ let transformChildrenIfListUpper ~loc ~mapper theList =
     (* not in the sense of converting a list to an array; convert the AST
        reprensentation of a list to the AST reprensentation of an array *)
     match theList with
+    (* [] *)
     | { pexp_desc = Pexp_construct ({ txt = Lident "[]"; _ }, None); _ } -> (
       match accum with
       | [ singleElement ] -> Exact singleElement
       | accum -> ListLiteral (Builder.pexp_array ~loc (List.rev accum)))
+    (* _::_ *)
     | { pexp_desc =
           Pexp_construct
             ( { txt = Lident "::"; _ }
             , Some { pexp_desc = Pexp_tuple [ v; acc ]; _ } )
       ; _
       } -> transformChildren_ acc (mapper#expression v :: accum)
+    (* other *)
     | notAList -> Exact (mapper#expression notAList)
   in
   transformChildren_ theList []
@@ -136,6 +122,14 @@ let transformChildrenIfList ~loc ~mapper theList =
     | notAList -> mapper#expression notAList
   in
   transformChildren_ theList []
+
+let transformPropToApply ~loc (arg_lab, exp) =
+  let lab = getLabel arg_lab in
+  [ Builder.pexp_apply ~loc (Jsx_runtime.attr lab ~loc) [ (Nolabel, exp) ] ]
+
+let transformPropsToArray ~loc (props : (arg_label * expression) list) =
+  let propsApplies = List.concat_map (transformPropToApply ~loc) props in
+  Builder.pexp_array ~loc propsApplies
 
 let extractChildren ?(removeLastPositionUnit = false) ~loc propsAndChildren =
   let rec allButLast_ lst acc =
@@ -417,19 +411,13 @@ let rewritter =
       |> List.map (fun (label, expression) ->
              (label, mapper#expression expression))
     in
-    let childrenArg = ref None in
-    let args =
-      recursivelyTransformedArgsForMake
-      @ (match childrenExpr with
-        | Exact children -> [ (labelled "children", children) ]
-        | ListLiteral { pexp_desc = Pexp_array list; _ } when list = [] -> []
-        | ListLiteral expression ->
-          (* this is a hack to support react components that introspect into their children *)
-          childrenArg := Some expression;
-          [ (labelled "children", Jsx_runtime.React.null ~loc) ])
-      @ [ (nolabel, Builder.pexp_construct ~loc { loc; txt = Lident "()" } None)
-        ]
+    let childrenArg =
+      match childrenExpr with
+      | Exact children -> Some children
+      | ListLiteral { pexp_desc = Pexp_array []; _ } -> None
+      | ListLiteral expression -> Some expression
     in
+    let props = recursivelyTransformedArgsForMake in
     let isCap str =
       let first = String.sub str 0 1 [@@raises Invalid_argument] in
       let capped = String.uppercase_ascii first in
@@ -443,42 +431,25 @@ let rewritter =
         Ldot (fullPath, caller)
       | modulePath -> modulePath
     in
-    let propsIdent =
-      match ident with
-      | Lident path -> Lident (path ^ "Props")
-      | Ldot (ident, path) -> Ldot (ident, path ^ "Props")
-      | _ ->
-        raise
-          (Invalid_argument
-             "JSX name can't be the result of function applications")
-    in
-    let props =
-      Builder.pexp_apply ~attrs ~loc
-        (Builder.pexp_ident ~loc { loc; txt = propsIdent })
-        args
-    in
+    let propsArray = transformPropsToArray ~loc props in
     (* handle key, ref, children *)
     (* React.createElement(Component.make, props, ...children) *)
-    match !childrenArg with
+    match childrenArg with
     | None ->
       Builder.pexp_apply ~loc ~attrs
-        (Jsx_runtime.React.createElement ~loc)
-        [ (nolabel, Builder.pexp_ident ~loc { txt = ident; loc })
-        ; (nolabel, props)
-        ]
+        (Builder.pexp_ident ~loc { txt = ident; loc })
+        [ (nolabel, propsArray) ]
     | Some children ->
       Builder.pexp_apply ~loc ~attrs
-        (Jsx_runtime.ReactDOMRe.createElement ~loc)
-        [ (nolabel, Builder.pexp_ident ~loc { txt = ident; loc })
-        ; (nolabel, props)
-        ; (nolabel, children)
-        ]
+        (Builder.pexp_ident ~loc { txt = ident; loc })
+        [ (nolabel, propsArray); (nolabel, children) ]
     [@@raises Invalid_argument]
   in
 
   let transformLowercaseCall3 mapper loc attrs callArguments id =
-    let children, nonChildrenProps = extractChildren ~loc callArguments in
-    let componentNameExpr = constantString ~loc id in
+    let children, nonChildrenProps =
+      extractChildren ~removeLastPositionUnit:true ~loc callArguments
+    in
     let childrenExpr = transformChildrenIfList ~loc ~mapper children in
     let createElementCall =
       match children with
@@ -488,7 +459,7 @@ let rewritter =
                 ({ txt = Lident "::"; _ }, Some { pexp_desc = Pexp_tuple _; _ })
             | Pexp_construct ({ txt = Lident "[]"; _ }, None) )
         ; _
-        } -> Jsx_runtime.ReactDOMRe.createDOMElementVariadic ~loc
+        } -> Jsx_runtime.elem id ~loc
       (* [@JSX] div(~children= value), coming from <div> ...(value) </div> *)
       | _ ->
         raise
@@ -497,30 +468,17 @@ let rewritter =
               together. You can simply remove the spread.")
     in
     let args =
-      match nonChildrenProps with
-      | [ _justTheUnitArgumentAtEnd ] ->
-        [ (* "div" *)
-          (nolabel, componentNameExpr)
-        ; (* [|moreCreateElementCallsHere|] *)
-          (nolabel, childrenExpr)
-        ]
-      | nonEmptyProps ->
-        let props =
-          nonEmptyProps
-          |> List.map (fun (label, expression) ->
-                 (label, mapper#expression expression))
-        in
-
-        let propsCall =
-          Builder.pexp_apply ~loc (Jsx_runtime.ReactDOM.domProps ~loc) props
-        in
-        [ (* "div" *)
-          (nolabel, componentNameExpr)
-        ; (* ~props=ReactDOM.domProps(~className=blabla, ~foo=bar, ()) *)
-          (labelled "props", propsCall)
-        ; (* [|moreCreateElementCallsHere|] *)
-          (nolabel, childrenExpr)
-        ]
+      let props =
+        nonChildrenProps
+        |> List.map (fun (label, expression) ->
+               (label, mapper#expression expression))
+      in
+      let propsArray = transformPropsToArray ~loc props in
+      [ (* [|Jsx.Attr.className blabla; JsxAttr.foo bar|] *)
+        (nolabel, propsArray)
+      ; (* [|moreCreateElementCallsHere|] *)
+        (nolabel, childrenExpr)
+      ]
     in
 
     Builder.pexp_apply
@@ -609,18 +567,13 @@ let rewritter =
         | _, nonJSXAttributes ->
           let childrenExpr = transformChildrenIfList ~loc ~mapper listItems in
           let args =
-            [ (* "div" *)
-              (nolabel, Jsx_runtime.ReasonReact.fragment ~loc)
-            ; (* [|moreCreateElementCallsHere|] *)
-              (nolabel, childrenExpr)
-            ]
+            [ (* [|moreCreateElementCallsHere|] *) (nolabel, childrenExpr) ]
           in
           Builder.pexp_apply
             ~loc
               (* throw away the [@JSX] attribute and keep the others, if any *)
             ~attrs:nonJSXAttributes
-            (* React.createElement *)
-            (Jsx_runtime.ReactDOMRe.createElement ~loc)
+            (Jsx_runtime.fragment ~loc)
             args)
       (* Delegate to the default mapper, a identity *)
       | e -> super#expression e
