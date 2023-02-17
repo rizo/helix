@@ -243,3 +243,10 @@ let emitter ?(equal = never_equal) ~init emitter =
   in
   emitter emit;
   s
+
+module Syntax = struct
+  let ( let+ ) s f = map f s
+  let ( and+ ) = pair
+  let ( <~ ) = map
+  let ( ~~ ) = apply
+end

@@ -179,7 +179,7 @@ module Obj : sig
   val call1 : t -> string -> return:'r decoder -> 'a encoder -> 'a -> 'r
 
   val call2 :
-       t
+      t
     -> string
     -> return:'r decoder
     -> 'a encoder
@@ -189,7 +189,7 @@ module Obj : sig
     -> 'r
 
   val call3 :
-       t
+      t
     -> string
     -> return:'r decoder
     -> 'a encoder
@@ -201,7 +201,7 @@ module Obj : sig
     -> 'r
 
   val call4 :
-       t
+      t
     -> string
     -> return:'r decoder
     -> 'a encoder
@@ -215,7 +215,7 @@ module Obj : sig
     -> 'r
 
   val call5 :
-       t
+      t
     -> string
     -> return:'r decoder
     -> 'a encoder
@@ -231,7 +231,7 @@ module Obj : sig
     -> 'r
 
   val call6 :
-       t
+      t
     -> string
     -> return:'r decoder
     -> 'a encoder
@@ -249,7 +249,7 @@ module Obj : sig
     -> 'r
 
   val call7 :
-       t
+      t
     -> string
     -> return:'r decoder
     -> 'a encoder
@@ -269,7 +269,7 @@ module Obj : sig
     -> 'r
 
   val call8 :
-       t
+      t
     -> string
     -> return:'r decoder
     -> 'a encoder
@@ -291,7 +291,7 @@ module Obj : sig
     -> 'r
 
   val call9 :
-       t
+      t
     -> string
     -> return:'r decoder
     -> 'a encoder
@@ -319,7 +319,7 @@ module Obj : sig
   val call2_unit : t -> string -> 'a encoder -> 'b encoder -> 'a -> 'b -> unit
 
   val call3_unit :
-       t
+      t
     -> string
     -> 'a encoder
     -> 'b encoder
@@ -330,7 +330,7 @@ module Obj : sig
     -> unit
 
   val call4_unit :
-       t
+      t
     -> string
     -> 'a encoder
     -> 'b encoder
@@ -343,7 +343,7 @@ module Obj : sig
     -> unit
 
   val call5_unit :
-       t
+      t
     -> string
     -> 'a encoder
     -> 'b encoder
@@ -358,7 +358,7 @@ module Obj : sig
     -> unit
 
   val call6_unit :
-       t
+      t
     -> string
     -> 'a encoder
     -> 'b encoder
@@ -375,7 +375,7 @@ module Obj : sig
     -> unit
 
   val call7_unit :
-       t
+      t
     -> string
     -> 'a encoder
     -> 'b encoder
@@ -394,7 +394,7 @@ module Obj : sig
     -> unit
 
   val call8_unit :
-       t
+      t
     -> string
     -> 'a encoder
     -> 'b encoder
@@ -415,7 +415,7 @@ module Obj : sig
     -> unit
 
   val call9_unit :
-       t
+      t
     -> string
     -> 'a encoder
     -> 'b encoder
@@ -448,7 +448,7 @@ module Obj : sig
   val new3 : t -> 'a encoder -> 'b encoder -> 'c encoder -> 'a -> 'b -> 'c -> t
 
   val new4 :
-       t
+      t
     -> 'a encoder
     -> 'b encoder
     -> 'c encoder
@@ -460,7 +460,7 @@ module Obj : sig
     -> t
 
   val new5 :
-       t
+      t
     -> 'a encoder
     -> 'b encoder
     -> 'c encoder
@@ -474,7 +474,7 @@ module Obj : sig
     -> t
 
   val new6 :
-       t
+      t
     -> 'a encoder
     -> 'b encoder
     -> 'c encoder
@@ -490,7 +490,7 @@ module Obj : sig
     -> t
 
   val new7 :
-       t
+      t
     -> 'a encoder
     -> 'b encoder
     -> 'c encoder
@@ -508,7 +508,7 @@ module Obj : sig
     -> t
 
   val new8 :
-       t
+      t
     -> 'a encoder
     -> 'b encoder
     -> 'c encoder
@@ -528,7 +528,7 @@ module Obj : sig
     -> t
 
   val new9 :
-       t
+      t
     -> 'a encoder
     -> 'b encoder
     -> 'c encoder
@@ -565,7 +565,7 @@ module Fun : sig
     t -> return:'r decoder -> 'a encoder -> 'b encoder -> 'a -> 'b -> 'r
 
   val call3 :
-       t
+      t
     -> return:'r decoder
     -> 'a encoder
     -> 'b encoder
@@ -576,7 +576,7 @@ module Fun : sig
     -> 'r
 
   val call4 :
-       t
+      t
     -> return:'r decoder
     -> 'a encoder
     -> 'b encoder
@@ -589,7 +589,7 @@ module Fun : sig
     -> 'r
 
   val call5 :
-       t
+      t
     -> return:'r decoder
     -> 'a encoder
     -> 'b encoder
@@ -604,7 +604,7 @@ module Fun : sig
     -> 'r
 
   val call6 :
-       t
+      t
     -> return:'r decoder
     -> 'a encoder
     -> 'b encoder
@@ -621,7 +621,7 @@ module Fun : sig
     -> 'r
 
   val call7 :
-       t
+      t
     -> return:'r decoder
     -> 'a encoder
     -> 'b encoder
@@ -640,7 +640,7 @@ module Fun : sig
     -> 'r
 
   val call8 :
-       t
+      t
     -> return:'r decoder
     -> 'a encoder
     -> 'b encoder
@@ -661,7 +661,7 @@ module Fun : sig
     -> 'r
 
   val call9 :
-       t
+      t
     -> return:'r decoder
     -> 'a encoder
     -> 'b encoder
@@ -691,7 +691,7 @@ module Fun : sig
     t -> 'a encoder -> 'b encoder -> 'c encoder -> 'a -> 'b -> 'c -> unit
 
   val call4_unit :
-       t
+      t
     -> 'a encoder
     -> 'b encoder
     -> 'c encoder
@@ -703,7 +703,7 @@ module Fun : sig
     -> unit
 
   val call5_unit :
-       t
+      t
     -> 'a encoder
     -> 'b encoder
     -> 'c encoder
@@ -717,7 +717,7 @@ module Fun : sig
     -> unit
 
   val call6_unit :
-       t
+      t
     -> 'a encoder
     -> 'b encoder
     -> 'c encoder
@@ -733,7 +733,7 @@ module Fun : sig
     -> unit
 
   val call7_unit :
-       t
+      t
     -> 'a encoder
     -> 'b encoder
     -> 'c encoder
@@ -751,7 +751,7 @@ module Fun : sig
     -> unit
 
   val call8_unit :
-       t
+      t
     -> 'a encoder
     -> 'b encoder
     -> 'c encoder
@@ -771,7 +771,7 @@ module Fun : sig
     -> unit
 
   val call9_unit :
-       t
+      t
     -> 'a encoder
     -> 'b encoder
     -> 'c encoder

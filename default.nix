@@ -5,34 +5,50 @@ let
 
   onix = import (builtins.fetchGit {
     url = "https://github.com/odis-labs/onix.git";
-    rev = "93f010fc3ca3613790a30f8f1919b601b1583361";
+    rev = "083611626d1aaae530f40e53603a30d9d48677a7";
   }) {
     inherit pkgs ocamlPackages;
     verbosity = "debug";
   };
 
-  env = onix.env {
-    repo = {
-      url = "https://github.com/ocaml/opam-repository.git";
-      rev = "ff615534bda0fbb06447f8cbb6ba2d3f3343c57e";
-    };
-    path = ./.;
-    gitignore = ./.gitignore;
-    deps = { "ocaml-system" = "*"; };
-    vars = {
-      with-dev-setup = true;
-      with-test = true;
-      with-doc = true;
-    };
+  repo = {
+    url = "https://github.com/ocaml/opam-repository.git";
+    rev = "0fd96b90e04599bcce3b6ae8ba54febdafeddb11";
   };
-in {
-  lock = env.lock;
+  path = ./.;
+  gitignore = ./.gitignore;
+  vars = {
+    with-dev-setup = true;
+    with-test = true;
+    with-doc = true;
+  };
 
-  shell = pkgs.mkShell {
-    inputsFrom = [ env.pkgs.helix ];
-    buildInputs = [ pkgs.esbuild ];
-    shellHook = ''
-      export PS1="[\[\033[1;34m\]nix\[\033[0m\]]\$ "
-    '';
+  jsoo = onix.env {
+    inherit repo path gitignore vars;
+    lock = ./onix-lock-jsoo.json;
+    deps = {
+      "ocaml-system" = "*";
+      "reason" = "*";
+      "js_of_ocaml-compiler" = "*";
+    };
   };
-}
+
+  melange = onix.env {
+    inherit repo path gitignore vars;
+    lock = ./onix-lock-melange.json;
+    deps = {
+      "ocaml-system" = "*";
+      "reason" = "*";
+      "melange" = "*";
+    };
+    overlay = self: super: {
+      "melange" = super.melange.overrideAttrs (superAttrs: {
+        postInstall = ''
+          mkdir -p $out/lib/melange
+          mv $out/lib/ocaml/${ocamlPackages.ocaml.version}/site-lib/melange/melange $out/lib/melange/melange
+          cp -r $out/lib/ocaml/${ocamlPackages.ocaml.version}/site-lib/melange/runtime $out/lib/melange/runtime
+        '';
+      });
+    };
+  };
+in { inherit jsoo melange; }
