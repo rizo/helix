@@ -12,7 +12,7 @@ Attribute with optional value:
 ```
 <div id=?id></div>
 
-Jsx.Elem.div [(match id with None -> Jsx.Attr.empty | Some id -> Jsx.Attr.id id)] []
+Jsx.Elem.div [Jsx.Syntax.option1 ~attr:Jsx.Attr.id id] []
 ```
 
 
@@ -28,7 +28,7 @@ Conditional attribute:
 ```
 <div style=?(signal, my_style)></div>
 
-Jsx.Elem.div [Jsx.View.toggle ~on:signal (style my_style)] []
+Jsx.Elem.div [Jsx.Syntax.option2 ~attr:Jsx.Attr.style signal my_style] []
 ```
 
 
@@ -36,7 +36,7 @@ Conditional attribute with default:
 ```
 <div style=?(signal, true_style, false_style)></div>
 
-Jsx.Elem.div [Jsx.View.toggle ~on:signal ~default:(style false_style) (style true_style)] []
+Jsx.Elem.div [Jsx.Syntax.option3 ~attr:Jsx.Attr.style signal true_style false_style] []
 ```
 
 Reactive list:
