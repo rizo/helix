@@ -3,7 +3,7 @@ module OCaml_Location = Location
 open Ppxlib
 module Helper = Ppxlib.Ast_helper
 
-let pr fmt = Format.kasprintf (fun x -> print_endline x) fmt
+let pr fmt = Format.kasprintf (fun x -> prerr_endline x) fmt
 
 module Builder = struct
   (* Ast_builder.Default assigns attributes to be the empty.
@@ -288,9 +288,6 @@ let rewritter =
   in
 
   let transformLowercaseCall3 mapper loc attrs callArguments id =
-    List.iter
-      (fun (l, e) -> pr "args: %s = %a" (getLabel l) Pprintast.expression e)
-      callArguments;
     let children, nonChildrenProps =
       extractChildren ~removeLastPositionUnit:true ~loc callArguments
     in
