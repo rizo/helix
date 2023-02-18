@@ -24,6 +24,21 @@ module Builder = struct
     { vd with pval_attributes = attrs }
 end
 
+let pexp_is_string_const pexp =
+  match pexp with
+  | { pexp_desc = Pexp_constant (Pconst_string _); _ } -> true
+  | _ -> false
+
+let pexp_is_int_const pexp =
+  match pexp with
+  | { pexp_desc = Pexp_constant (Pconst_integer _); _ } -> true
+  | _ -> false
+
+let pexp_is_float_const pexp =
+  match pexp with
+  | { pexp_desc = Pexp_constant (Pconst_float _); _ } -> true
+  | _ -> false
+
 module Jsx_runtime = struct
   let elem name ~loc =
     Builder.pexp_ident ~loc
@@ -36,20 +51,29 @@ module Jsx_runtime = struct
   let null ~loc =
     Builder.pexp_ident ~loc { loc; txt = Ldot (Lident "Jsx", "null") }
 
+  let text ~loc =
+    Builder.pexp_ident ~loc { loc; txt = Ldot (Lident "Jsx", "text") }
+
+  let int ~loc =
+    Builder.pexp_ident ~loc { loc; txt = Ldot (Lident "Jsx", "int") }
+
+  let float ~loc =
+    Builder.pexp_ident ~loc { loc; txt = Ldot (Lident "Jsx", "float") }
+
   let fragment ~loc =
     Builder.pexp_ident ~loc { loc; txt = Ldot (Lident "Jsx", "fragment") }
 
   let syntax_option1 ~loc =
     Builder.pexp_ident ~loc
-      { loc; txt = Ldot (Ldot (Lident "Jsx", "Syntax"), "option1") }
+      { loc; txt = Ldot (Ldot (Lident "Jsx", "Attr"), "option1") }
 
   let syntax_option2 ~loc =
     Builder.pexp_ident ~loc
-      { loc; txt = Ldot (Ldot (Lident "Jsx", "Syntax"), "option2") }
+      { loc; txt = Ldot (Ldot (Lident "Jsx", "Attr"), "option2") }
 
   let syntax_option3 ~loc =
     Builder.pexp_ident ~loc
-      { loc; txt = Ldot (Ldot (Lident "Jsx", "Syntax"), "option3") }
+      { loc; txt = Ldot (Ldot (Lident "Jsx", "Attr"), "option3") }
 end
 
 let getLabel str =
@@ -66,6 +90,42 @@ let children_to_ast_array ~loc ~mapper l0 =
       match acc with
       | [] -> None
       | _ -> Some (Builder.pexp_array ~loc (List.rev acc)))
+    (* "str"::_ *)
+    | { pexp_desc =
+          Pexp_construct
+            ( { txt = Lident "::"; _ }
+            , Some { pexp_desc = Pexp_tuple [ x; l' ]; pexp_loc = loc; _ } )
+      ; _
+      }
+      when pexp_is_string_const x ->
+      let x' =
+        Builder.pexp_apply ~loc (Jsx_runtime.text ~loc) [ (Nolabel, x) ]
+      in
+      loop l' (mapper#expression x' :: acc)
+    (* 42::_ *)
+    | { pexp_desc =
+          Pexp_construct
+            ( { txt = Lident "::"; _ }
+            , Some { pexp_desc = Pexp_tuple [ x; l' ]; pexp_loc = loc; _ } )
+      ; _
+      }
+      when pexp_is_int_const x ->
+      let x' =
+        Builder.pexp_apply ~loc (Jsx_runtime.int ~loc) [ (Nolabel, x) ]
+      in
+      loop l' (mapper#expression x' :: acc)
+    (* 3.14::_ *)
+    | { pexp_desc =
+          Pexp_construct
+            ( { txt = Lident "::"; _ }
+            , Some { pexp_desc = Pexp_tuple [ x; l' ]; pexp_loc = loc; _ } )
+      ; _
+      }
+      when pexp_is_float_const x ->
+      let x' =
+        Builder.pexp_apply ~loc (Jsx_runtime.float ~loc) [ (Nolabel, x) ]
+      in
+      loop l' (mapper#expression x' :: acc)
     (* _::_ *)
     | { pexp_desc =
           Pexp_construct
@@ -107,7 +167,7 @@ let prop_to_apply ~loc:loc0 (arg_l, arg_e) =
     let syn_fun = Jsx_runtime.syntax_option2 ~loc in
     let syn_attr = Jsx_runtime.attr l ~loc in
     Builder.pexp_apply ~loc:loc0 syn_fun ~attrs:pexp_attributes
-      [ (Labelled "attr", syn_attr); (Nolabel, val_1); (Nolabel, val_2) ]
+      [ (Nolabel, syn_attr); (Nolabel, val_1); (Nolabel, val_2) ]
   (* ?l:(val_1, val_2, val_3) *)
   | ( Optional l
     , { pexp_desc = Pexp_tuple [ val_1; val_2; val_3 ]
@@ -118,7 +178,7 @@ let prop_to_apply ~loc:loc0 (arg_l, arg_e) =
     let syn_fun = Jsx_runtime.syntax_option3 ~loc in
     let syn_attr = Jsx_runtime.attr l ~loc in
     Builder.pexp_apply ~loc:loc0 syn_fun ~attrs:pexp_attributes
-      [ (Labelled "attr", syn_attr)
+      [ (Nolabel, syn_attr)
       ; (Nolabel, val_1)
       ; (Nolabel, val_2)
       ; (Nolabel, val_3)
@@ -128,7 +188,7 @@ let prop_to_apply ~loc:loc0 (arg_l, arg_e) =
     let syn_fun = Jsx_runtime.syntax_option1 ~loc:loc0 in
     let syn_attr = Jsx_runtime.attr l ~loc:loc0 in
     Builder.pexp_apply ~loc:loc0 syn_fun
-      [ (Labelled "attr", syn_attr); (Nolabel, val_1) ]
+      [ (Nolabel, syn_attr); (Nolabel, val_1) ]
   (* ~l *)
   | Labelled l, _ ->
     let attr_fun = Jsx_runtime.attr l ~loc:loc0 in
@@ -172,77 +232,6 @@ let extractChildren ?(removeLastPositionUnit = false) ~loc propsAndChildren =
     raise
       (Invalid_argument "JSX: somehow there's more than one `children` label")
   [@@raises Invalid_argument]
-
-(*
-  AST node builders
-  These functions help us build AST nodes that are needed when transforming a [@react.component] into a
-  constructor and a props external
-*)
-
-let __isOptional str =
-  match str with
-  | Optional _ -> true
-  | _ -> false
-
-let __safeTypeFromValue valueStr =
-  let valueStr = getLabel valueStr in
-  match String.sub valueStr 0 1 with
-  | "_" -> "T" ^ valueStr
-  | _ -> valueStr
-  [@@raises Invalid_argument]
-
-(* Build an AST node representing all named args for the `external` definition for a component's props *)
-let rec __recursivelyMakeNamedArgsForExternal list args =
-  match list with
-  | (label, default, loc, interiorType) :: tl ->
-    __recursivelyMakeNamedArgsForExternal tl
-      (Builder.ptyp_arrow ~loc label
-         (match (label, interiorType, default) with
-         (* ~foo=1 *)
-         | label, None, Some _ ->
-           { ptyp_desc = Ptyp_var (__safeTypeFromValue label)
-           ; ptyp_loc = loc
-           ; ptyp_loc_stack = []
-           ; ptyp_attributes = []
-           }
-         (* ~foo: int=1 *)
-         | _label, Some type_, Some _ -> type_
-         (* ~foo: option(int)=? *)
-         | ( label
-           , Some
-               { ptyp_desc =
-                   Ptyp_constr ({ txt = Lident "option"; _ }, [ type_ ])
-               ; _
-               }
-           , _ )
-         | ( label
-           , Some
-               { ptyp_desc =
-                   Ptyp_constr
-                     ({ txt = Ldot (Lident "*predef*", "option"); _ }, [ type_ ])
-               ; _
-               }
-           , _ )
-         (* ~foo: int=? - note this isnt valid. but we want to get a type error *)
-         | label, Some type_, _
-           when __isOptional label -> type_
-         (* ~foo=? *)
-         | label, None, _ when __isOptional label ->
-           { ptyp_desc = Ptyp_var (__safeTypeFromValue label)
-           ; ptyp_loc = loc
-           ; ptyp_loc_stack = []
-           ; ptyp_attributes = []
-           }
-         (* ~foo *)
-         | label, None, _ ->
-           { ptyp_desc = Ptyp_var (__safeTypeFromValue label)
-           ; ptyp_loc_stack = []
-           ; ptyp_loc = loc
-           ; ptyp_attributes = []
-           }
-         | _label, Some type_, _ -> type_)
-         args)
-  | [] -> args
 
 (* TODO: some line number might still be wrong *)
 let rewritter =
@@ -291,45 +280,80 @@ let rewritter =
     let children, nonChildrenProps =
       extractChildren ~removeLastPositionUnit:true ~loc callArguments
     in
-    let childrenExpr = children_to_ast_array ~loc ~mapper children in
-    let createElementCall =
-      match children with
-      (* [@JSX] div(~children=[a]), coming from <div> a </div> *)
-      | { pexp_desc =
-            ( Pexp_construct
-                ({ txt = Lident "::"; _ }, Some { pexp_desc = Pexp_tuple _; _ })
-            | Pexp_construct ({ txt = Lident "[]"; _ }, None) )
-        ; _
-        } -> Jsx_runtime.elem id ~loc
-      (* [@JSX] div(~children= value), coming from <div> ...(value) </div> *)
-      | _ ->
-        raise
-          (Invalid_argument
-             "A spread as a DOM element's children don't make sense written \
-              together. You can simply remove the spread.")
-    in
-    let props =
-      nonChildrenProps
-      |> List.map (fun (label, e) -> (label, mapper#expression e))
-      |> prop_list_to_array ~loc
-    in
-    let args =
-      match childrenExpr with
-      | None ->
-        [ (* [|Jsx.Attr.className blabla; JsxAttr.foo bar|] *)
-          (Nolabel, props)
-        ]
-      | Some children ->
-        [ (* [|Jsx.Attr.className blabla; JsxAttr.foo bar|] *)
-          (Nolabel, props)
-        ; (* [|moreCreateElementCallsHere|] *)
-          (Nolabel, children)
-        ]
-    in
-    Builder.pexp_apply
-      ~loc (* throw away the [@JSX] attribute and keep the others, if any *)
-      ~attrs (* React.createElement *)
-      createElementCall args
+    match (id, children.pexp_desc) with
+    (* text/int/float *)
+    | ( "text"
+      , Pexp_construct
+          ({ txt = Lident "::"; _ }, Some { pexp_desc = Pexp_tuple l; _ }) ) ->
+      let elem_f = Jsx_runtime.text ~loc in
+      let arg =
+        match l with
+        | [ x; _nil_exp ] -> x
+        | _ ->
+          Location.raise_errorf ~loc "%s requires exactly one child node" id
+      in
+      let args = [ (Nolabel, arg) ] in
+      Builder.pexp_apply ~loc ~attrs elem_f args
+    | ( "int"
+      , Pexp_construct
+          ({ txt = Lident "::"; _ }, Some { pexp_desc = Pexp_tuple l; _ }) ) ->
+      let elem_f = Jsx_runtime.int ~loc in
+      let arg =
+        match l with
+        | [ x; _nil_exp ] -> x
+        | _ ->
+          Location.raise_errorf ~loc "%s requires exactly one child node" id
+      in
+      let args = [ (Nolabel, arg) ] in
+      Builder.pexp_apply ~loc ~attrs elem_f args
+    | ( "float"
+      , Pexp_construct
+          ({ txt = Lident "::"; _ }, Some { pexp_desc = Pexp_tuple l; _ }) ) ->
+      let elem_f = Jsx_runtime.float ~loc in
+      let arg =
+        match l with
+        | [ x; _nil_exp ] -> x
+        | _ ->
+          Location.raise_errorf ~loc "%s requires exactly one child node" id
+      in
+      let args = [ (Nolabel, arg) ] in
+      Builder.pexp_apply ~loc ~attrs elem_f args
+    (* [@JSX] div(~children=[a]), coming from <div> a </div> *)
+    | ( _
+      , Pexp_construct
+          ({ txt = Lident "::"; _ }, Some { pexp_desc = Pexp_tuple _; _ }) )
+    | _, Pexp_construct ({ txt = Lident "[]"; _ }, None) ->
+      let elem_f = Jsx_runtime.elem id ~loc in
+
+      let props =
+        nonChildrenProps
+        |> List.map (fun (label, e) -> (label, mapper#expression e))
+        |> prop_list_to_array ~loc
+      in
+      let childrenExpr = children_to_ast_array ~loc ~mapper children in
+      let args =
+        match childrenExpr with
+        | None ->
+          [ (* [|Jsx.Attr.className blabla; JsxAttr.foo bar|] *)
+            (Nolabel, props)
+          ]
+        | Some children ->
+          [ (* [|Jsx.Attr.className blabla; JsxAttr.foo bar|] *)
+            (Nolabel, props)
+          ; (* [|moreelem_fsHere|] *)
+            (Nolabel, children)
+          ]
+      in
+      Builder.pexp_apply
+        ~loc (* throw away the [@JSX] attribute and keep the others, if any *)
+        ~attrs (* React.createElement *)
+        elem_f args
+    (* [@JSX] div(~children= value), coming from <div> ...(value) </div> *)
+    | _ ->
+      raise
+        (Invalid_argument
+           "A spread as a DOM element's children don't make sense written \
+            together. You can simply remove the spread.")
     [@@raises Invalid_argument]
   in
 
