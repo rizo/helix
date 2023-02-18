@@ -3,8 +3,10 @@
  (modules pp)
  (libraries helix.ppx ppxlib))
 
+; Helix ppx output
+
 (rule
- (target Test.actual.ml)
+ (target Test.ml.helix-actual)
  (deps
   (:pp pp.exe)
   (:input Test.re))
@@ -19,7 +21,30 @@
 (rule
  (alias runtest)
  (deps
-  (file Test.ml.expected)
-  (file Test.actual.ml))
+  (file Test.ml.helix-expected)
+  (file Test.ml.helix-actual))
  (action
-  (diff Test.ml.expected Test.actual.ml)))
+  (diff Test.ml.helix-expected Test.ml.helix-actual)))
+
+; Intermediate refmt output
+; Helpful to see the direct for the helix ppx.
+
+(rule
+ (target Test.ml.refmt-actual)
+ (deps
+  (:pp pp.exe)
+  (:input Test.re))
+ (action
+  (with-outputs-to
+   %{target}
+   (pipe-stdout
+    (run refmt --print=ml %{input})
+    (run ocamlformat --exp-grouping=preserve --impl -)))))
+
+(rule
+ (alias runtest)
+ (deps
+  (file Test.ml.refmt-expected)
+  (file Test.ml.refmt-actual))
+ (action
+  (diff Test.ml.refmt-expected Test.ml.refmt-actual)))

@@ -24,21 +24,6 @@ module Builder = struct
     { vd with pval_attributes = attrs }
 end
 
-let pexp_is_string_const pexp =
-  match pexp with
-  | { pexp_desc = Pexp_constant (Pconst_string _); _ } -> true
-  | _ -> false
-
-let pexp_is_int_const pexp =
-  match pexp with
-  | { pexp_desc = Pexp_constant (Pconst_integer _); _ } -> true
-  | _ -> false
-
-let pexp_is_float_const pexp =
-  match pexp with
-  | { pexp_desc = Pexp_constant (Pconst_float _); _ } -> true
-  | _ -> false
-
 module Jsx_runtime = struct
   let elem name ~loc =
     Builder.pexp_ident ~loc
@@ -76,84 +61,34 @@ module Jsx_runtime = struct
       { loc; txt = Ldot (Ldot (Lident "Jsx", "Attr"), "option3") }
 end
 
-let getLabel str =
-  match str with
-  | Optional str | Labelled str -> str
-  | Nolabel -> ""
+let child_to_elem child =
+  let loc = child.pexp_loc in
+  match child.pexp_desc with
+  (* "str" ==> Jsx.text("str") *)
+  | Pexp_constant (Pconst_string _) ->
+    Builder.pexp_apply ~loc (Jsx_runtime.text ~loc) [ (Nolabel, child) ]
+  (* 42 ==> Jsx.int(42) *)
+  | Pexp_constant (Pconst_integer _) ->
+    Builder.pexp_apply ~loc (Jsx_runtime.int ~loc) [ (Nolabel, child) ]
+  (* 3.14 ==> Jsx.float(3.14) *)
+  | Pexp_constant (Pconst_float _) ->
+    Builder.pexp_apply ~loc (Jsx_runtime.float ~loc) [ (Nolabel, child) ]
+  | _ -> child
 
-(* if children is a list, convert it to an array while mapping each element. If not, just map over it, as usual *)
 let children_to_ast_array ~loc ~mapper l0 =
   let rec loop l acc =
-    match l with
+    match l.pexp_desc with
     (* [] *)
-    | { pexp_desc = Pexp_construct ({ txt = Lident "[]"; _ }, None); _ } -> (
-      match acc with
-      | [] -> None
-      | _ -> Some (Builder.pexp_array ~loc (List.rev acc)))
-    (* "str"::_ *)
-    | { pexp_desc =
-          Pexp_construct
-            ( { txt = Lident "::"; _ }
-            , Some { pexp_desc = Pexp_tuple [ x; l' ]; pexp_loc = loc; _ } )
-      ; _
-      }
-      when pexp_is_string_const x ->
-      let x' =
-        Builder.pexp_apply ~loc (Jsx_runtime.text ~loc) [ (Nolabel, x) ]
-      in
-      loop l' (mapper#expression x' :: acc)
-    (* 42::_ *)
-    | { pexp_desc =
-          Pexp_construct
-            ( { txt = Lident "::"; _ }
-            , Some { pexp_desc = Pexp_tuple [ x; l' ]; pexp_loc = loc; _ } )
-      ; _
-      }
-      when pexp_is_int_const x ->
-      let x' =
-        Builder.pexp_apply ~loc (Jsx_runtime.int ~loc) [ (Nolabel, x) ]
-      in
-      loop l' (mapper#expression x' :: acc)
-    (* 3.14::_ *)
-    | { pexp_desc =
-          Pexp_construct
-            ( { txt = Lident "::"; _ }
-            , Some { pexp_desc = Pexp_tuple [ x; l' ]; pexp_loc = loc; _ } )
-      ; _
-      }
-      when pexp_is_float_const x ->
-      let x' =
-        Builder.pexp_apply ~loc (Jsx_runtime.float ~loc) [ (Nolabel, x) ]
-      in
-      loop l' (mapper#expression x' :: acc)
+    | Pexp_construct ({ txt = Lident "[]"; _ }, None) ->
+      Builder.pexp_array ~loc (List.rev_map child_to_elem acc)
     (* _::_ *)
-    | { pexp_desc =
-          Pexp_construct
-            ( { txt = Lident "::"; _ }
-            , Some { pexp_desc = Pexp_tuple [ x; l' ]; _ } )
-      ; _
-      } -> loop l' (mapper#expression x :: acc)
-    (* not a list *)
-    | not_a_list -> Some (mapper#expression not_a_list)
+    | Pexp_construct
+        ({ txt = Lident "::"; _ }, Some { pexp_desc = Pexp_tuple [ x; l' ]; _ })
+      -> loop l' (mapper#expression x :: acc)
+    (* not a list, XXX: is this possible? *)
+    | _not_a_list -> mapper#expression l
   in
   loop l0 []
-
-let transformChildrenIfList ~loc ~mapper theList =
-  let rec transformChildren_ theList accum =
-    (* not in the sense of converting a list to an array; convert the AST
-       reprensentation of a list to the AST reprensentation of an array *)
-    match theList with
-    | { pexp_desc = Pexp_construct ({ txt = Lident "[]"; _ }, None); _ } ->
-      Builder.pexp_array ~loc (List.rev accum)
-    | { pexp_desc =
-          Pexp_construct
-            ( { txt = Lident "::"; _ }
-            , Some { pexp_desc = Pexp_tuple [ v; acc ]; _ } )
-      ; _
-      } -> transformChildren_ acc (mapper#expression v :: accum)
-    | notAList -> mapper#expression notAList
-  in
-  transformChildren_ theList []
 
 let prop_to_apply ~loc:loc0 (arg_l, arg_e) =
   match (arg_l, arg_e) with
@@ -241,7 +176,7 @@ let rewritter =
       extractChildren ~loc ~removeLastPositionUnit:true callArguments
     in
     let argsForMake = argsWithLabels in
-    let childrenExpr = children_to_ast_array ~loc ~mapper children in
+    let children' = children_to_ast_array ~loc ~mapper children in
     let recursivelyTransformedArgsForMake =
       argsForMake
       |> List.map (fun (label, expression) ->
@@ -262,17 +197,11 @@ let rewritter =
       | modulePath -> modulePath
     in
     let propsArray = prop_list_to_array ~loc props in
-    (* handle key, ref, children *)
+
     (* React.createElement(Component.make, props, ...children) *)
-    match childrenExpr with
-    | None ->
-      Builder.pexp_apply ~loc ~attrs
-        (Builder.pexp_ident ~loc { txt = ident; loc })
-        [ (Nolabel, propsArray) ]
-    | Some children ->
-      Builder.pexp_apply ~loc ~attrs
-        (Builder.pexp_ident ~loc { txt = ident; loc })
-        [ (Nolabel, propsArray); (Nolabel, children) ]
+    Builder.pexp_apply ~loc ~attrs
+      (Builder.pexp_ident ~loc { txt = ident; loc })
+      [ (Nolabel, propsArray); (Nolabel, children') ]
     [@@raises Invalid_argument]
   in
 
@@ -330,19 +259,13 @@ let rewritter =
         |> List.map (fun (label, e) -> (label, mapper#expression e))
         |> prop_list_to_array ~loc
       in
-      let childrenExpr = children_to_ast_array ~loc ~mapper children in
+      let children' = children_to_ast_array ~loc ~mapper children in
       let args =
-        match childrenExpr with
-        | None ->
-          [ (* [|Jsx.Attr.className blabla; JsxAttr.foo bar|] *)
-            (Nolabel, props)
-          ]
-        | Some children ->
-          [ (* [|Jsx.Attr.className blabla; JsxAttr.foo bar|] *)
-            (Nolabel, props)
-          ; (* [|moreelem_fsHere|] *)
-            (Nolabel, children)
-          ]
+        [ (* [|Jsx.Attr.className blabla; JsxAttr.foo bar|] *)
+          (Nolabel, props)
+        ; (* [|moreelem_fsHere|] *)
+          (Nolabel, children')
+        ]
       in
       Builder.pexp_apply
         ~loc (* throw away the [@JSX] attribute and keep the others, if any *)
@@ -357,10 +280,8 @@ let rewritter =
     [@@raises Invalid_argument]
   in
 
-  let nestedModules = ref [] in
-
-  let transformJsxCall mapper callExpression callArguments attrs =
-    match callExpression.pexp_desc with
+  let transform_jsx_apply mapper f_exp f_args attrs =
+    match f_exp.pexp_desc with
     | Pexp_ident caller -> (
       match caller with
       | { txt = Lident "createElement"; _ } ->
@@ -368,20 +289,16 @@ let rewritter =
           (Invalid_argument
              "JSX: `createElement` should be preceeded by a module name.")
       (* Foo.createElement(~prop1=foo, ~prop2=bar, ~children=[], ()) *)
-      | { loc; txt = Ldot (modulePath, ("createElement" | "make")) } ->
-        transformUppercaseCall3 ~caller:"make" modulePath mapper loc attrs
-          callExpression callArguments
+      | { loc; txt = Ldot (mod_path, ("createElement" | "make")) } ->
+        transformUppercaseCall3 ~caller:"make" mod_path mapper loc attrs f_exp
+          f_args
       (* div(~prop1=foo, ~prop2=bar, ~children=[bla], ()) *)
-      (* turn that into
-         React.createElement(~props=ReactDOM.domProps(~props1=foo, ~props2=bar, ()), [|bla|]) *)
       | { loc; txt = Lident id } ->
-        transformLowercaseCall3 mapper loc attrs callArguments id
+        transformLowercaseCall3 mapper loc attrs f_args id
       (* Foo.bar(~prop1=foo, ~prop2=bar, ~children=[], ()) *)
-      (* Not only "createElement" or "make". See
-         https://github.com/reasonml/reason/pull/2541 *)
-      | { loc; txt = Ldot (modulePath, anythingNotCreateElementOrMake) } ->
-        transformUppercaseCall3 ~caller:anythingNotCreateElementOrMake
-          modulePath mapper loc attrs callExpression callArguments
+      | { loc; txt = Ldot (mod_path, f_non_std) } ->
+        transformUppercaseCall3 ~caller:f_non_std mod_path mapper loc attrs
+          f_exp f_args
       | { txt = Lapply _; _ } ->
         (* don't think there's ever a case where this is reached *)
         raise
@@ -399,62 +316,38 @@ let rewritter =
   object (mapper)
     inherit Ast_traverse.map as super
 
-    method! expression expression =
-      match expression with
-      (* Does the function application have the @JSX attribute? *)
-      | { pexp_desc = Pexp_apply (callExpression, callArguments)
-        ; pexp_attributes
-        ; _
-        } -> (
-        let jsxAttribute, nonJSXAttributes =
+    method! expression exp =
+      match exp.pexp_desc with
+      (* Look for (f args [@JSX]) *)
+      | Pexp_apply (f_exp, f_args) -> (
+        let jsx_attrs, other_attrs =
           List.partition
-            (fun { attr_name = attribute; _ } -> attribute.txt = "JSX")
-            pexp_attributes
+            (fun attr -> attr.attr_name.txt = "JSX")
+            exp.pexp_attributes
         in
-        match (jsxAttribute, nonJSXAttributes) with
-        (* no JSX attribute *)
-        | [], _ -> super#expression expression
-        | _, nonJSXAttributes ->
-          transformJsxCall mapper callExpression callArguments nonJSXAttributes)
-      (* is it a list with jsx attribute? Reason <>foo</> desugars to [@JSX][foo]*)
-      | { pexp_desc =
-            ( Pexp_construct
-                ( { txt = Lident "::"; loc; _ }
-                , Some { pexp_desc = Pexp_tuple _; _ } )
-            | Pexp_construct ({ txt = Lident "[]"; loc }, None) )
-        ; pexp_attributes
-        ; _
-        } as listItems -> (
-        let jsxAttribute, nonJSXAttributes =
+        match jsx_attrs with
+        | [] -> super#expression exp
+        | _ -> transform_jsx_apply mapper f_exp f_args other_attrs)
+      (* Fragment: <>foo</> as [@JSX][foo] *)
+      | Pexp_construct
+          ({ txt = Lident "::"; loc; _ }, Some { pexp_desc = Pexp_tuple _; _ })
+      | Pexp_construct ({ txt = Lident "[]"; loc }, None) -> (
+        let jsx_attrs, other_attrs =
           List.partition
-            (fun { attr_name = attribute; _ } -> attribute.txt = "JSX")
-            pexp_attributes
+            (fun attr -> attr.attr_name.txt = "JSX")
+            exp.pexp_attributes
         in
-        match (jsxAttribute, nonJSXAttributes) with
-        (* no JSX attribute *)
-        | [], _ -> super#expression expression
-        | _, nonJSXAttributes ->
-          let childrenExpr = transformChildrenIfList ~loc ~mapper listItems in
-          let args =
-            [ (* [|moreCreateElementCallsHere|] *) (Nolabel, childrenExpr) ]
-          in
-          Builder.pexp_apply
-            ~loc
-              (* throw away the [@JSX] attribute and keep the others, if any *)
-            ~attrs:nonJSXAttributes
+        match jsx_attrs with
+        | [] -> super#expression exp
+        | _ ->
+          let children' = children_to_ast_array ~loc ~mapper exp in
+          let args = [ (Nolabel, children') ] in
+          Builder.pexp_apply ~loc ~attrs:other_attrs
             (Jsx_runtime.fragment ~loc)
             args)
-      (* Delegate to the default mapper, a identity *)
-      | e -> super#expression e
+      (* Other: use default mapper *)
+      | _ -> super#expression exp
     [@@raises Invalid_argument]
-
-    method! module_binding module_binding =
-      (match module_binding.pmb_name.txt with
-      | None -> ()
-      | Some name -> nestedModules := name :: !nestedModules);
-      let mapped = super#module_binding module_binding in
-      let _ = nestedModules := List.tl !nestedModules in
-      mapped
   end
 
 let () =
