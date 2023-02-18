@@ -54,7 +54,9 @@ let main = () => {
       style=[("padding", "2em"), ("border", "1px solid grey")]>
       "click"
     </button>
-    <div style=?(flag, [("background", "red")])>
+    <div
+      style=[("outline", "1px solid blue")]
+      style=?(flag, [("background", "red")])>
       <text> "hello" </text>
     </div>
   </section>;

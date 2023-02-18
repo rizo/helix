@@ -1,0 +1,11 @@
+let no_children = (div ~children:[] () [@JSX])
+let single_var_child = (div ~children:[ v ] () [@JSX])
+let multi_var_children = (div ~children:[ v1; v2 ] () [@JSX])
+let single_lit_child = (div ~children:[ 42 ] () [@JSX])
+let mixed_children = (div ~children:[ v; 42 ] () [@JSX])
+let empty_frag = ([] [@JSX])
+let single_var_frag = [ v ] [@JSX]
+let multi_var_frag = [ v1; v2 ] [@JSX]
+let single_lit_frag = [ 42 ] [@JSX]
+let mixed_frag = [ v1; 42 ] [@JSX]
+let lit_node = (int ~children:[ 42 ] () [@JSX])

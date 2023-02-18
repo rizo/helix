@@ -1,0 +1,11 @@
+let no_children = Jsx.Elem.div [||] [||]
+let single_var_child = Jsx.Elem.div [||] [| v |]
+let multi_var_children = Jsx.Elem.div [||] [| v1; v2 |]
+let single_lit_child = Jsx.Elem.div [||] [| Jsx.int 42 |]
+let mixed_children = Jsx.Elem.div [||] [| v; Jsx.int 42 |]
+let empty_frag = Jsx.fragment [||]
+let single_var_frag = Jsx.fragment [| v |]
+let multi_var_frag = Jsx.fragment [| v1; v2 |]
+let single_lit_frag = Jsx.fragment [| Jsx.int 42 |]
+let mixed_frag = Jsx.fragment [| v1; Jsx.int 42 |]
+let lit_node = Jsx.int 42
