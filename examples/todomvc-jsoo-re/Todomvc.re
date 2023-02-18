@@ -1,8 +1,6 @@
 open Helix;
 module Dom = Stdweb.Dom;
 
-// module X = Jsx_text;
-
 module Jsx = {
   let fragment = arr => Html.fragment(Array.to_list(arr));
   let null = Html.empty;
