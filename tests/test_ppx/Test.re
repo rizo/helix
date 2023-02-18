@@ -25,3 +25,14 @@ let o3_1 = <t a=?(s, x, y) />;
 
 // Mixed attributes
 let mx_1 = <t a1=1 a2 a3=?x3 ?a4 a5=?(s, 5) a6=?(s, 6, 7)> 0 </t>;
+
+// Inferred type
+let it_1 = <t> "hello" </t>;
+let it_2 = <t> 5 </t>;
+let it_3 = <t> 3.14 </t>;
+
+// Typed tags
+let tt_1 = <text> "hello" </text>;
+let tt_2 = <int> 42 </int>;
+let tt_3 = <float> 3.14 </float>;
+let tt_4 = <t> <int> 100 </int> </t>;

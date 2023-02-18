@@ -19,7 +19,7 @@
 (rule
  (alias runtest)
  (deps
-  (file Test.expected.ml)
+  (file Test.ml.expected)
   (file Test.actual.ml))
  (action
-  (diff Test.expected.ml Test.actual.ml)))
+  (diff Test.ml.expected Test.actual.ml)))

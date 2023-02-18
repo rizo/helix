@@ -15,6 +15,7 @@ module Jsx = {
     let p = _wrap(Html.p);
     let input = _wrap0(Html.input);
     let button = _wrap(Html.button);
+    let text = _ => Html.text;
   };
   module Attr = {
     let class_list = v => Html.class_list(v);
@@ -23,16 +24,15 @@ module Jsx = {
     let style = v => Html.style(v);
     let on_click = Html.on_click;
     let autofocus = v => if (v) {Html.autofocus} else {Html.Attr.empty};
-  };
-  module Syntax = {
-    let option1 = (~attr, opt) =>
+    let option1 = (attr, opt) =>
       switch (opt) {
       | Some(x) => attr(x)
       | None => Html.Attr.empty
       };
 
-    let option2 = (~attr, v1, v2) => View.toggle(~on=v1, attr(v2));
+    let option2 = (attr, signal, v) => View.toggle(~on=signal, attr(v));
   };
+
   let text = Html.text;
 };
 
@@ -42,7 +42,7 @@ let main = () => {
   let class_list_header = ["header"];
   <section class_list>
     <header class_list=class_list_header>
-      <h1> {Html.text("todos")} </h1>
+      <h1> "todos" </h1>
       <input
         autofocus=true
         class_name="new-todo"
@@ -52,10 +52,10 @@ let main = () => {
     <button
       on_click={_ => Signal.update((!), flag)}
       style=[("padding", "2em"), ("border", "1px solid grey")]>
-      {Html.text("click")}
+      "click"
     </button>
     <div style=?(flag, [("background", "red")])>
-      {Html.text("hello")}
+      <text> "hello" </text>
     </div>
   </section>;
 };

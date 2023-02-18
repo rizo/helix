@@ -1,0 +1,40 @@
+let bt_1 = Jsx.Elem.t [||]
+let bt_2 = Jsx.Elem.t [||] [| x |]
+let bt_3 = Jsx.Elem.t [||] [| x1; x2 |]
+let bt_4 = Jsx.Elem.t1 [||] [| Jsx.Elem.t2 [||] [| x |] |]
+let bt_5 = Jsx.Elem.t1 [||] [| Jsx.Elem.t2 [||] [| x |]; Jsx.Elem.t3 [||] |]
+
+let bt_6 =
+  Jsx.Elem.t1 [||]
+    [| Jsx.Elem.t2 [||] [| x1 |]; Jsx.Elem.t3 [||] [| x2; Jsx.Elem.t4 [||] |] |]
+
+let ba_1 = Jsx.Elem.t [| Jsx.Attr.a 1 |]
+let ba_2 = Jsx.Elem.t [| Jsx.Attr.a 1 |] [| x |]
+let ba_3 = Jsx.Elem.t [| Jsx.Attr.a1 1; Jsx.Attr.a2 2 |] [| x |]
+let ba_4 = Jsx.Elem.t [| Jsx.Attr.a a |]
+let ba_5 = Jsx.Elem.t [| Jsx.Attr.a1 a1; Jsx.Attr.a2 2 |] [| x |]
+let oa_1 = Jsx.Elem.t [| Jsx.Attr.option1 Jsx.Attr.a a |]
+let oa_2 = Jsx.Elem.t [| Jsx.Attr.option1 Jsx.Attr.a x |]
+let o2_1 = Jsx.Elem.t [| Jsx.Attr.option2 Jsx.Attr.a s x |]
+let o3_1 = Jsx.Elem.t [| Jsx.Attr.option3 Jsx.Attr.a s x y |]
+
+let mx_1 =
+  Jsx.Elem.t
+    [| Jsx.Attr.a1 1
+     ; Jsx.Attr.a2 a2
+     ; Jsx.Attr.option1 Jsx.Attr.a3 x3
+     ; Jsx.Attr.option1 Jsx.Attr.a4 a4
+     ; Jsx.Attr.option2 Jsx.Attr.a5 s 5
+     ; Jsx.Attr.option3 Jsx.Attr.a6 s 6 7
+    |]
+    [| Jsx.int 0 |]
+
+let it_1 =
+  Jsx.Elem.t [||] [| Jsx.text ("hello" [@reason.raw_literal "hello"]) |]
+
+let it_2 = Jsx.Elem.t [||] [| Jsx.int 5 |]
+let it_3 = Jsx.Elem.t [||] [| Jsx.float 3.14 |]
+let tt_1 = Jsx.text ("hello" [@reason.raw_literal "hello"])
+let tt_2 = Jsx.int 42
+let tt_3 = Jsx.float 3.14
+let tt_4 = Jsx.Elem.t [||] [| Jsx.int 100 |]
