@@ -17,6 +17,7 @@ module Jsx = {
     let ul = _wrap(Html.ul);
     let li = _wrap(Html.li);
     let h2 = _wrap(Html.h2);
+    let h3 = _wrap(Html.h3);
     let input = _wrap0(Html.input);
     let button = _wrap(Html.button);
   };
@@ -33,7 +34,8 @@ module Jsx = {
       | None => Html.Attr.empty
       };
 
-    let option2 = (attr, signal, v) => View.toggle(~on=signal, attr(v));
+    let option2 = (attr, bool, v) => bool ? attr(v) : Html.Attr.empty;
+    // View.toggle(~on=signal, attr(v));
   };
 };
 
@@ -41,6 +43,16 @@ module Show = {
   let make = (~signal, render) => {
     View.show(render, signal);
   };
+
+  let text = (~signal, ()) => {
+    View.show(Html.text, signal);
+  };
+
+  let int = (~signal, ()) => {
+    View.show(Html.int, signal);
+  };
+
+  let list = (~signal, ()) => View.each(html => html, signal);
 };
 
 module Each = {
@@ -51,8 +63,7 @@ module Each = {
 
 let main = () => {
   let flag = Signal.make(false);
-  let items = Signal.make(List.init(7, string_of_int));
-  let msg = Signal.map(flag => flag ? "YES" : "NO", flag);
+  let items = Signal.make(List.init(5, string_of_int));
   let class_list = ["todoapp"];
   let class_list_header = ["header"];
   <section class_list>
@@ -71,7 +82,7 @@ let main = () => {
     </button>
     <div
       style=[("outline", "1px solid blue")]
-      style=?(flag, [("background", "red")])>
+      style=?(true, [("background", "red")])>
       <text> "hello" </text>
     </div>
     <h2> "Attr.option1" </h2>
@@ -79,23 +90,50 @@ let main = () => {
     <div style=?{Some([("color", "red")])}> "optional style: Some" </div>
     <h2> "Fragment" </h2>
     <> <div> "fragment item 1" </div> <div> "fragment item 2" </div> </>
-    <h2> "<Show>" </h2>
-    <Show signal=msg> {msg => <text> msg </text>} </Show>
-    <h2> "<Each>" </h2>
-    <button
-      on_click={_ => {
-        let list = List.init(1 + Random.int(10), string_of_int);
-        Signal.emit(list, items);
-      }}>
-      "Click!"
-    </button>
-    <ul>
-      <Each signal=items> {item => <li> <text> item </text> </li>} </Each>
-    </ul>
+    <div>
+      <h3> "<Show>" </h3>
+      <Show signal={Signal.make("Hello")}> {msg => <text> msg </text>} </Show>
+      <h3> "<Show.text>" </h3>
+      <Show.text signal={Signal.make("Hello")} />
+      <h3> "<Show.int>" </h3>
+      <Show.int signal={Signal.make(42)} />
+      <h3> "<Show.list>" </h3>
+      <Show.list
+        signal={Signal.make([
+          <div> "item 1" </div>,
+          <div> "item 2" </div>,
+          <div> "item 3" </div>,
+        ])}
+      />
+    </div>
+    <div>
+      <h3> "Each" </h3>
+      <Each signal={Signal.make(["item 1", "item 2", "item 3"])}>
+        {item => <div> <text> item </text> </div>}
+      </Each>
+    </div>
+    <div>
+      <h2> "Show.list" </h2>
+      <button
+        on_click={_ => {
+          let list = List.init(1 + Random.int(5), string_of_int);
+          Signal.emit(list, items);
+        }}>
+        "Click!"
+      </button>
+      <ul>
+        <Show.list
+          signal={Signal.map(
+            List.map(item => <li> <text> item </text> </li>),
+            items,
+          )}
+        />
+      </ul>
+    </div>
     <h2> "Spread" </h2>
     <button
       on_click={_ => {
-        let list = List.init(1 + Random.int(10), string_of_int);
+        let list = List.init(1 + Random.int(5), string_of_int);
         Signal.emit(list, items);
       }}>
       "Click!"
