@@ -1,5 +1,4 @@
-// Basics
-
+// All variations
 let no_children = <div />;
 let single_var_child = <div> v </div>;
 
@@ -15,7 +14,11 @@ let multi_var_frag = <> v1 v2 </>;
 let single_lit_frag = <> 42 </>;
 let mixed_frag = <> v1 42 </>;
 let lit_node = <int> 42 </int>;
-// let spread_children = <div> ...arr </div>;
+let spread_children = <div> ...arr </div>;
+let mod_a0_c0 = <X />;
+let mod_a1_c0 = <X x=1 />;
+let mod_a2_c0 = <X x y=1 />;
+let mod_a2_c1 = <X x y=1> v </X>;
 
 /*
  // Basic tags

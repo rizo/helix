@@ -75,18 +75,21 @@ let child_to_elem child =
     Builder.pexp_apply ~loc (Jsx_runtime.float ~loc) [ (Nolabel, child) ]
   | _ -> child
 
-let children_to_ast_array ~loc ~mapper l0 =
+let process_children ~loc ~mapper l0 =
   let rec loop l acc =
     match l.pexp_desc with
     (* [] *)
-    | Pexp_construct ({ txt = Lident "[]"; _ }, None) ->
-      Builder.pexp_array ~loc (List.rev_map child_to_elem acc)
+    | Pexp_construct ({ txt = Lident "[]"; _ }, None) -> (
+      match acc with
+      | [] -> `empty
+      | [ x ] -> `single (child_to_elem x)
+      | _ -> `array (Builder.pexp_array ~loc (List.rev_map child_to_elem acc)))
     (* _::_ *)
     | Pexp_construct
         ({ txt = Lident "::"; _ }, Some { pexp_desc = Pexp_tuple [ x; l' ]; _ })
       -> loop l' (mapper#expression x :: acc)
     (* not a list, XXX: is this possible? *)
-    | _not_a_list -> mapper#expression l
+    | _not_a_list -> `single (mapper#expression l)
   in
   loop l0 []
 
@@ -168,6 +171,10 @@ let extractChildren ?(removeLastPositionUnit = false) ~loc propsAndChildren =
       (Invalid_argument "JSX: somehow there's more than one `children` label")
   [@@raises Invalid_argument]
 
+let get_label = function
+  | Nolabel -> ""
+  | Labelled l | Optional l -> l
+
 (* TODO: some line number might still be wrong *)
 let rewritter =
   let transformUppercaseCall3 ~caller modulePath mapper loc attrs _
@@ -176,7 +183,12 @@ let rewritter =
       extractChildren ~loc ~removeLastPositionUnit:true callArguments
     in
     let argsForMake = argsWithLabels in
-    let children' = children_to_ast_array ~loc ~mapper children in
+    let children' =
+      match process_children ~loc ~mapper children with
+      | `empty -> Ast_helper.Exp.construct (Loc.make ~loc (Lident "()")) None
+      | `single e -> e
+      | `array e -> e
+    in
     let recursivelyTransformedArgsForMake =
       argsForMake
       |> List.map (fun (label, expression) ->
@@ -196,12 +208,9 @@ let rewritter =
         Ldot (fullPath, caller)
       | modulePath -> modulePath
     in
-    let propsArray = prop_list_to_array ~loc props in
-
-    (* React.createElement(Component.make, props, ...children) *)
     Builder.pexp_apply ~loc ~attrs
       (Builder.pexp_ident ~loc { txt = ident; loc })
-      [ (Nolabel, propsArray); (Nolabel, children') ]
+      (props @ [ (Nolabel, children') ])
     [@@raises Invalid_argument]
   in
 
@@ -259,7 +268,12 @@ let rewritter =
         |> List.map (fun (label, e) -> (label, mapper#expression e))
         |> prop_list_to_array ~loc
       in
-      let children' = children_to_ast_array ~loc ~mapper children in
+      let children' =
+        match process_children ~loc ~mapper children with
+        | `empty -> Ast_helper.Exp.array ~loc []
+        | `single e -> Ast_helper.Exp.array ~loc [ e ]
+        | `array e -> e
+      in
       let args =
         [ (* [|Jsx.Attr.className blabla; JsxAttr.foo bar|] *)
           (Nolabel, props)
@@ -267,17 +281,23 @@ let rewritter =
           (Nolabel, children')
         ]
       in
-      Builder.pexp_apply
-        ~loc (* throw away the [@JSX] attribute and keep the others, if any *)
-        ~attrs (* React.createElement *)
-        elem_f args
-    (* [@JSX] div(~children= value), coming from <div> ...(value) </div> *)
+      Builder.pexp_apply ~loc ~attrs elem_f args
+    (* [@JSX] div(~children=value), <div> ...(value) </div> *)
     | _ ->
-      raise
-        (Invalid_argument
-           "A spread as a DOM element's children don't make sense written \
-            together. You can simply remove the spread.")
-    [@@raises Invalid_argument]
+      let elem_f = Jsx_runtime.elem id ~loc in
+      let props =
+        nonChildrenProps
+        |> List.map (fun (label, e) -> (label, mapper#expression e))
+        |> prop_list_to_array ~loc
+      in
+      let args =
+        [ (* [|Jsx.Attr.className blabla; JsxAttr.foo bar|] *)
+          (Nolabel, props)
+        ; (* [|moreelem_fsHere|] *)
+          (Nolabel, children)
+        ]
+      in
+      Builder.pexp_apply ~loc ~attrs elem_f args
   in
 
   let transform_jsx_apply mapper f_exp f_args attrs =
@@ -340,7 +360,12 @@ let rewritter =
         match jsx_attrs with
         | [] -> super#expression exp
         | _ ->
-          let children' = children_to_ast_array ~loc ~mapper exp in
+          let children' =
+            match process_children ~loc ~mapper exp with
+            | `empty -> Ast_helper.Exp.array ~loc []
+            | `single e -> Ast_helper.Exp.array ~loc [ e ]
+            | `array e -> e
+          in
           let args = [ (Nolabel, children') ] in
           Builder.pexp_apply ~loc ~attrs:other_attrs
             (Jsx_runtime.fragment ~loc)
