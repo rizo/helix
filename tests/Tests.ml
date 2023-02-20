@@ -3,10 +3,9 @@ open Helix
 let main () =
   let open Html in
   div []
-    [
-      (* Show.main (); *)
+    [ (* Show.main (); *)
       (* Conditional_attr.main (); *)
-      Each.main ();
+      Each.main ()
     ]
 
 module Js2_tests = struct
@@ -59,25 +58,10 @@ module Js_tests = struct
     assert (person_of_js (person_to_js joe) = joe)
 end
 
-let run () = Test_signals.run ()
-
-let test_simple_node () =
-  let div = Html.node "div" in
-  let text x =
-    Stdweb.Dom.Text.to_node (Stdweb.Dom.Document.create_text_node x)
-  in
-  div []
-    [
-      div [ View.conditional_node ~on:(Signal.make true) ] [ text "present" ];
-      div [ View.conditional_node ~on:(Signal.make false) ] [ text "missing" ];
-    ]
-
 let () =
   let open Stdweb in
   match Dom.Document.get_element_by_id "root" with
-  | Some root ->
-    Dom.Node.append_child ~parent:(Dom.Element.to_node root)
-      (test_simple_node ())
+  | Some root -> render root (main ())
   | None -> failwith "no #app"
 
 (* let () = *)

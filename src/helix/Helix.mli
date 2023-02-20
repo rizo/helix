@@ -73,12 +73,6 @@ module View : sig
   (** [show to_html signal] is a dynamic HTML node created from [signal] values
       using [to_html]. *)
 
-  (* val show_conditional :
-     ?on:bool Signal.t -> ('a -> Html.html) -> 'a Signal.t -> Html.html *)
-  (* [show ?on:condition to_html signal] is a reactive HTML element created
-      from [signal] values using [to_html]. If boolean [condition] signal is
-      passed the resulting element is only rendered if the signal is [true]. *)
-
   val each : ('a -> Html.html) -> 'a list Signal.t -> Html.html
   (** [each to_html signal] reactively renders items from [signal] with
       [to_html].
@@ -88,27 +82,13 @@ module View : sig
         ul [] [ each (fun item -> li [] [ int item ]) items ]
       ]} *)
 
-  (* val option : ('a -> Html.html) -> 'a option Signal.t -> Html.html *)
-  (* [option to_html items] reactively renders [items] with [to_html].
-
-      {[
-        let name = Signal.make None in
-        div [] [ optional string name ]
-      ]} *)
-
-  (* val filter : ('a -> bool) -> 'a Signal.t -> Html.html -> Html.html *)
-  (* val conditional : on:bool Signal.t -> 'a Signal.t -> Html.html *)
-  (* val on : bool Signal.t -> Html.html -> Html.html *)
-
-  val conditional_node : on:bool Signal.t -> Html.attr
-
   val conditional : on:bool Signal.t -> Html.attr
   (** [conditional on:signal] an attribute that shows the element if [signal] is
       [true]. *)
 
-  (* val conditional_html : on:bool Signal.t -> Html.html -> Html.html *)
-
-  (* val optional : ('a -> Html.html option) -> 'a Signal.t -> Html.html *)
+  val bind : ('a -> Html.attr) -> 'a Signal.t -> Html.attr
+  (** [bind to_attr signal] is a dynamic HTML attribute created from [signal]
+      values using [to_attr]. *)
 
   val assign : Html.attr Signal.t -> Html.attr
   (** [attr attr_signal] dynamically binds the attributes produced by
@@ -118,10 +98,6 @@ module View : sig
         let attr = Signal.make (Html.style_list [ ("color", "red") ]) in
         div [ View.assign attr ] [ text "Hello!" ]
       ]} *)
-
-  val bind : ('a -> Html.attr) -> 'a Signal.t -> Html.attr
-  (** [bind to_attr signal] is a dynamic HTML attribute created from [signal]
-      values using [to_attr]. *)
 
   val visible : on:bool Signal.t -> Html.attr
   (** [visible ~on:signal] is a reactive attribute that controls the [display]
