@@ -13,7 +13,7 @@ let view_function_docs ~signature ~description ~example ?preview ?console
       p [] description;
       h3 [] [ text "Example" ];
       pre [] [ code [ class_name "language-ocaml" ] example ];
-      (match preview with
+      ( match preview with
       | None -> empty
       | Some preview ->
         fragment
@@ -24,15 +24,17 @@ let view_function_docs ~signature ~description ~example ?preview ?console
                 style [ ("padding", "0.5em"); ("background-color", "#F0F0F0") ];
               ]
               preview;
-          ]);
-      (match console with
+          ]
+      );
+      ( match console with
       | None -> empty
       | Some console ->
         fragment
           [
             h3 [] [ text "Console" ];
             div [] [ pre [] [ code [ class_name "plaintext" ] console ] ];
-          ]);
+          ]
+      );
     ]
 
 let show_show_docs () =
@@ -136,7 +138,8 @@ let app () =
       select
         [
           on Event.change (fun ev ->
-              Signal.emit (Event.target_value ev) selected_function);
+              Signal.emit (Event.target_value ev) selected_function
+          );
         ]
         [
           option [ value ""; disabled; selected ] [ text "Select function..." ];
@@ -152,7 +155,8 @@ let app () =
              | "show" -> show_show_docs ()
              | "toggle" -> show_toggle_docs ()
              | "html_attr_elem" -> show_html_attr_elem_docs ()
-             | _ -> text "unknown function name");
+             | _ -> text "unknown function name"
+         );
     ]
 
 let () =

@@ -28,37 +28,27 @@
 
 (** {1 HTML} *)
 
+module Html : sig
+  include module type of Html
+  (** @inline *)
+end
+
 type html = Html.html
 (** Type for representing HTML elements and text nodes. *)
 
 type attr = Html.attr
 (** Type for representing HTML attributes. *)
 
-module Html : sig
-  include module type of Html with type html = html
-  (** @inline *)
-end
-
-(** {1 Signals} *)
-
-type 'a signal = 'a Signal.t
-(** Type for reactive signals. *)
-
-module Signal : sig
-  include module type of Signal with type 'a t = 'a signal
-  (** @inline *)
-end
-
 module Mouse : sig
   (** Mouse signals. *)
 
-  val position : (float * float) signal
+  val position : (float * float) Signal.t
 end
 
 module Time : sig
   (** Time signals. *)
 
-  val tick : ms:int -> unit signal
+  val tick : ms:int -> unit Signal.t
 end
 
 (** {1 Reactive views} *)

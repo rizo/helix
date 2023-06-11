@@ -152,3 +152,8 @@ let main () =
       h2 [] [ text "Show/switcher" ];
       test_switcher ();
     ]
+
+let () =
+  match Stdweb.Dom.Document.get_element_by_id "root" with
+  | Some root -> Helix.render root (main ())
+  | None -> failwith "no #app"

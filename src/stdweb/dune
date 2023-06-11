@@ -1,5 +1,0 @@
-(library
- (name stdweb)
- (public_name stdweb)
- (libraries jx)
- (modes byte))

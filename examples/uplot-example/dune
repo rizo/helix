@@ -1,6 +1,6 @@
 (executable
  (name uplot_example)
- (libraries helix stdweb jx)
+ (libraries helix signal stdweb jx)
  (modes js))
 
 (alias

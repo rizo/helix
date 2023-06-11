@@ -8,21 +8,16 @@ synopsis: "Build reactive web interfaces with OCaml"
 depends: [
   "ocaml" {= "4.14.0"}
   "dune" {build}
-  "ppxlib"
+  "js_of_ocaml-compiler" {build & >= "4.1.0"}
+  "signal"
+  "jx"
+  "stdweb"
   "ocaml-lsp-server" {with-dev-setup}
   "ocamlformat" {with-dev-setup}
 ]
 
-depopts: [
-  "reason" {build}
-  "js_of_ocaml-compiler" {build & >= "4.1.0"}
-  "melange" {build}
-  "mel" {build & melange:installed}
-]
-
 pin-depends: [
-  ["dune.dev" "git+https://github.com/ocaml/dune.git#05797cd3f505beca4d6d62c576506d7608a6d29d"]
-  ["melange.dev" "git+https://github.com/melange-re/melange.git#f4ddebbc7755af5e983c4df2ac51498f286e1074"]
-  ["mel.dev" "git+https://github.com/melange-re/melange.git#f4ddebbc7755af5e983c4df2ac51498f286e1074"]
+  ["signal.dev" "git+https://github.com/rizo/signal#3f0cd508823f233d77d72f5a37f9ae78107565de"]
+  ["jx.dev" "git+https://github.com/rizo/jx#a0bcc27625e0a30014ba12363339469e30727d12"]
+  ["stdweb.dev" "git+https://github.com/rizo/stdweb#facf7ab505d644fa409da166615846f74c5948ba"]
 ]
-

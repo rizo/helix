@@ -7,10 +7,27 @@ build:
 watch:
 	dune build -w
 
-.PHONY: jsoo-lock
-jsoo-lock:
-	nix develop -f default.nix -j8 -v jsoo.lock
+.PHONY: test
+test:
+	dune runtest
 
-.PHONY: jsoo-shell
-jsoo-shell:
-	nix develop -f default.nix -j8 -i -k TERM -k PATH -k HOME -v jsoo.shell
+.PHONY: test-watch
+test-watch:
+	dune runtest -w
+
+.PHONY: doc
+doc:
+	dune build @doc
+	@ls _build/default/_doc/_html/index.html
+
+.PHONY: clean
+clean:
+	dune clean
+
+.PHONY: lock
+lock:
+	nix develop -f default.nix lock
+
+.PHONY: shell
+shell:
+	nix develop -f default.nix -j auto -i -k TERM -k PATH -k HOME -v shell

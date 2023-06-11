@@ -1,5 +1,0 @@
-(library
- (public_name helix.html)
- (name html)
- (libraries stdweb)
- (modes byte))

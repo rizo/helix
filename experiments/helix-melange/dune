@@ -1,0 +1,6 @@
+(library
+  (name helix_melange)
+  (public_name helix.melange)
+  (modes melange)
+  (implements helix_js))
+

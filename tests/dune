@@ -1,8 +1,8 @@
-(executable
- (name tests)
- (libraries helix stdweb jx)
+(executables
+ (names test_conditional test_each test_show)
+ (libraries helix signal stdweb jx)
  (modes js))
 
 (alias
- (name all)
- (deps index.html))
+ (name runtest)
+ (deps test_conditional.html test_each.html test_show.html))

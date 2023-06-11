@@ -99,3 +99,8 @@ let main () =
       h2 [] [ text "test_toggle_siblings" ];
       test_toggle_siblings ();
     ]
+
+let () =
+  match Stdweb.Dom.Document.get_element_by_id "root" with
+  | Some root -> Helix.render root (main ())
+  | None -> failwith "no #app"
