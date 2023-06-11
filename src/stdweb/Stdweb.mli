@@ -1,3 +1,7 @@
+(** Standard web APIs.
+
+    See {:https://developer.mozilla.org/en-US/docs/Web/API}.*)
+
 module Console : sig
   val t : Jx.t
   (** See
@@ -234,6 +238,12 @@ module Dom : sig
     val is_same_node : t -> t -> bool
   end
 
+  module Token_list : sig
+    type t
+
+    val toggle_class : t -> string -> unit
+  end
+
   module Element : sig
     type t
 
@@ -245,7 +255,11 @@ module Dom : sig
     val replace_with : t -> t -> unit
     val set_attribute : t -> string -> string -> unit
     val remove_attribute : t -> string -> unit
+    val class_list : t -> Token_list.t
     val replace_children : t -> t array -> unit
+    val matches : Event.target -> string -> bool
+    val closest : Event.target -> string -> t option
+    val of_target : Event.target -> t
   end
 
   module Css_style_declaration : sig
@@ -261,7 +275,6 @@ module Dom : sig
   module Html_element : sig
     type t
 
-    val t : Jx.Obj.t
     val of_element : Element.t -> t
     val of_node : Node.t -> t
     val to_element : t -> Element.t
@@ -311,7 +324,10 @@ module Dom : sig
 
     val this : t
     val to_node : t -> Node.t
+    val get_cookies : unit -> string
+    val set_cookies : string -> unit
     val get_element_by_id : string -> Element.t option
+    val query_selector : string -> Element.t option
     val create_element : string -> Element.t
     val create_text_node : string -> Text.t
   end
@@ -326,13 +342,6 @@ module Dom : sig
     val to_event_target : t -> Event_target.t
     val set_interval : (unit -> unit) -> int -> unit
     val set_timeout : (unit -> unit) -> int -> unit
-  end
-
-  module Custom_element_registry : sig
-    type t = Jx.t
-
-    val t : Jx.t
-    val define : string -> 'a -> unit
   end
 end
 

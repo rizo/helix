@@ -1,4 +1,3 @@
-module Js = Helix_js
 module E = Jx.Encoder
 module D = Jx.Decoder
 

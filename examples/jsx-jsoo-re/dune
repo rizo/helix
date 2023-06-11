@@ -2,7 +2,7 @@
 
 (executable
  (name jsx_jsoo_re)
- (libraries helix helix.stdweb)
+ (libraries helix stdweb)
  (preprocess
   (pps helix.ppx))
  (modes js))

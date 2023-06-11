@@ -1,6 +1,6 @@
 (executable
  (name docs)
- (libraries helix helix.stdweb)
+ (libraries helix stdweb)
  (modes js))
 
 (alias

@@ -1,6 +1,6 @@
 (executable
  (name demo)
- (libraries helix helix.stdweb)
+ (libraries helix stdweb)
  (modes js))
 
 (alias
