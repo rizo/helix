@@ -1,20 +1,19 @@
 module Signal = Helix.Signal
-module Js = Helix.Js
 
 open struct
-  let ensure msg b = if not b then Js.log ("ensure: " ^ msg)
+  let ensure msg b = if not b then Jx.log ("ensure: " ^ msg)
 
   let expect msg e a =
     if e <> !a then
       let e_js = Stdweb.Array.of_list e in
       let a_js = Stdweb.Array.of_list !a in
       let out =
-        Js.Encoder.(pair string Stdweb.Dict.to_js)
+        Jx.Encoder.(pair string Stdweb.Dict.to_js)
           (msg, Stdweb.Dict.of_array [| ("expected", e_js); ("actual", a_js) |])
       in
-      Js.log out
+      Jx.log out
 
-  let reject msg = Js.log ("rejected: " ^ msg)
+  let reject msg = Jx.log ("rejected: " ^ msg)
   let push out x = out := List.append !out [ x ]
 end
 

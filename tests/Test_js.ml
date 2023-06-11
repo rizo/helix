@@ -1,6 +1,6 @@
 module Js = Helix_js
-module E = Js.Encoder
-module D = Js.Decoder
+module E = Jx.Encoder
+module D = Jx.Decoder
 
 let test_codecs () =
   assert (D.int (E.int 42) = 42);
@@ -17,12 +17,12 @@ let test_codecs () =
 type person = { name : string; age : int }
 
 let person_of_js js =
-  let name = Js.Obj.get js "name" D.string in
-  let age = Js.Obj.get js "age" D.int in
+  let name = Jx.Obj.get js "name" D.string in
+  let age = Jx.Obj.get js "age" D.int in
   { name; age }
 
 let person_of_js_field person_js =
-  let open Js.Decoder in
+  let open Jx.Decoder in
   let name = field person_js "name" string in
   let age = field person_js "age" int in
   { name; age }

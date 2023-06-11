@@ -1,4 +1,3 @@
-module Js = Helix_js
 module Attr = Html.Attr
 module Node = Stdweb.Dom.Node
 module Element = Stdweb.Dom.Element
@@ -62,7 +61,8 @@ let show (to_html : 'a -> Html.html) signal : Html.html =
 
         (* Insert next to fragment and the fragment to parent. *)
         next.mount fragment;
-        insert_after_anchor ~parent ~anchor fragment)
+        insert_after_anchor ~parent ~anchor fragment
+      )
       signal
   in
   let remove () = !prev.remove () in
@@ -104,7 +104,8 @@ let conditional ~on:active_sig : Attr.t =
       (fun should_activate ->
         if should_activate then
           Node.replace_child ~parent ~reference:anchor node
-        else Node.replace_child ~parent ~reference:node anchor)
+        else Node.replace_child ~parent ~reference:node anchor
+      )
       active_sig
   in
   let remove elem =
@@ -159,7 +160,7 @@ end = struct
     match Map.first_key slots with
     | None -> failwith "BUG: get_slot: slots must not be empty"
     | Some idx_js ->
-      let idx = Js.Decoder.int idx_js in
+      let idx = Jx.Decoder.int idx_js in
       let html = Map.get slots idx_js in
       (idx, html)
 
@@ -172,11 +173,11 @@ end = struct
       | None -> make_slots ()
       | Some slots -> slots
     in
-    Map.set slots (Js.Encoder.int idx) html;
+    Map.set slots (Jx.Encoder.int idx) html;
     set cache ~key slots
 
   let del_slot cache ~key slots idx =
-    Map.delete slots (Js.Encoder.int idx);
+    Map.delete slots (Jx.Encoder.int idx);
     if Map.size slots = 0 then Dict.del cache key
 
   let clear cache =
@@ -185,7 +186,8 @@ end = struct
         Iterator.iter
           (fun (html : Html.Elem.Internal.t) -> html.remove ())
           values;
-        Map.clear slots)
+        Map.clear slots
+    )
 end
 
 let each (render : 'a -> Html.html) items_signal : Html.html =
@@ -203,7 +205,8 @@ let each (render : 'a -> Html.html) items_signal : Html.html =
       let key = Each_cache.key item in
       let html = Html.Elem.Internal.of_html (render item) in
       html.mount fragment;
-      Each_cache.add_slot !old_cache ~key i html)
+      Each_cache.add_slot !old_cache ~key i html
+    )
     items0;
 
   let mount parent =
@@ -237,12 +240,14 @@ let each (render : 'a -> Html.html) items_signal : Html.html =
                 i_html.mount fragment;
                 Each_cache.del_slot !old_cache ~key old_slots i;
                 Each_cache.add_slot new_cache ~key j i_html
-              end)
+              end
+          )
           new_items;
         Each_cache.clear !old_cache;
         insert_after_anchor ~parent ~anchor:!anchor fragment;
         old_cache := new_cache;
-        anchor := comment)
+        anchor := comment
+      )
       items_signal
   in
   let remove () = Each_cache.clear !old_cache in
@@ -260,7 +265,8 @@ let bind to_attr signal : Attr.t =
         let next' = Attr.Internal.of_attr (to_attr x) in
         !prev'.remove elem;
         next'.set elem;
-        prev' := next')
+        prev' := next'
+      )
       signal
   in
   let remove elem = !prev'.remove elem in
@@ -276,7 +282,8 @@ let toggle ~on:active_sig attr0 : Attr.t =
     if should_activate0 then internal.set elem;
     Signal.use
       (fun should_activate ->
-        if should_activate then internal.set elem else internal.remove elem)
+        if should_activate then internal.set elem else internal.remove elem
+      )
       active_sig
   in
   Attr.Internal.to_attr { internal with set }

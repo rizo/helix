@@ -1,5 +1,0 @@
-(library
-  (name helix_js)
-  (public_name helix.js)
-  (modes byte)
-  (virtual_modules helix_js_virt))

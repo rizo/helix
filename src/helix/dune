@@ -1,4 +1,4 @@
 (library
  (public_name helix)
- (libraries helix.signal helix.stdweb helix.html helix.js)
+ (libraries helix.signal helix.stdweb helix.html jx)
  (modes byte))

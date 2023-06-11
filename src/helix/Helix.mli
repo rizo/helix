@@ -10,17 +10,19 @@
         let count = Signal.reduce (fun total n -> total + n) 0 incr in
         let open Html in
         fragment
-          [ h2 [] [ text "Counter" ]
-          ; p [] [ text "Compute a count." ]
-          ; div []
-              [ button [ on_click (fun _ -> Signal.emit 1 incr) ] [ text "+" ]
-              ; button
+          [
+            h2 [] [ text "Counter" ];
+            p [] [ text "Compute a count." ];
+            div []
+              [
+                button [ on_click (fun _ -> Signal.emit 1 incr) ] [ text "+" ];
+                button
                   [ on_click (fun _ -> Signal.emit (-1) incr) ]
-                  [ text "-" ]
-              ; span
+                  [ text "-" ];
+                span
                   [ style [ ("margin-left", "5px") ] ]
-                  [ View.show int count ]
-              ]
+                  [ View.show int count ];
+              ];
           ]
     ]}*)
 
@@ -34,13 +36,6 @@ type attr = Html.attr
 
 module Html : sig
   include module type of Html with type html = html
-  (** @inline *)
-end
-
-type js = Helix_js.t
-
-module Js : sig
-  include module type of Helix_js with type t = js
   (** @inline *)
 end
 

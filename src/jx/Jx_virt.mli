@@ -3,7 +3,6 @@ type t
 (* Raw *)
 
 val null : t
-val pure_js_expr : string -> t
 val undefined : t
 val global_this : t
 val debugger : unit -> unit
@@ -41,5 +40,5 @@ val of_fun : int -> (_ -> _) -> t
 
 (* Type helpers. *)
 
-val typeof : t -> t
-val instanceof : t -> t -> bool
+val type_of : t -> t
+val instance_of : t -> t -> bool

@@ -2,7 +2,7 @@
 
 (executable
  (name todomvc)
- (libraries helix helix.stdweb helix.jsoo)
+ (libraries helix helix.stdweb)
  (modes js))
 
 (alias

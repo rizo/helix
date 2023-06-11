@@ -1,6 +1,6 @@
 (executable
  (name tests)
- (libraries helix helix.stdweb helix.jsoo)
+ (libraries helix helix.stdweb jx)
  (modes js))
 
 (alias

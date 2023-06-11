@@ -1,36 +1,36 @@
-module Js = Helix_js
-
 module Console : sig
-  val t : Js.t
-  (** See {{:https://developer.mozilla.org/en-US/docs/Web/API/console}
-      [console]}. *)
+  val t : Jx.t
+  (** See
+      {{:https://developer.mozilla.org/en-US/docs/Web/API/console} [console]}. *)
 
   val log : 'a -> unit
-  (** See {{:https://developer.mozilla.org/en-US/docs/Web/API/console/log}
-      [log]}. *)
+  (** See
+      {{:https://developer.mozilla.org/en-US/docs/Web/API/console/log} [log]}. *)
 
   val error : 'a -> unit
-  (** See {{:https://developer.mozilla.org/en-US/docs/Web/API/console/error}
-      [error]}. *)
+  (** See
+      {{:https://developer.mozilla.org/en-US/docs/Web/API/console/error}
+        [error]}. *)
 
   val info : 'a -> unit
-  (** See {{:https://developer.mozilla.org/en-US/docs/Web/API/console/info}
-      [info]}. *)
+  (** See
+      {{:https://developer.mozilla.org/en-US/docs/Web/API/console/info} [info]}. *)
 
   val warn : 'a -> unit
-  (** See {{:https://developer.mozilla.org/en-US/docs/Web/API/console/warn}
-      [warn]}. *)
+  (** See
+      {{:https://developer.mozilla.org/en-US/docs/Web/API/console/warn} [warn]}. *)
 
   val ensure : bool -> 'a -> unit
-  (** See {{:https://developer.mozilla.org/en-US/docs/Web/API/console/assert}
-      [assert]}. *)
+  (** See
+      {{:https://developer.mozilla.org/en-US/docs/Web/API/console/assert}
+        [assert]}. *)
 end
 
 module Array : sig
   type 'a t
 
-  val of_js : Js.t -> 'a t
-  val to_js : 'a t -> Js.t
+  val of_js : Jx.t -> 'a t
+  val to_js : 'a t -> Jx.t
   val empty : unit -> 'a t
   val make : int -> 'a t
   val init : int -> (int -> 'a) -> 'a t
@@ -48,10 +48,10 @@ end
 module Dict : sig
   type 'a t
 
-  val of_js : Js.t -> 'a t
-  val to_js : 'a t -> Js.t
-  val of_obj : Js.Obj.t -> 'a t
-  val to_obj : 'a t -> Js.Obj.t
+  val of_js : Jx.t -> 'a t
+  val to_js : 'a t -> Jx.t
+  val of_obj : Jx.Obj.t -> 'a t
+  val to_obj : 'a t -> Jx.Obj.t
   val empty : unit -> 'a t
   val of_list : (string * 'a) list -> 'a t
   val of_array : (string * 'a) array -> 'a t
@@ -72,9 +72,9 @@ module Promise : sig
   type 'a t
   type ('a, 'err) executor = ('a -> unit) -> ('err -> unit) -> unit
 
-  val t : Js.t
-  val of_js : Js.t -> 'a t
-  val to_js : 'a t -> Js.t
+  val t : Jx.t
+  val of_js : Jx.t -> 'a t
+  val to_js : 'a t -> Jx.t
   val make : ('a, 'err) executor -> 'a t
   val resolve : 'a -> 'a t
   val reject : 'err -> 'a t
@@ -95,18 +95,18 @@ end
 module Map : sig
   type 'a t
 
-  val t : Js.t
-  val of_js : Js.t -> 'a t
-  val to_js : 'a t -> Js.t
+  val t : Jx.t
+  val of_js : Jx.t -> 'a t
+  val to_js : 'a t -> Jx.t
   val make : unit -> 'a t
   val clear : 'a t -> unit
-  val set : 'a t -> Js.t -> 'a -> unit
-  val get : 'a t -> Js.t -> 'a
-  val delete : 'a t -> Js.t -> unit
-  val keys : 'a t -> Js.t Iterator.t
+  val set : 'a t -> Jx.t -> 'a -> unit
+  val get : 'a t -> Jx.t -> 'a
+  val delete : 'a t -> Jx.t -> unit
+  val keys : 'a t -> Jx.t Iterator.t
   val size : 'a t -> int
   val values : 'a t -> 'a Iterator.t
-  val first_key : 'a t -> Js.t option
+  val first_key : 'a t -> Jx.t option
 end
 
 module Dom : sig
@@ -128,14 +128,16 @@ module Dom : sig
     type target
     (** The type for event targets.
 
-        See {{:https://developer.mozilla.org/en-US/docs/Web/API/EventTarget}
-        EventTarget}. *)
+        See
+        {{:https://developer.mozilla.org/en-US/docs/Web/API/EventTarget}
+          EventTarget}. *)
 
     val target : 'a t -> target
     (** [target ev] is the target of the event [ev].
 
-        See: {{:https://developer.mozilla.org/en-US/docs/Web/API/Event/target}
-        [Event.target]}. *)
+        See:
+        {{:https://developer.mozilla.org/en-US/docs/Web/API/Event/target}
+          [Event.target]}. *)
 
     val target_value : 'a t -> string
 
@@ -166,8 +168,9 @@ module Dom : sig
       type nonrec kind = [ `Mouse ] kind
 
       type nonrec t = kind t
-      (** See {{:https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent}
-          [MouseEvent]}. *)
+      (** See
+          {{:https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent}
+            [MouseEvent]}. *)
 
       val page_x : t -> float
       val page_y : t -> float
@@ -176,22 +179,22 @@ module Dom : sig
     val click : Mouse.kind
     (** See
         {{:https://developer.mozilla.org/en-US/docs/Web/API/Element/click_event}
-        [click_event]}. *)
+          [click_event]}. *)
 
     val input : Input.kind
     (** See
         {{:https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/input_event}
-        [input_event]}. *)
+          [input_event]}. *)
 
     val keydown : Keyboard.kind
     (** See
         {{:https://developer.mozilla.org/en-US/docs/Web/API/Element/keydown_event}
-        [keydown_event]}. *)
+          [keydown_event]}. *)
 
     val change : Kind.base
     (** See
         {{:https://developer.mozilla.org/en-US/docs/Web/API/Element/change_event}
-        [change_event]}. *)
+          [change_event]}. *)
   end
 
   module Event_target : sig
@@ -214,7 +217,7 @@ module Dom : sig
 
     include module type of Event_target with type t := t
 
-    val to_js : t -> Js.t
+    val to_js : t -> Jx.t
     val to_event_target : t -> Event_target.t
     val parent_node : t -> t option
     val child_nodes : t -> List.t
@@ -236,7 +239,7 @@ module Dom : sig
 
     include module type of Node with type t := t
 
-    val to_js : t -> Js.t
+    val to_js : t -> Jx.t
     val to_node : t -> Node.t
     val append : t -> t -> unit
     val replace_with : t -> t -> unit
@@ -258,7 +261,7 @@ module Dom : sig
   module Html_element : sig
     type t
 
-    val t : Js.Obj.t
+    val t : Jx.Obj.t
     val of_element : Element.t -> t
     val of_node : Node.t -> t
     val to_element : t -> Element.t
@@ -281,7 +284,7 @@ module Dom : sig
 
     include module type of Character_data with type t := t
 
-    val t : Js.t
+    val t : Jx.t
     val to_character_data : t -> Character_data.t
   end
 
@@ -297,7 +300,7 @@ module Dom : sig
   module Document_fragment : sig
     type t
 
-    val t : Js.t
+    val t : Jx.t
     val to_node : t -> Node.t
     val make : unit -> t
     val replace_children : t -> Node.t array -> unit
@@ -326,15 +329,15 @@ module Dom : sig
   end
 
   module Custom_element_registry : sig
-    type t = Js.t
+    type t = Jx.t
 
-    val t : Js.t
+    val t : Jx.t
     val define : string -> 'a -> unit
   end
 end
 
 module Global : sig
-  val this : Js.t
+  val this : Jx.t
   val document : Dom.Document.t
   val window : Dom.Window.t
 end

@@ -1,6 +1,0 @@
-(library
- (name helix_jsoo)
- (public_name helix.jsoo)
- (implements helix_js)
- (modes byte)
- (libraries js_of_ocaml-compiler.runtime))
