@@ -49,7 +49,6 @@ let () =
 ## Roadmap
 
 - Add support for [Melange](https://github.com/melange-re/melange).
-- JSX ppx for Reason.
   - Currently blocked by https://github.com/ocaml/dune/issues/7104.
 - Implement a JSX PPX for [Reason](https://reasonml.github.io).
   - WIP implementation: https://github.com/rizo/helix/tree/master/experiments/helix-ppx.
