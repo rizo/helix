@@ -1,103 +1,106 @@
 # Helix JSX PPX
 
-Attribute with value:
-```ocaml
-<div id="active"></div>
+## Simple elements
 
-Jsx.Elem.div [Jsx.Attr.id "active"] []
-```
-
-
-Attribute with optional value:
-```
-<div id=?id></div>
-
-Jsx.Elem.div [Jsx.Syntax.option1 ~attr:Jsx.Attr.id id] []
-```
-
-
-Conditional element:
-```
-<show on=signal><div></div></show>
-
-Jsx.View.show ~on:signal (Jsx.Elem.div [] [])
-```
-
-
-Conditional attribute:
-```
-<div style=?(signal, my_style)></div>
-
-Jsx.Elem.div [Jsx.Syntax.option2 ~attr:Jsx.Attr.style signal my_style] []
-```
-
-
-Conditional attribute with default:
-```
-<div style=?(signal, true_style, false_style)></div>
-
-Jsx.Elem.div [Jsx.Syntax.option3 ~attr:Jsx.Attr.style signal true_style false_style] []
-```
-
-Reactive list:
+Node without any attributes or children:
 ```reason
-<ul> <each items>{item => <li></li>}</each> </ul>
-
-<ul> <each items>render_item</each> </ul>
-
-Jsx.Elem.ul [] [
-  Jsx.View.each (fun item -> Jsx.Elem.li [] []) items
-]
+<div />;
+// Jsx.Elem.div [||] [||]
 ```
 
-Event handlers:
+Node with a single child:
 ```reason
-<button on=(Event.click, callback)>"Click!"</button>
-
-Jsx.Elem.button [on Event.click callback] [Jsx.text "Click!"]
+<div> v </div>;
+// Jsx.Elem.div [||] [| v |]
 ```
 
-
-Render signal value to html:
-```
-<dyn>{(item_sig as item) => <p>{Html.text(item)}</p>}</dyn>
-
-Jsx.View.dyn (fun item -> Jsx.Elem.p [] [Html.text item]) item_sig
-```
-
-```
-<dyn>{device => render_device(device)}</dyn>
-
-Jsx.View.dyn render_device device
-```
-
-```
-<dyn>{(device, status) => render_device_with_status(device, status)}</dyn>
-
-Jsx.View.dyn2 (fun device status -> render_device_with_status device status) device status
-```
-
-
-```
-<dyn device>{render_device}</dyn>
-
-Jsx.View.dyn render_device device
-```
-
-```
-<dyn device status>{render_device_with_status}</dyn>
-
-Jsx.View.dyn2 render_device_with_status device status
-```
-
-```
-<show device status>{render_device_with_status}</show>
-<show on=is_message_visible message>{text}</show>
-
-Jsx.View.dyn2 render_device_with_status device status
-```
-
+Node with multiple children:
 ```reason
-/* HTML from value */
-<p html=int>x</p>;
+<div> v1 v2 </div>;
+// Jsx.Elem.div [||] [| v1; v2 |]
+```
+
+Node with a literal value child:
+```reason
+<div> 42 </div>;
+// Jsx.Elem.div [||] [| Jsx.int 42 |]
+```
+
+Text node:
+```reason
+<text> "hello" </text>;
+<text> v </text>;
+// Jsx.Elem.div [||] [| Jsx.text "hello" |]
+// Jsx.Elem.div [||] [| Jsx.text v |]
+```
+
+
+## Element attributes
+
+Node with attributes:
+```reason
+<div a1 a2=2> x </div>;
+// Jsx.Elem.div [| Jsx.Attr.a1 a1; Jsx.Attr.a2 2 |] [| x |]
+```
+
+Node with optional attributes:
+```reason
+<div ?a />;
+<div a=?x />;
+// Jsx.Elem.div [| Jsx.Attr.option1 Jsx.Attr.a a |] [||]
+// Jsx.Elem.div [| Jsx.Attr.option1 Jsx.Attr.a x |] [||]
+
+<div a=?(s, x) />;
+<div a=?(s, x, y) />;
+// Jsx.Elem.div [| Jsx.Attr.option2 Jsx.Attr.a s x |] [||]
+// Jsx.Elem.div [| Jsx.Attr.option3 Jsx.Attr.a s x y |] [||]
+```
+
+
+## Fragments
+
+Empty fragment node:
+```reason
+<> </>;
+// Jsx.fragment [||]
+```
+
+Fragment with multiple children:
+```reason
+<> v1 v2 </>;
+// Jsx.fragment [| v1; v2 |]
+```
+
+
+## Children spread
+
+Children spread from array:
+```reason
+<div> ...arr </div>;
+<div> ...[|<int>1</int>, <text>"hello"</text>|] </div>;
+// Jsx.Elem.div [||] arr
+// Jsx.Elem.div [||] [| Jsx.int 1; Jsx.text "hello" |]
+```
+
+
+## Module elements
+
+Module node without any attributes or children:
+```reason
+<X />;
+// X.make ()
+```
+
+Module node with attributes and children:
+```reason
+<X x y=1> v </X>;
+// X.make ~x ~y:1 v
+```
+
+Module node from a custom function:
+```reason
+<X.foo x y=1 />;
+<X.foo x y=1> v1 v2 </X.foo>;
+// X.foo ~x ~y:1 ()
+// X.foo ~x ~y:1 [| v1; v2 |]
 ```

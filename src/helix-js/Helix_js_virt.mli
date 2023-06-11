@@ -3,6 +3,7 @@ type t
 (* Raw *)
 
 val null : t
+val pure_js_expr : string -> t
 val undefined : t
 val global_this : t
 val debugger : unit -> unit

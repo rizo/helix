@@ -302,6 +302,7 @@ module Dom = struct
   module Html_element = struct
     type t = Js.t
 
+    let t = Js.global "HTMLElement"
     let of_node t = t
     let of_element t = t
     let to_element t = t
@@ -390,6 +391,15 @@ module Dom = struct
     let set_timeout f ms =
       Js.Obj.call_js_unit Global.window "setTimeout"
         [| Js.Encoder.fun1 f; Js.Encoder.int ms |]
+  end
+
+  module Custom_element_registry = struct
+    type t = Js.t
+
+    let t = Js.global "CustomElementRegistry"
+
+    let define name constr =
+      Js.Obj.call2_unit t "define" Js.Encoder.string Js.Encoder.any name constr
   end
 end
 

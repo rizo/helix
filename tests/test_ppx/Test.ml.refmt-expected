@@ -1,16 +1,96 @@
-let no_children = (div ~children:[] () [@JSX])
-let single_var_child = (div ~children:[ v ] () [@JSX])
-let multi_var_children = (div ~children:[ v1; v2 ] () [@JSX])
-let single_lit_child = (div ~children:[ 42 ] () [@JSX])
-let mixed_children = (div ~children:[ v; 42 ] () [@JSX])
-let empty_frag = ([] [@JSX])
-let single_var_frag = [ v ] [@JSX]
-let multi_var_frag = [ v1; v2 ] [@JSX]
-let single_lit_frag = [ 42 ] [@JSX]
-let mixed_frag = [ v1; 42 ] [@JSX]
-let lit_node = (int ~children:[ 42 ] () [@JSX])
-let spread_children = (div ~children:arr () [@JSX])
-let mod_a0_c0 = (X.createElement ~children:[] () [@JSX])
-let mod_a1_c0 = (X.createElement ~x:1 ~children:[] () [@JSX])
-let mod_a2_c0 = (X.createElement ~x ~y:1 ~children:[] () [@JSX])
-let mod_a2_c1 = (X.createElement ~x ~y:1 ~children:[ v ] () [@JSX])
+let st_1 = (div ~children:[] () [@JSX])
+let st_2 = (div ~children:[ v ] () [@JSX])
+let st_3 = (div ~children:[ v1; v2 ] () [@JSX])
+let fr_1 = ([] [@JSX])
+let fr_2 = [ v ] [@JSX]
+let fr_3 = [ v1; v2 ] [@JSX]
+let li_1 = (int ~children:[ 42 ] () [@JSX])
+let li_2 = (int ~children:[ v ] () [@JSX])
+
+let li_3 =
+  (text ~children:[ ("hello" [@reason.raw_literal "hello"]) ] () [@JSX])
+
+let li_4 = (text ~children:[ v ] () [@JSX])
+let sp_1 = (div ~children:arr () [@JSX])
+
+let sp_2 =
+  (div
+     ~children:
+       [| (int ~children:[ 1 ] () [@JSX])
+        ; (text ~children:[ ("hello" [@reason.raw_literal "hello"]) ] () [@JSX])
+       |]
+     () [@JSX])
+
+let sp_3 = (div ~children:[||] () [@JSX])
+let md_1 = (X.createElement ~children:[] () [@JSX])
+let md_2 = (X.createElement ~x:1 ~children:[] () [@JSX])
+let md_4 = (X.createElement ~x ~y:1 ~children:[] () [@JSX])
+let md_5 = (X.createElement ~x ~y:1 ~children:[ v ] () [@JSX])
+let mf_1 = (X.foo ~x ~y:1 ~children:[] () [@JSX])
+let mf_2 = (X.foo ~x ~y:1 ~children:[ v1; v2 ] () [@JSX])
+let nl_1 = (null ~children:[] () [@JSX])
+let bt_1 = (t ~children:[] () [@JSX])
+let bt_2 = (t ~children:[ x ] () [@JSX])
+let bt_3 = (t ~children:[ x1; x2 ] () [@JSX])
+let bt_4 = (t1 ~children:[ (t2 ~children:[ x ] () [@JSX]) ] () [@JSX])
+
+let bt_5 =
+  (t1
+     ~children:[ (t2 ~children:[ x ] () [@JSX]); (t3 ~children:[] () [@JSX]) ]
+     () [@JSX])
+
+let bt_6 =
+  (t1
+     ~children:
+       [ (t2 ~children:[ x1 ] () [@JSX])
+       ; (t3 ~children:[ x2; (t4 ~children:[] () [@JSX]) ] () [@JSX])
+       ]
+     () [@JSX])
+
+let ba_1 = (t ~a:1 ~children:[] () [@JSX])
+let ba_2 = (t ~a:1 ~children:[ x ] () [@JSX])
+let ba_3 = (t ~a1:1 ~a2:2 ~children:[ x ] () [@JSX])
+let ba_4 = (t ~a ~children:[] () [@JSX])
+let ba_5 = (t ~a1 ~a2:2 ~children:[ x ] () [@JSX])
+let oa_1 = (t ?a ~children:[] () [@JSX])
+let oa_2 = (t ?a:x ~children:[] () [@JSX])
+let o2_1 = (t ?a:(s, x) ~children:[] () [@JSX])
+let o3_1 = (t ?a:(s, x, y) ~children:[] () [@JSX])
+
+let mx_1 =
+  (t ~a1:1 ~a2 ?a3:x3 ?a4 ?a5:(s, 5) ?a6:(s, 6, 7) ~children:[ 0 ] () [@JSX])
+
+let mx_2 =
+  (t1 ~a1:1 ~a2 ?a3:x3 ?a4 ?a5:(s, 5) ?a6:(s, 6, 7)
+     ~children:[ (t2 ~children:[ e ] () [@JSX]) ]
+     () [@JSX])
+
+let it_1 = (t ~children:[ ("hello" [@reason.raw_literal "hello"]) ] () [@JSX])
+let it_2 = (t ~children:[ 5 ] () [@JSX])
+let it_3 = (t ~children:[ 3.14 ] () [@JSX])
+
+let tt_1 =
+  (text ~children:[ ("hello" [@reason.raw_literal "hello"]) ] () [@JSX])
+
+let tt_2 = (int ~children:[ 42 ] () [@JSX])
+let tt_3 = (float ~children:[ 3.14 ] () [@JSX])
+let tt_4 = (t ~children:[ (int ~children:[ 100 ] () [@JSX]) ] () [@JSX])
+let tt_5 = (text ~children:[ some_str ] () [@JSX])
+let tt_6 = (int ~children:[ some_int ] () [@JSX])
+let tt_7 = (float ~children:[ some_float ] () [@JSX])
+let ch_1 = (t ~children:[] () [@JSX])
+let ch_2 = (t ~children:[ 1 ] () [@JSX])
+let ch_3 = (t ~children:[ e ] () [@JSX])
+let ch_4 = (t ~children:[ e1; e1 ] () [@JSX])
+let ch_5 = (t ~children:[ [ 1 ] [@JSX] ] () [@JSX])
+
+let ch_6 =
+  (t1
+     ~children:[ (t2 ~children:[] () [@JSX]); (t3 ~children:[] () [@JSX]) ]
+     () [@JSX])
+
+let ch_7 =
+  (t1
+     ~children:
+       [ (t2 ~children:[] () [@JSX]); e; 1; (t3 ~children:[] () [@JSX]) ]
+     () [@JSX])

@@ -3,6 +3,7 @@
 type t = Helix_js_virt.t
 type js = t
 
+let pure_js_expr = Helix_js_virt.pure_js_expr
 let global_this = Helix_js_virt.global_this
 let null = Helix_js_virt.null
 let undefined = Helix_js_virt.undefined
@@ -38,6 +39,9 @@ module Obj = struct
     obj
 
   let of_array = Helix_js_virt.obj
+  let create obj = Helix_js_virt.obj_call t "create" [| obj |]
+  let get_prototype obj = Helix_js_virt.obj_get obj "prototype"
+  let set_prototype obj proto = Helix_js_virt.obj_set obj "prototype" proto
 
   (* Get *)
 

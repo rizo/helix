@@ -93,15 +93,18 @@ let test_append () =
               Signal.update
                 (fun items ->
                   incr n;
-                  List.append items [ !n ])
-                items);
+                  List.append items [ !n ]
+                )
+                items
+          );
         ]
         [ text "Add" ];
       button
         [
           on_click (fun _ ->
               n := -1;
-              Signal.emit [] items);
+              Signal.emit [] items
+          );
         ]
         [ text "Clear" ];
       ul [] [ items |> View.each (fun item -> li [] [ int item ]) ];
@@ -115,7 +118,8 @@ let test_append_same () =
       button
         [
           on_click (fun _ ->
-              Signal.update (fun items -> List.append items [ 0 ]) items);
+              Signal.update (fun items -> List.append items [ 0 ]) items
+          );
         ]
         [ text "Add" ];
       ul [] [ items |> View.each (fun item -> li [] [ int item ]) ];
@@ -158,10 +162,12 @@ let test_conditional_2 () =
           |> View.each (fun item ->
                  li
                    [
-                     (if item = "X" then View.conditional ~on:is_visible
-                     else Attr.empty);
+                     ( if item = "X" then View.conditional ~on:is_visible
+                       else Attr.empty
+                     );
                    ]
-                   [ text item ]);
+                   [ text item ]
+             );
         ];
     ]
 
@@ -173,7 +179,8 @@ let test_random () =
       button
         [
           on_click (fun _ ->
-              Signal.emit (List.init (1 + Random.int 10) string_of_int) items);
+              Signal.emit (List.init (1 + Random.int 10) string_of_int) items
+          );
         ]
         [ text "Generate" ];
       ul [] [ items |> View.each (fun item -> li [] [ text item ]) ];
@@ -187,7 +194,8 @@ let test_interleave () =
       button
         [
           on_click (fun _ ->
-              Signal.emit (List.init (1 + Random.int 10) string_of_int) items);
+              Signal.emit (List.init (1 + Random.int 10) string_of_int) items
+          );
         ]
         [ text "Generate" ];
       div

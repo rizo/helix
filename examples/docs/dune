@@ -4,5 +4,5 @@
  (modes js))
 
 (alias
- (name default)
+ (name all)
  (deps index.html))

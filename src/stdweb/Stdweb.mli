@@ -258,6 +258,7 @@ module Dom : sig
   module Html_element : sig
     type t
 
+    val t : Js.Obj.t
     val of_element : Element.t -> t
     val of_node : Node.t -> t
     val to_element : t -> Element.t
@@ -322,6 +323,13 @@ module Dom : sig
     val to_event_target : t -> Event_target.t
     val set_interval : (unit -> unit) -> int -> unit
     val set_timeout : (unit -> unit) -> int -> unit
+  end
+
+  module Custom_element_registry : sig
+    type t = Js.t
+
+    val t : Js.t
+    val define : string -> 'a -> unit
   end
 end
 

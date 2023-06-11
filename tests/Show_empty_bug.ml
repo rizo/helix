@@ -23,5 +23,6 @@ let main () =
       |> View.show (fun what ->
              match what with
              | `view1 -> same
-             | `view2 -> fragment [ same ]);
+             | `view2 -> fragment [ same ]
+         );
     ]

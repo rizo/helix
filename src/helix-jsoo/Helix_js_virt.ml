@@ -1,10 +1,10 @@
 type t
 
-external _pure_js_expr : string -> 'a = "caml_pure_js_expr"
+external pure_js_expr : string -> 'a = "caml_pure_js_expr"
 
-let global_this = _pure_js_expr "globalThis"
-let null = _pure_js_expr "null"
-let undefined = _pure_js_expr "undefined"
+let global_this = pure_js_expr "globalThis"
+let null = pure_js_expr "null"
+let undefined = pure_js_expr "undefined"
 
 external debugger : unit -> unit = "debugger"
 external equal : t -> t -> bool = "caml_js_equals"

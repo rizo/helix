@@ -219,7 +219,7 @@ let rewritter =
       extractChildren ~removeLastPositionUnit:true ~loc callArguments
     in
     match (id, children.pexp_desc) with
-    (* text/int/float *)
+    (* null/text/int/float *)
     | ( "text"
       , Pexp_construct
           ({ txt = Lident "::"; _ }, Some { pexp_desc = Pexp_tuple l; _ }) ) ->
@@ -290,13 +290,12 @@ let rewritter =
         |> List.map (fun (label, e) -> (label, mapper#expression e))
         |> prop_list_to_array ~loc
       in
-      let args =
-        [ (* [|Jsx.Attr.className blabla; JsxAttr.foo bar|] *)
-          (Nolabel, props)
-        ; (* [|moreelem_fsHere|] *)
-          (Nolabel, children)
-        ]
+      let children' =
+        match process_children ~loc ~mapper children with
+        | `empty -> Ast_helper.Exp.array ~loc []
+        | `single e | `array e -> e
       in
+      let args = [ (Nolabel, props); (Nolabel, children') ] in
       Builder.pexp_apply ~loc ~attrs elem_f args
   in
 

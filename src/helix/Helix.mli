@@ -88,15 +88,11 @@ module View : sig
 
   val bind : ('a -> Html.attr) -> 'a Signal.t -> Html.attr
   (** [bind to_attr signal] is a dynamic HTML attribute created from [signal]
-      values using [to_attr]. *)
-
-  val assign : Html.attr Signal.t -> Html.attr
-  (** [attr attr_signal] dynamically binds the attributes produced by
-      [attr_signal] to an element.
+      values using [to_attr].
 
       {[
-        let attr = Signal.make (Html.style_list [ ("color", "red") ]) in
-        div [ View.assign attr ] [ text "Hello!" ]
+        let style = Signal.make [ ("color", "red") ] in
+        div [ View.bind Html.style style ] [ text "Hello!" ]
       ]} *)
 
   val visible : on:bool Signal.t -> Html.attr

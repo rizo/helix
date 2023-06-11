@@ -12,7 +12,8 @@ let test_simple () =
         [
           View.show
             (fun (num, msg) ->
-              Html.span [] [ text msg; text (string_of_int num) ])
+              Html.span [] [ text msg; text (string_of_int num) ]
+            )
             (Signal.make (42, "hello"));
         ];
     ]
@@ -53,7 +54,8 @@ let test_nested () =
             [ text "incr" ];
           View.show
             (fun x ->
-              if x mod 2 = 0 then text "NOP" else View.show int (Signal.make x))
+              if x mod 2 = 0 then text "NOP" else View.show int (Signal.make x)
+            )
             number;
         ];
     ]
@@ -130,7 +132,8 @@ let test_switcher () =
              | `empty1 -> empty
              | `empty2 -> fragment [ empty ]
              | `complex1 -> complex ()
-             | `complex2 -> complex ());
+             | `complex2 -> complex ()
+         );
     ]
 
 let main () =

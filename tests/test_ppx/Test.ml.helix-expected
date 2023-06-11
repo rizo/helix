@@ -1,16 +1,92 @@
-let no_children = Jsx.Elem.div [||] [||]
-let single_var_child = Jsx.Elem.div [||] [| v |]
-let multi_var_children = Jsx.Elem.div [||] [| v1; v2 |]
-let single_lit_child = Jsx.Elem.div [||] [| Jsx.int 42 |]
-let mixed_children = Jsx.Elem.div [||] [| v; Jsx.int 42 |]
-let empty_frag = Jsx.fragment [||]
-let single_var_frag = Jsx.fragment [| v |]
-let multi_var_frag = Jsx.fragment [| v1; v2 |]
-let single_lit_frag = Jsx.fragment [| Jsx.int 42 |]
-let mixed_frag = Jsx.fragment [| v1; Jsx.int 42 |]
-let lit_node = Jsx.int 42
-let spread_children = Jsx.Elem.div [||] arr
-let mod_a0_c0 = X.make ()
-let mod_a1_c0 = X.make ~x:1 ()
-let mod_a2_c0 = X.make ~x ~y:1 ()
-let mod_a2_c1 = X.make ~x ~y:1 v
+let st_1 = Jsx.Elem.div [||] [||]
+let st_2 = Jsx.Elem.div [||] [| v |]
+let st_3 = Jsx.Elem.div [||] [| v1; v2 |]
+let fr_1 = Jsx.fragment [||]
+let fr_2 = Jsx.fragment [| v |]
+let fr_3 = Jsx.fragment [| v1; v2 |]
+let li_1 = Jsx.int 42
+let li_2 = Jsx.int v
+let li_3 = Jsx.text ("hello" [@reason.raw_literal "hello"])
+let li_4 = Jsx.text v
+let sp_1 = Jsx.Elem.div [||] arr
+
+let sp_2 =
+  Jsx.Elem.div [||]
+    [| Jsx.int 1; Jsx.text ("hello" [@reason.raw_literal "hello"]) |]
+
+let sp_3 = Jsx.Elem.div [||] [||]
+let md_1 = X.make ()
+let md_2 = X.make ~x:1 ()
+let md_4 = X.make ~x ~y:1 ()
+let md_5 = X.make ~x ~y:1 v
+let mf_1 = X.foo ~x ~y:1 ()
+let mf_2 = X.foo ~x ~y:1 [| v1; v2 |]
+let nl_1 = Jsx.Elem.null [||] [||]
+let bt_1 = Jsx.Elem.t [||] [||]
+let bt_2 = Jsx.Elem.t [||] [| x |]
+let bt_3 = Jsx.Elem.t [||] [| x1; x2 |]
+let bt_4 = Jsx.Elem.t1 [||] [| Jsx.Elem.t2 [||] [| x |] |]
+
+let bt_5 =
+  Jsx.Elem.t1 [||] [| Jsx.Elem.t2 [||] [| x |]; Jsx.Elem.t3 [||] [||] |]
+
+let bt_6 =
+  Jsx.Elem.t1 [||]
+    [| Jsx.Elem.t2 [||] [| x1 |]
+     ; Jsx.Elem.t3 [||] [| x2; Jsx.Elem.t4 [||] [||] |]
+    |]
+
+let ba_1 = Jsx.Elem.t [| Jsx.Attr.a 1 |] [||]
+let ba_2 = Jsx.Elem.t [| Jsx.Attr.a 1 |] [| x |]
+let ba_3 = Jsx.Elem.t [| Jsx.Attr.a1 1; Jsx.Attr.a2 2 |] [| x |]
+let ba_4 = Jsx.Elem.t [| Jsx.Attr.a a |] [||]
+let ba_5 = Jsx.Elem.t [| Jsx.Attr.a1 a1; Jsx.Attr.a2 2 |] [| x |]
+let oa_1 = Jsx.Elem.t [| Jsx.Attr.option1 Jsx.Attr.a a |] [||]
+let oa_2 = Jsx.Elem.t [| Jsx.Attr.option1 Jsx.Attr.a x |] [||]
+let o2_1 = Jsx.Elem.t [| Jsx.Attr.option2 Jsx.Attr.a s x |] [||]
+let o3_1 = Jsx.Elem.t [| Jsx.Attr.option3 Jsx.Attr.a s x y |] [||]
+
+let mx_1 =
+  Jsx.Elem.t
+    [| Jsx.Attr.a1 1
+     ; Jsx.Attr.a2 a2
+     ; Jsx.Attr.option1 Jsx.Attr.a3 x3
+     ; Jsx.Attr.option1 Jsx.Attr.a4 a4
+     ; Jsx.Attr.option2 Jsx.Attr.a5 s 5
+     ; Jsx.Attr.option3 Jsx.Attr.a6 s 6 7
+    |]
+    [| Jsx.int 0 |]
+
+let mx_2 =
+  Jsx.Elem.t1
+    [| Jsx.Attr.a1 1
+     ; Jsx.Attr.a2 a2
+     ; Jsx.Attr.option1 Jsx.Attr.a3 x3
+     ; Jsx.Attr.option1 Jsx.Attr.a4 a4
+     ; Jsx.Attr.option2 Jsx.Attr.a5 s 5
+     ; Jsx.Attr.option3 Jsx.Attr.a6 s 6 7
+    |]
+    [| Jsx.Elem.t2 [||] [| e |] |]
+
+let it_1 =
+  Jsx.Elem.t [||] [| Jsx.text ("hello" [@reason.raw_literal "hello"]) |]
+
+let it_2 = Jsx.Elem.t [||] [| Jsx.int 5 |]
+let it_3 = Jsx.Elem.t [||] [| Jsx.float 3.14 |]
+let tt_1 = Jsx.text ("hello" [@reason.raw_literal "hello"])
+let tt_2 = Jsx.int 42
+let tt_3 = Jsx.float 3.14
+let tt_4 = Jsx.Elem.t [||] [| Jsx.int 100 |]
+let tt_5 = Jsx.text some_str
+let tt_6 = Jsx.int some_int
+let tt_7 = Jsx.float some_float
+let ch_1 = Jsx.Elem.t [||] [||]
+let ch_2 = Jsx.Elem.t [||] [| Jsx.int 1 |]
+let ch_3 = Jsx.Elem.t [||] [| e |]
+let ch_4 = Jsx.Elem.t [||] [| e1; e1 |]
+let ch_5 = Jsx.Elem.t [||] [| Jsx.fragment [| Jsx.int 1 |] |]
+let ch_6 = Jsx.Elem.t1 [||] [| Jsx.Elem.t2 [||] [||]; Jsx.Elem.t3 [||] [||] |]
+
+let ch_7 =
+  Jsx.Elem.t1 [||]
+    [| Jsx.Elem.t2 [||] [||]; e; Jsx.int 1; Jsx.Elem.t3 [||] [||] |]

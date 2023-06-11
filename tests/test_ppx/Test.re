@@ -1,26 +1,31 @@
 // All variations
-let no_children = <div />;
-let single_var_child = <div> v </div>;
+let st_1 = <div />;
+let st_2 = <div> v </div>;
+let st_3 = <div> v1 v2 </div>;
 
-let multi_var_children = <div> v1 v2 </div>;
+let fr_1 = <> </>;
+let fr_2 = <> v </>;
+let fr_3 = <> v1 v2 </>;
 
-let single_lit_child = <div> 42 </div>;
+let li_1 = <int> 42 </int>;
+let li_2 = <int> v </int>;
+let li_3 = <text> "hello" </text>;
+let li_4 = <text> v </text>;
 
-let mixed_children = <div> v 42 </div>;
+let sp_1 = <div> ...arr </div>;
+let sp_2 = <div> ...[|<int>1</int>, <text>"hello"</text>|] </div>;
+let sp_3 = <div> ...[||] </div>;
 
-let empty_frag = <> </>;
-let single_var_frag = <> v </>;
-let multi_var_frag = <> v1 v2 </>;
-let single_lit_frag = <> 42 </>;
-let mixed_frag = <> v1 42 </>;
-let lit_node = <int> 42 </int>;
-let spread_children = <div> ...arr </div>;
-let mod_a0_c0 = <X />;
-let mod_a1_c0 = <X x=1 />;
-let mod_a2_c0 = <X x y=1 />;
-let mod_a2_c1 = <X x y=1> v </X>;
+let md_1 = <X />;
+let md_2 = <X x=1 />;
+let md_4 = <X x y=1 />;
+let md_5 = <X x y=1> v </X>;
 
-/*
+let mf_1 = <X.foo x y=1 />;
+let mf_2 = <X.foo x y=1> v1 v2 </X.foo>;
+
+let nl_1 = <null />;
+
  // Basic tags
  let bt_1 = <t />;
  let bt_2 = <t> x </t>;
@@ -28,6 +33,7 @@ let mod_a2_c1 = <X x y=1> v </X>;
  let bt_4 = <t1> <t2> x </t2> </t1>;
  let bt_5 = <t1> <t2> x </t2> <t3 /> </t1>;
  let bt_6 = <t1> <t2> x1 </t2> <t3> x2 <t4 /> </t3> </t1>;
+
 
  // Basic attributes
  let ba_1 = <t a=1 />;
@@ -71,7 +77,5 @@ let mod_a2_c1 = <X x y=1> v </X>;
  let ch_3 = <t> e </t>;
  let ch_4 = <t> e1 e1 </t>;
  let ch_5 = <t> <> 1 </> </t>;
- let ch_6 = <t> {[1, 1]} </t>;
- let ch_7 = <t1> <t2 /> <t3 /> </t1>;
- let ch_8 = <t1> <t2 /> e 1 <t3 /> </t1>;
- */
+ let ch_6 = <t1> <t2 /> <t3 /> </t1>;
+ let ch_7 = <t1> <t2 /> e 1 <t3 /> </t1>;
