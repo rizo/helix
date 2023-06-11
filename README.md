@@ -5,24 +5,16 @@
 > Note: this project is experimental. The core functionality is stable but the
 > API may break before the official release.
 
-[**API Docs**](https://odis-labs.github.io/helix/helix/Helix/index.html) • [**Examples**](https://github.com/odis-labs/helix/tree/master/examples)
+[**API Docs**](https://rizo.github.io/helix/helix/Helix/index.html) • [**Examples**](https://github.com/rizo/helix/tree/master/examples)
 
 ## Features
 
 - Reactive signals with
-  [`Helix.Signal`](https://odis-labs.github.io/helix/helix/Helix/Signal/index.html):
-signals represent values that change over time and can be used to model any
-dynamic state in your application.
-- Declarative HTML with [`Helix.Html`](https://odis-labs.github.io/helix/helix/Helix/Html/index.html): write your HTML templates directly in OCaml.
+  [`signal`](https://github.com/rizo/signal): signals represent values that change over time and can be used to model any dynamic state in your application.
+- Declarative HTML with [`Helix.Html`](https://rizo.github.io/helix/helix/Helix/Html/index.html): write your HTML templates directly in OCaml.
 - Fine-grained reactivity without Virtual DOM using
-  [`Helix.View`](https://odis-labs.github.io/helix/helix/Helix/View/index.html):
-updates are directly applied to the DOM tree based on
-values emited by reactive signals.
-- Js-compatibility library
-  [`Helix.Js`](https://odis-labs.github.io/helix/helix/Helix/Js/index.html):
-write bindings to interact withe the JavaScript ecosystem.
-- Supported compilation backends: [Js_of_ocaml](https://ocsigen.org/js_of_ocaml/latest/manual/overview), [Melange](https://github.com/melange-re/melange), [ReScript](https://rescript-lang.org/).
-- Supported compilation frontends: [OCaml](https://ocaml.org), [Reason](https://reasonml.github.io), [ReScript](https://rescript-lang.org).
+  [`Helix.View`](https://rizo.github.io/helix/helix/Helix/View/index.html): updates are directly applied to the DOM tree based on values emited by reactive signals.
+- Js-compatibility library [`jx`](https://github.com/rizo/jx): write bindings to interact withe the JavaScript ecosystem.
 
 
 ## Example
@@ -56,11 +48,13 @@ let () =
 
 ## Roadmap
 
-- An interactive demo to showcase the API.
-- Server-side rendering.
-- Declarative JS binding generation.
-- Support for scoped CSS styling using web-components.
+- Add support for [Melange](https://github.com/melange-re/melange).
 - JSX ppx for Reason.
+  - Currently blocked by https://github.com/ocaml/dune/issues/7104.
+- Implement a JSX PPX for [Reason](https://reasonml.github.io).
+  - WIP implementation: https://github.com/rizo/helix/tree/master/experiments/helix-ppx.
+- Server-side rendering.
+- Support for scoped CSS styling using web-components.
 
 
 ## Acknowledgements
