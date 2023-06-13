@@ -1,5 +1,8 @@
 module Event = Stdweb.Dom.Event
 module Console = Stdweb.Console
+
+let ( => ) a b = (a, b)
+
 open Stdweb
 open Helix
 
@@ -37,25 +40,30 @@ let view_function_docs ~signature ~description ~example ?preview ?console
       );
     ]
 
-let show_show_docs () =
-  let is_visible = Signal.make false in
-  let open Html in
-  view_function_docs "View.show"
-    ~signature:
-      "val toggle : on:bool signal -> ('a -> html) -> 'a signal -> html"
-    ~description:
+module Doc = struct
+  let show_values () =
+    let open Html in
+    div []
       [
-        text
-          "[show ?on:condition to_html signal] is a reactive HTML element \
-           created from\n\
-          \    [signal] values using [to_html]. If boolean [condition] signal \
-           is passed the\n\
-          \    resulting element is only rendered if the signal is [true].";
-        code [] "true";
-        text " the attribute is added, otherwise it is omitted";
+        h2 [] [ text "Show values" ];
+        text {|Reactive values can be dynamically rendered into the DOM tree.|};
       ]
-    ~example:
-      {|let is_visible = Signal.make false in
+
+  let toggle_attributes () =
+    let is_visible = Signal.make false in
+    let open Html in
+    view_function_docs "Toggle attributes"
+      ~signature:"val toggle : on:bool signal -> attr -> attr"
+      ~description:
+        [
+          text
+            "Toggle an attribute based on a boolean signal. If the signal's \
+             value is ";
+          code [] "true";
+          text " the attribute is added, otherwise it is omitted";
+        ]
+      ~example:
+        {|let is_visible = Signal.make false in
 div []
   [ button
       [ on Event.click (fun _ -> Signal.update not is_visible) ]
@@ -64,99 +72,38 @@ div []
       [ View.toggle ~on:is_visible (style [("color", "red")]) ]
       [ text "HELLO" ]
   ]|}
-    ~preview:
-      [
-        button
-          [ on Event.click (fun _ -> Signal.update not is_visible) ]
-          [ text "Toggle" ];
-        div
-          [ View.toggle ~on:is_visible (style [ ("color", "red") ]) ]
-          [ text "HELLO" ];
-      ]
-
-let show_html_attr_elem_docs () =
-  let open Html in
-  view_function_docs "Html.Attr.elem"
-    ~signature:"val elem : (html -> unit) -> attr"
-    ~description:
-      [
-        text
-          "When this attribute is added, call a function with the attribute's \
-           element.";
-      ]
-    ~example:
-      {|button
-  [ Attr.elem (fun el -> Console.log ("Button element:", el)) ]
-  [ text "Button" ]|}
-    ~preview:
-      [
-        button
-          [ Attr.on_mount (fun el -> Console.log ("Button element:", el)) ]
-          [ text "Button" ];
-      ]
-    ~console:{|Array ["Button element", button]|}
-
-let show_toggle_docs () =
-  let is_visible = Signal.make false in
-  let open Html in
-  view_function_docs "View.toggle"
-    ~signature:"val toggle : on:bool signal -> attr -> attr"
-    ~description:
-      [
-        text
-          "Toggle an attribute based on a boolean signal. If the signal's \
-           value is ";
-        code [] "true";
-        text " the attribute is added, otherwise it is omitted";
-      ]
-    ~example:
-      {|let is_visible = Signal.make false in
-div []
-  [ button
-      [ on Event.click (fun _ -> Signal.update not is_visible) ]
-      [ text "Toggle" ]
-  ; div
-      [ View.toggle ~on:is_visible (style [("color", "red")]) ]
-      [ text "HELLO" ]
-  ]|}
-    ~preview:
-      [
-        button
-          [ on Event.click (fun _ -> Signal.update not is_visible) ]
-          [ text "Toggle" ];
-        div
-          [ View.toggle ~on:is_visible (style [ ("color", "red") ]) ]
-          [ text "HELLO" ];
-      ]
+      ~preview:
+        [
+          button
+            [ on Event.click (fun _ -> Signal.update not is_visible) ]
+            [ text "Toggle" ];
+          div
+            [ View.toggle ~on:is_visible (style [ ("color", "red") ]) ]
+            [ text "HELLO" ];
+        ]
+end
 
 let app () =
-  let selected_function = Signal.make "show" in
   let open Html in
   div
-    [ class_list [ "w-full" ] ]
+    [ style [ "display" => "flex" ]; class_list [ "w-full" ] ]
     [
-      select
+      ul
         [
-          on Event.change (fun ev ->
-              Signal.emit (Event.target_value ev) selected_function
-          );
+          style
+            [
+              "position" => "sticky";
+              "top" => "0";
+              "height" => "100%";
+              "width" => "200px";
+              "border" => "1px solid red";
+            ];
         ]
         [
-          option [ value ""; disabled; selected ] [ text "Select function..." ];
-          option [ value "show" ] [ text "View.show" ];
-          option [ value "toggle" ] [ text "View.toggle" ];
-          option [ value "html_attr_elem" ] [ text "Html.Attr.elem" ];
+          li [] [ a [ href "#show_values" ] [ text "Show values" ] ];
+          li [] [ a [ href "#toggle_attributes" ] [ text "Toggle attributes" ] ];
         ];
-      hr [];
-      selected_function
-      |> View.show (fun name ->
-             match name with
-             (* | "" -> text "Hello!" *)
-             | "show" -> show_show_docs ()
-             | "toggle" -> show_toggle_docs ()
-             | "html_attr_elem" -> show_html_attr_elem_docs ()
-             | _ -> text "unknown function name"
-         );
+      div [] [ Doc.show_values (); hr []; Doc.toggle_attributes (); hr [] ];
     ]
 
 let () =
