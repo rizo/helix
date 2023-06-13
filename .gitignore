@@ -10,3 +10,4 @@ dune.mel
 node_modules
 _*
 lib
+.onix.env

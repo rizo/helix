@@ -1,6 +1,6 @@
 {
   "ocaml.sandbox": {
     "kind": "custom",
-    "template": "nix develop -f ${workspaceFolder:helix}/default.nix -j auto -i jsoo.shell -c $prog $args"
+    "template": "source ${workspaceFolder:helix}/.onix.env; $prog $args"
   }
 }

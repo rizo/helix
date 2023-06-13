@@ -8,6 +8,7 @@ let
 
 in onix.env {
   path = ./.;
+  env-file = ./.onix.env;
   vars = {
     with-dev-setup = true;
     with-test = true;
