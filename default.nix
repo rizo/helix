@@ -3,12 +3,16 @@
 let
   onix = import (builtins.fetchGit {
     url = "https://github.com/odis-labs/onix.git";
-    rev = "b5f194dfb7c52cfd317d81679116478d2a959792";
-  }) { inherit pkgs; };  
+    rev = "a5de90d3437848d048ed73b7e9aa18fb57702ae7";
+  }) { inherit pkgs; verbosity = "warning"; };  
 
 in onix.env {
   path = ./.;
   env-file = ./.onix.env;
+  deps = {
+    # "stdweb" = ./vendor/stdweb/stdweb.opam;
+    # "jx" = ./vendor/jx/jx.opam;
+  };
   vars = {
     with-dev-setup = true;
     with-test = true;

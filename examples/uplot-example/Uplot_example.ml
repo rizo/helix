@@ -52,7 +52,7 @@ let main () =
   div []
     [
       button
-        [ on_click (fun _ -> Signal.update not flag) ]
+        [ on Dom.Event.click (fun _ -> Signal.update not flag) ]
         [ text "Toggle data" ];
       div [ Uplot.mount ~options ~data:data1 uplot ] [];
     ]

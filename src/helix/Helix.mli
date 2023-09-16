@@ -94,5 +94,5 @@ module View : sig
       [display: none]. *)
 end
 
-val render : Stdweb.Dom.Element.t -> html -> unit
+val render : Stdweb.Dom.node -> html -> unit
 (** [render root html] renders the [html] into the [root]. *)

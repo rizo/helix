@@ -1,12 +1,23 @@
 open Stdweb
 
-(* Attributes are functions that set "attributes" on elements. *)
-type attr = { set : Dom.Element.t -> unit; remove : Dom.Element.t -> unit }
+(* Attributes are functions that set "attributes" on elements.
+   Html values are functions that mount and unmount children. *)
+
+
+type attr = {
+  set : Dom.Node.t -> unit;
+  unset : Dom.Node.t -> unit;
+}
+
+type html = {
+  mount : Dom.node -> unit;
+  unmount : unit -> unit;
+}
 
 module Attr = struct
   type t = attr
 
-  let empty = { set = (fun _ -> ()); remove = (fun _ -> ()) }
+  let empty = { set = (fun _ -> ()); unset = (fun _ -> ()) }
   let on bool attr = if bool then attr else empty
 
   let on_some = function
@@ -19,24 +30,16 @@ module Attr = struct
 
   let string name value =
     {
-      set = (fun el -> Dom.Element.set_attribute el name value);
-      remove = (fun el -> Dom.Element.remove_attribute el name);
+      set = (fun el -> Dom.Node.set_attr el name value);
+      unset = (fun el -> Dom.Node.unset_attr el name);
     }
 
   let bool name bool = if bool then string name "" else empty
   let int name i = string name (string_of_int i)
-  let add el { set; _ } = set el
-  let on_mount f = { set = (fun elem -> f elem); remove = (fun _ -> ()) }
-
-  module Internal = struct
-    type t = attr = {
-      set : Dom.Element.t -> unit;
-      remove : Dom.Element.t -> unit;
-    }
-
-    let of_attr x = x
-    let to_attr x = x
-  end
+  let on_mount f = { set = (fun elem -> f elem); unset = (fun _ -> ()) }
+  let set attr node = attr.set node
+  let unset attr node = attr.unset node
+  let make ~set ~unset () = { set; unset }
 end
 
 let attr = Attr.string
@@ -77,26 +80,31 @@ let src value = Attr.string "src" value
 let tabindex value = Attr.int "tabindex" value
 let title value = Attr.string "title" value
 let type' value = Attr.string "type" value
-let value value = Attr.string "value" value
+
+let value x = {
+  set = (fun el -> Dom.Node.set_value el x);
+  unset = Dom.Node.reset_value;
+}
+
+let value_or default opt =
+  match opt with
+  | Some x -> value x
+  | None -> value default
+
 let wrap value = Attr.string "wrap" value
 let width value = Attr.int "width" value
+let style x = Attr.string "style" x
 
-let style items =
+let style_list items =
   let set elem =
-    let html_elem = Dom.Html_element.of_element elem in
-    List.iter
-      (fun (name, value) ->
-        Dom.Html_element.set_style_property html_elem name value)
-      items
+    let style = Dom.Node.get_style elem in
+    List.iter (fun (name, value) -> Dom.Style.set style name value) items
   in
-  let remove elem =
-    let html_elem = Dom.Html_element.of_element elem in
-    List.iter
-      (fun (name, _value) ->
-        Dom.Html_element.remove_style_property html_elem name)
-      items
+  let unset elem =
+    let style = Dom.Node.get_style elem in
+    List.iter (fun (name, _value) -> Dom.Style.unset style name) items
   in
-  { set; remove }
+  { set; unset }
 
 let class_list xs =
   let value = String.concat " " xs in
@@ -108,67 +116,46 @@ let class_flags options =
   in
   class_list list
 
-let on kind f =
-  let kind = Dom.Event.Kind.to_string kind in
+let on (name : Dom.Event.name) f =
   {
-    set = (fun el -> Dom.Element.add_event_listener el kind f);
-    remove = (fun el -> Dom.Element.remove_event_listener el kind);
+    set = (fun el -> Dom.Node.bind el name f);
+    unset = (fun el -> Dom.Node.unbind el name);
   }
 
-let on_click = on Dom.Event.click
-let on_input = on Dom.Event.input
-let on_keydown = on Dom.Event.keydown
-
-type html = { mount : Dom.Node.t -> unit; remove : unit -> unit }
-type node = Dom.Node.t
-
-let node name (attrs : attr list) (children : node list) : node =
-  let elem = Dom.Document.create_element name in
-  let node = Dom.Element.to_node elem in
-
-  List.iter
-    (fun (child : node) -> Dom.Node.append_child ~parent:node child)
-    children;
-  List.iter (Attr.add elem) attrs;
-  node
-
-let elem name (attrs : attr list) (children : html list) : html =
-  let elem = Dom.Document.create_element name in
-  let node = Dom.Element.to_node elem in
-
+let elem name attrs children =
+  let el = Dom.Document.create_element name in
   let mount parent =
-    Dom.Node.append_child ~parent node;
-    List.iter (fun (child : html) -> child.mount node) children;
-    List.iter (Attr.add elem) attrs
+    Dom.Node.append parent el;
+    List.iter (fun (child : html) -> child.mount el) children;
+    List.iter (fun attr -> Attr.set attr el) attrs
   in
-
-  let remove () =
-    match Dom.Node.parent_node node with
-    | Some parent -> Dom.Node.remove_child ~parent node
+  let unmount () =
+    match Dom.Node.parent el with
+    | Some parent -> Dom.Node.remove_child ~parent el
     | None ->
-      Console.log
+      Jx.log
         "BUG: attempting to remove an HTML element that was never added to a \
          parent.";
-      Console.log (name, elem)
+      Jx.log (name, el)
   in
-  { mount; remove }
+  { mount; unmount }
 
 let text data =
-  let node = Dom.Text.to_node (Dom.Document.create_text_node data) in
-  let mount parent = Dom.Node.append_child ~parent node in
-  let remove () =
-    match Dom.Node.parent_node node with
-    | Some parent -> Dom.Node.remove_child ~parent node
+  let tx = Dom.Document.create_text_node data in
+  let mount parent = Dom.Node.append parent tx in
+  let unmount () =
+    match Dom.Node.parent tx with
+    | Some parent -> Dom.Node.remove_child ~parent tx
     | None ->
-      Console.log
+      Jx.log
         "BUG: attempting to remove an HTML text node that was never added to a \
          parent.";
-      Console.log (name, node)
+      Jx.log tx
   in
-  { mount; remove }
+  { mount; unmount }
 
 let int n = text (string_of_int n)
-let empty = { mount = (fun _ -> ()); remove = (fun () -> ()) }
+let empty = { mount = (fun _ -> ()); unmount = (fun () -> ()) }
 let nbsp = text "\u{00A0}"
 
 (* let fragment children_html parent =
@@ -182,8 +169,8 @@ let nbsp = text "\u{00A0}"
 
 let fragment children =
   let mount parent = List.iter (fun child -> child.mount parent) children in
-  let remove () = List.iter (fun child -> child.remove ()) children in
-  { mount; remove }
+  let unmount () = List.iter (fun child -> child.unmount ()) children in
+  { mount; unmount }
 
 let a attrs children = elem "a" attrs children
 let abbr attrs children = elem "abbr" attrs children
@@ -231,7 +218,8 @@ let head attrs children = elem "head" attrs children
 let header attrs children = elem "header" attrs children
 let hgroup attrs children = elem "hgroup" attrs children
 let hr attrs = elem "hr" attrs []
-let html attrs children = elem "html" attrs children
+
+(* let html attrs children = elem "html" attrs children *)
 let i attrs children = elem "i" attrs children
 let iframe attrs children = elem "iframe" attrs children
 let img attrs = elem "img" attrs []
@@ -303,12 +291,9 @@ module Elem = struct
     | Ok x -> to_html x
     | Error _ -> empty
 
-  module Internal = struct
-    type t = html = { mount : Dom.Node.t -> unit; remove : unit -> unit }
-
-    let of_html x = x
-    let to_html x = x
-  end
+  let make ~mount ~unmount () = { mount; unmount }
+  let mount html node = html.mount node
+  let unmount html = html.unmount ()
 end
 
 (*
@@ -325,4 +310,4 @@ end
 
 (* DOM helpers *)
 
-let render parent html = html.mount (Dom.Element.to_node parent)
+let render parent html = html.mount parent

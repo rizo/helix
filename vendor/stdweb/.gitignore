@@ -1,0 +1,12 @@
+.DS_Store
+_build
+_esy
+_opam
+public_html/js
+.bsb.lock
+.merlin
+dune.mel
+.melange.eobjs
+node_modules
+_*
+lib

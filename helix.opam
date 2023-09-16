@@ -10,14 +10,14 @@ depends: [
   "dune" {build}
   "js_of_ocaml-compiler" {build & >= "4.1.0"}
   "signal"
-  "jx"
-  "stdweb"
+  #"jx"
+  #"stdweb"
   "ocaml-lsp-server" {with-dev-setup}
   "ocamlformat" {with-dev-setup}
 ]
 
 pin-depends: [
   ["signal.dev" "git+https://github.com/rizo/signal#3f0cd508823f233d77d72f5a37f9ae78107565de"]
-  ["jx.dev" "git+https://github.com/rizo/jx#a0bcc27625e0a30014ba12363339469e30727d12"]
-  ["stdweb.dev" "git+https://github.com/rizo/stdweb#facf7ab505d644fa409da166615846f74c5948ba"]
+  #["jx.dev" "git+https://github.com/rizo/jx#a0bcc27625e0a30014ba12363339469e30727d12"]
+  #["stdweb.dev" "git+https://github.com/rizo/stdweb#facf7ab505d644fa409da166615846f74c5948ba"]
 ]

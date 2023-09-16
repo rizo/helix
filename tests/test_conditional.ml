@@ -1,3 +1,4 @@
+module Ev = Stdweb.Dom.Event
 open Helix
 
 let test_simple () =
@@ -14,7 +15,7 @@ let test_toggle_simple () =
   div []
     [
       button
-        [ on_click (fun _ -> Signal.update not is_present) ]
+        [ on Ev.click (fun _ -> Signal.update not is_present) ]
         [ text "Toggle present" ];
       ul []
         [ li [] [ span [ View.conditional ~on:is_present ] [ text "HELLO" ] ] ];
@@ -27,12 +28,14 @@ let test_toggle_siblings () =
   div []
     [
       button
-        [ on_click (fun _ -> Signal.update not hello) ]
+        [ on Ev.click (fun _ -> Signal.update not hello) ]
         [ text "Toggle HELLO" ];
-      button [ on_click (fun _ -> Signal.update not bye) ] [ text "Toggle BYE" ];
+      button
+        [ on Ev.click (fun _ -> Signal.update not bye) ]
+        [ text "Toggle BYE" ];
       button
         [
-          on_click (fun _ ->
+          on Ev.click (fun _ ->
               Signal.update not hello;
               Signal.update not bye
           );

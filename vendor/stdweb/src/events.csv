@@ -1,0 +1,96 @@
+object,Title,event_name,ocaml_event_name,type,doc_link
+window,General,error,error,error,https://developer.mozilla.org/en-US/docs/Web/API/Window/error_event
+window,General,languagechange,language_change,generic,https://developer.mozilla.org/en-US/docs/Web/API/Window/languagechange_event
+window,General,devicemotion,device_motion,device_motion,https://developer.mozilla.org/en-US/docs/Web/API/Window/devicemotion_event
+window,General,deviceorientation,device_orientation,device_orientation,https://developer.mozilla.org/en-US/docs/Web/API/Window/deviceorientation_event
+window,General,deviceorientationabsolute,device_orientation_absolute,device_orientation,https://developer.mozilla.org/en-US/docs/Web/API/Window/deviceorientationabsolute_event
+window,General,resize,resize,ui,https://developer.mozilla.org/en-US/docs/Web/API/Window/resize_event
+window,General,storage,storage,storage,https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event
+window,Load & unload events,beforeunload,before_unload,generic,https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event
+window,Load & unload events,DOMContentLoaded,dom_content_loaded,generic,https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event
+window,Load & unload events,load,load,generic,https://developer.mozilla.org/en-US/docs/Web/API/Window/load_event
+window,Clipboard events,copy,copy,clipboard,https://developer.mozilla.org/en-US/docs/Web/API/Window/copy_event
+window,Clipboard events,cut,cut,clipboard,https://developer.mozilla.org/en-US/docs/Web/API/Window/cut_event
+window,Clipboard events,paste,paste,clipboard,https://developer.mozilla.org/en-US/docs/Web/API/Window/paste_event
+window,Connection events,offline,offline,generic,https://developer.mozilla.org/en-US/docs/Web/API/Window/offline_event
+window,Connection events,online,online,generic,https://developer.mozilla.org/en-US/docs/Web/API/Window/online_event
+window,Focus events,blur,focus,https://developer.mozilla.org/en-US/docs/Web/API/Window/blur_event
+window,Focus events,focus,focus,focus,https://developer.mozilla.org/en-US/docs/Web/API/Window/focus_event
+window,History events,hashchange,hash_change,hash_change,https://developer.mozilla.org/en-US/docs/Web/API/Window/hashchange_event
+window,History events,pagehide,page_hide,page_transition,https://developer.mozilla.org/en-US/docs/Web/API/Window/pagehide_event
+window,History events,pageshow,page_show,page_transition,https://developer.mozilla.org/en-US/docs/Web/API/Window/pageshow_event
+window,History events,popstate,pop_state,pop_state,https://developer.mozilla.org/en-US/docs/Web/API/Window/popstate_event
+window,Print events,afterprint,after_print,generic,https://developer.mozilla.org/en-US/docs/Web/API/Window/afterprint_event
+window,Print events,beforeprint,before_print,generic,https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeprint_event
+window,Manifest events,appinstalled,app_installed,generic,https://developer.mozilla.org/en-US/docs/Web/API/Window/appinstalled_event
+window,Manifest events,beforeinstallprompt,before_install_prompt,generic,https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeinstallprompt_event
+window,Messaging events,message,message,message,https://developer.mozilla.org/en-US/docs/Web/API/Window/message_event
+window,Messaging events,messageerror,message_error,message,https://developer.mozilla.org/en-US/docs/Web/API/Window/messageerror_event
+window,Promise rejection events,rejection_handled,rejection_handled,promise_rejection,https://developer.mozilla.org/en-US/docs/Web/API/Window/rejectionhandled_event
+window,Promise rejection events,unhandledrejection,unhandled_rejection,promise_rejection,https://developer.mozilla.org/en-US/docs/Web/API/Window/unhandledrejection_event
+element,Transition events,transitioncancel,transition_cancel,transition,https://developer.mozilla.org/en-US/docs/Web/API/Element/transitioncancel_event
+element,Transition events,transitionend,transition_end,transition,https://developer.mozilla.org/en-US/docs/Web/API/Element/transitionend_event
+element,Transition events,transitionrun,transition_run,transition,https://developer.mozilla.org/en-US/docs/Web/API/Element/transitionrun_event
+element,Transition events,transitionstart,transition_start,transition,https://developer.mozilla.org/en-US/docs/Web/API/Element/transitionstart_event
+element,General,cancel,cancel,generic,https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement/cancel_event
+element,General,error,error,ui,https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/error_event
+element,General,scroll,scroll,generic,https://developer.mozilla.org/en-US/docs/Web/API/Element/scroll_event
+element,General,securitypolicyviolation,security_policy_violation,security_policy_violation,https://developer.mozilla.org/en-US/docs/Web/API/Element/securitypolicyviolation_event
+element,General,select,select,generic,https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/select_event
+element,General,wheel,wheel,wheel,https://developer.mozilla.org/en-US/docs/Web/API/Element/wheel_event
+element,Clipboard events,copy,copy,clipboard,https://developer.mozilla.org/en-US/docs/Web/API/Element/copy_event
+element,Clipboard events,cut,cut,clipboard,https://developer.mozilla.org/en-US/docs/Web/API/Element/cut_event
+element,Clipboard events,paste,paste,clipboard,https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event
+element,Composition events,compositionend,composition_end,composition,https://developer.mozilla.org/en-US/docs/Web/API/Element/compositionend_event
+element,Composition events,compositionstart,composition_start,composition,https://developer.mozilla.org/en-US/docs/Web/API/Element/compositionstart_event
+element,Composition events,compositionupdate,composition_update,composition,https://developer.mozilla.org/en-US/docs/Web/API/Element/compositionupdate_event
+element,Focus events,blur,blur,focus,https://developer.mozilla.org/en-US/docs/Web/API/Element/blur_event
+element,Focus events,focus,focus,focus,https://developer.mozilla.org/en-US/docs/Web/API/Element/focus_event
+element,Focus events,focusin,focus_in,focus,https://developer.mozilla.org/en-US/docs/Web/API/Element/focusin_event
+element,Focus events,focusout,focus_out,focus,https://developer.mozilla.org/en-US/docs/Web/API/Element/focusout_event
+element,Fullscreen events,fullscreenchange,fullscreen_change,generic,https://developer.mozilla.org/en-US/docs/Web/API/Element/fullscreenchange_event
+element,Fullscreen events,fullscreenerror,fullscreen_error,generic,https://developer.mozilla.org/en-US/docs/Web/API/Element/fullscreenerror_event
+element,Keyboard events,keydown,key_down,keyboard,https://developer.mozilla.org/en-US/docs/Web/API/Element/keydown_event
+element,Keyboard events,keyup,key_up,keyboard,https://developer.mozilla.org/en-US/docs/Web/API/Element/keyup_event
+element,Mouse events,auxclick,aux_click,mouse,https://developer.mozilla.org/en-US/docs/Web/API/Element/auxclick_event
+element,Mouse events,click,click,mouse,https://developer.mozilla.org/en-US/docs/Web/API/Element/click_event
+element,Mouse events,contextmenu,context_menu,mouse,https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event
+element,Mouse events,dblclick,double_click,mouse,https://developer.mozilla.org/en-US/docs/Web/API/Element/dblclick_event
+element,Mouse events,mousedown,mouse_down,mouse,https://developer.mozilla.org/en-US/docs/Web/API/Element/mousedown_event
+element,Mouse events,mouseenter,mouse_enter,mouse,https://developer.mozilla.org/en-US/docs/Web/API/Element/mouseenter_event
+element,Mouse events,mouseleave,mouse_leave,mouse,https://developer.mozilla.org/en-US/docs/Web/API/Element/mouseleave_event
+element,Mouse events,mousemove,mouse_move,mouse,https://developer.mozilla.org/en-US/docs/Web/API/Element/mousemove_event
+element,Mouse events,mouseout,mouse_out,mouse,https://developer.mozilla.org/en-US/docs/Web/API/Element/mouseout_event
+element,Mouse events,mouseover,mouse_over,mouse,https://developer.mozilla.org/en-US/docs/Web/API/Element/mouseover_event
+element,Mouse events,mouseup,mouse_up,mouse,https://developer.mozilla.org/en-US/docs/Web/API/Element/mouseup_event
+element,Touch events,touchcancel,touch_cancel,touch,https://developer.mozilla.org/en-US/docs/Web/API/Element/touchcancel_event
+element,Touch events,touchend,touch_end,touch,https://developer.mozilla.org/en-US/docs/Web/API/Element/touchend_event
+element,Touch events,touchmove,touch_move,touch,https://developer.mozilla.org/en-US/docs/Web/API/Element/touchmove_event
+element,Touch events,touchstart,touch_start,touch,https://developer.mozilla.org/en-US/docs/Web/API/Element/touchstart_event
+element,Animation events,animationcancel,animation_cancel,animation,https://developer.mozilla.org/en-US/docs/Web/API/Element/animationcancel_event
+element,Animation events,animationend,animation_end,animation,https://developer.mozilla.org/en-US/docs/Web/API/Element/animationend_event
+element,Animation events,animationiteration,animation_iteration,animation,https://developer.mozilla.org/en-US/docs/Web/API/Element/animationiteration_event
+element,Animation events,animationstart,animation_start,animation,https://developer.mozilla.org/en-US/docs/Web/API/Element/animationstart_event
+element,Pointer events,gotpointercapture,got_pointer_capture,pointer,https://developer.mozilla.org/en-US/docs/Web/API/Element/gotpointercapture_event
+element,Pointer events,lostpointercapture,lost_pointer_capture,pointer,https://developer.mozilla.org/en-US/docs/Web/API/Element/lostpointercapture_event
+element,Pointer events,pointercancel,pointer_cancel,pointer,https://developer.mozilla.org/en-US/docs/Web/API/Element/pointercancel_event
+element,Pointer events,pointerdown,pointer_down,pointer,https://developer.mozilla.org/en-US/docs/Web/API/Element/pointerdown_event
+element,Pointer events,pointerenter,pointer_enter,pointer,https://developer.mozilla.org/en-US/docs/Web/API/Element/pointerenter_event
+element,Pointer events,pointerleave,pointer_leave,pointer,https://developer.mozilla.org/en-US/docs/Web/API/Element/pointerleave_event
+element,Pointer events,pointerlockchange,pointer_lock_change,generic,https://developer.mozilla.org/en-US/docs/Web/API/Element/pointerlockchange_event
+element,Pointer events,pointerlockerror,pointer_lock_error,generic,https://developer.mozilla.org/en-US/docs/Web/API/Element/pointerlockerror_event
+element,Pointer events,pointermove,pointer_move,pointer,https://developer.mozilla.org/en-US/docs/Web/API/Element/pointermove_event
+element,Pointer events,pointerout,pointer_out,pointer,https://developer.mozilla.org/en-US/docs/Web/API/Element/pointerout_event
+element,Pointer events,pointerover,pointer_over,pointer,https://developer.mozilla.org/en-US/docs/Web/API/Element/pointerover_event
+element,Pointer events,pointerup,pointer_up,pointer,https://developer.mozilla.org/en-US/docs/Web/API/Element/pointerup_event
+document,Drag & drop events,drag,drag,drag,https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/drag_event
+document,Drag & drop events,dragend,drag_end,drag,https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dragend_event
+document,Drag & drop events,dragenter,drag_enter,drag,https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dragenter_event
+document,Drag & drop events,dragleave,drag_leave,drag,https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dragleave_event
+document,Drag & drop events,dragover,drag_over,drag,https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dragover_event
+document,Drag & drop events,dragstart,drag_start,drag,https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dragstart_event
+document,Drag & drop events,drop,drop,drag,https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/drop_event
+document,Selection events,selectionchange,selection_change,generic,https://developer.mozilla.org/en-US/docs/Web/API/Document/selectionchange_event
+html_element,Input events,beforeinput,before_input,input,https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/beforeinput_event
+html_element,Input events,input,input,generic,https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/input_event
+html_element,Input events,change,change,generic,https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/change_event

@@ -1,4 +1,4 @@
-module Element = Stdweb.Dom.Element
+module Node = Stdweb.Dom.Node
 
 type t = Jx.t
 
@@ -9,7 +9,7 @@ let data_to_js =
   array (array float)
 
 let make ~options ~data target =
-  let new3 = Jx.Obj.new3 t Jx.Encoder.js data_to_js Element.to_js in
+  let new3 = Jx.Obj.new3 t Jx.Encoder.js data_to_js Node.to_js in
   new3 options data target
 
 let set_data uplot data = Jx.Obj.call1_unit uplot "setData" data_to_js data

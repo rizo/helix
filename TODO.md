@@ -5,3 +5,6 @@
 - [ ] Signal.not.
 - [ ] Test toggle + conditional attr.
 - [ ] Add Js.String module.
+- [ ] Repeated attribute.
+- [ ] View.toggle : on:('a signal -> bool) -> 'a signal -> attr -> attr
+- [ ] Html.Attr.join

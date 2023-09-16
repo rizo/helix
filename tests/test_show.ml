@@ -1,4 +1,4 @@
-module Event = Stdweb.Dom.Event
+module Ev = Stdweb.Dom.Event
 open Helix
 
 let test_simple () =
@@ -24,7 +24,7 @@ let test_updates () =
   div []
     [
       button
-        [ on_click (fun _ -> Signal.update (( + ) 1) number) ]
+        [ on Ev.click (fun _ -> Signal.update (( + ) 1) number) ]
         [ text "incr" ];
       View.show int number;
     ]
@@ -43,14 +43,14 @@ let test_nested () =
       div []
         [
           button
-            [ on_click (fun _ -> Signal.update (( + ) 1) number) ]
+            [ on Ev.click (fun _ -> Signal.update (( + ) 1) number) ]
             [ text "incr" ];
           View.show (fun x -> View.show int (Signal.make x)) number;
         ];
       div []
         [
           button
-            [ on_click (fun _ -> Signal.update (( + ) 1) number) ]
+            [ on Ev.click (fun _ -> Signal.update (( + ) 1) number) ]
             [ text "incr" ];
           View.show
             (fun x ->
@@ -83,31 +83,29 @@ let test_switcher () =
   div []
     [
       div
-        [ style [ ("gap", "10px"); ("display", "flex") ] ]
+        [ style_list [ ("gap", "10px"); ("display", "flex") ] ]
         [
           button
-            [ on Event.click (fun _ -> Signal.emit `text what) ]
+            [ on Ev.click (fun _ -> Signal.emit `text what) ]
             [ text "text" ];
           button
-            [ on Event.click (fun _ -> Signal.emit `fragment1 what) ]
+            [ on Ev.click (fun _ -> Signal.emit `fragment1 what) ]
             [ text "fragment1" ];
           button
-            [ on Event.click (fun _ -> Signal.emit `fragment2 what) ]
+            [ on Ev.click (fun _ -> Signal.emit `fragment2 what) ]
             [ text "fragment2" ];
+          button [ on Ev.click (fun _ -> Signal.emit `div what) ] [ text "div" ];
           button
-            [ on Event.click (fun _ -> Signal.emit `div what) ]
-            [ text "div" ];
-          button
-            [ on Event.click (fun _ -> Signal.emit `empty1 what) ]
+            [ on Ev.click (fun _ -> Signal.emit `empty1 what) ]
             [ text "empty1" ];
           button
-            [ on Event.click (fun _ -> Signal.emit `empty2 what) ]
+            [ on Ev.click (fun _ -> Signal.emit `empty2 what) ]
             [ text "empty2" ];
           button
-            [ on Event.click (fun _ -> Signal.emit `complex1 what) ]
+            [ on Ev.click (fun _ -> Signal.emit `complex1 what) ]
             [ text "complex1" ];
           button
-            [ on Event.click (fun _ -> Signal.emit `complex2 what) ]
+            [ on Ev.click (fun _ -> Signal.emit `complex2 what) ]
             [ text "complex2" ];
         ];
       what

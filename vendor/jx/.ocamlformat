@@ -1,0 +1,18 @@
+ocaml-version = 4.14
+
+break-cases = fit
+cases-matching-exp-indent = normal
+exp-grouping = preserve
+cases-exp-indent = 2
+margin = 80
+parse-docstrings = true
+wrap-comments = false
+break-cases = fit-or-vertical
+break-infix = fit-or-vertical
+
+break-collection-expressions = fit-or-vertical
+break-separators = after
+space-around-lists = true
+dock-collection-brackets = true
+wrap-fun-args = true
+indicate-multiline-delimiters = closing-on-separate-line

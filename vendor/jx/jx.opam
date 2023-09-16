@@ -1,0 +1,32 @@
+opam-version: "2.0"
+maintainer: "Rizo I. <rizo@odis.io>"
+authors: "Rizo I. <rizo@odis.io>"
+homepage: "https://github.com/rizo/jx"
+bug-reports: "https://github.com/rizo/jx/issues"
+dev-repo: "git+https://github.com/rizo/jx.git"
+synopsis: "Work with JavaScript values from OCaml."
+
+build: [
+  ["dune" "subst"] {dev}
+  [
+    "dune"
+    "build"
+    "-p"
+    name
+    "-j"
+    jobs
+    "@install"
+    "@runtest" {with-test}
+    "@doc" {with-doc}
+  ]
+]
+
+depends: [
+  "ocaml"
+  "dune" {build}
+  "odoc" {with-doc}
+  "js_of_ocaml-compiler" {build & >= "4.1.0"}
+
+  "ocaml-lsp-server" {with-dev-setup}
+  "ocamlformat" {with-dev-setup}
+]

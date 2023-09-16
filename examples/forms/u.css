@@ -1,0 +1,152 @@
+/* Box sizing rules */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Remove default margin */
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+/* Remove list styles on ul, ol elements with a list role, which suggests default styling will be removed */
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+}
+
+/* Set core root defaults */
+html:focus-within {
+  scroll-behavior: smooth;
+}
+
+/* Set core body defaults */
+body {
+  min-height: 100vh;
+  text-rendering: optimizeSpeed;
+  line-height: 1.5;
+}
+
+/* A elements that don't have a class get default styles */
+a:not([class]) {
+  text-decoration-skip-ink: auto;
+}
+
+/* Make images easier to work with */
+img,
+picture {
+  max-width: 100%;
+  display: block;
+}
+
+/* Inherit fonts for inputs and buttons */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* Remove all animations, transitions and smooth scroll for people that prefer not to see them */
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+   scroll-behavior: auto;
+  }
+  
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* END RESET */
+
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", Avenir,
+    "Nimbus Sans L", Roboto, "Noto Sans", "Segoe UI", Arial, Helvetica,
+    "Helvetica Neue", sans-serif;
+}
+
+
+/* items */
+
+.items-start { align-items: flex-start }
+.items-end { align-items: flex-end }
+.items-center { align-items: center }
+.items-stretch { align-items: stretch }
+
+/* justify */
+
+.justify-start { justify-content: flex-start }
+.justify-end { justify-content: flex-end }
+.justify-center { justify-content: center }
+.justify-between { justify-content: space-between }
+.justify-around { justify-content: space-around }
+.justify-evenly { justify-content: space-evenly }
+
+/* gap */
+
+.gap-none { gap: 0px }
+.gap-xxxs { gap: 1px;      /* 1px  */ }
+.gap-xxs  { gap: 0.125rem; /* 2px  */ }
+.gap-xs   { gap: 0.25rem;  /* 4px  */ }
+.gap-sm   { gap: 0.375rem; /* 6px  */ }
+.gap-md   { gap: .5rem     /* 8px  */ }
+.gap-lg   { gap: 0.625rem; /* 10px */ }
+.gap-xl   { gap: 0.75rem;  /* 12px */ }
+.gap-xxl  { gap: 0.875rem; /* 14px */ }
+.gap-xxxl { gap: 1rem;     /* 16px */ }
+
+.gap-x-none { column-gap: 0px }
+.gap-x-xxxs { column-gap: 1px;      /* 1px  */ }
+.gap-x-xxs  { column-gap: 0.125rem; /* 2px  */ }
+.gap-x-xs   { column-gap: 0.25rem;  /* 4px  */ }
+.gap-x-sm   { column-gap: 0.375rem; /* 6px  */ }
+.gap-x-md   { column-gap: .5rem     /* 8px  */ }
+.gap-x-lg   { column-gap: 0.625rem; /* 10px */ }
+.gap-x-xl   { column-gap: 0.75rem;  /* 12px */ }
+.gap-x-xxl  { column-gap: 0.875rem; /* 14px */ }
+.gap-x-xxxl { column-gap: 1rem;     /* 16px */ }
+
+.gap-y-none { row-gap: 0px }
+.gap-y-xxxs { row-gap: 1px;      /* 1px  */ }
+.gap-y-xxs  { row-gap: 0.125rem; /* 2px  */ }
+.gap-y-xs   { row-gap: 0.25rem;  /* 4px  */ }
+.gap-y-sm   { row-gap: 0.375rem; /* 6px  */ }
+.gap-y-md   { row-gap: .5rem     /* 8px  */ }
+.gap-y-lg   { row-gap: 0.625rem; /* 10px */ }
+.gap-y-xl   { row-gap: 0.75rem;  /* 12px */ }
+.gap-y-xxl  { row-gap: 0.875rem; /* 14px */ }
+.gap-y-xxxl { row-gap: 1rem;     /* 16px */ }
+
+/* width */
+.w-full { width: 100%; }
+
+/* height */
+.h-auto { height: auto; }
+
+/* flex */
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.flex-no-wrap { flex-wrap: nowrap; }
+.flex-row { flex-direction: row; }
+.flex-row-reverse { flex-direction: row-reverse; }
+.flex-col { flex-direction: column; }
+.flex-col-reverse { flex-direction: column-reverse; }
+
+/* box-sizing */
+.box-border { box-sizing: border-box; }

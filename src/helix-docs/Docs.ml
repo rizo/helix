@@ -11,7 +11,7 @@ let view_function_docs ~signature ~description ~example ?preview ?console
   let open Html in
   fragment
     [
-      h2 [ style [ ("font-family", "monospace") ] ] [ text func_title ];
+      h2 [ style_list [ ("font-family", "monospace") ] ] [ text func_title ];
       pre [] [ code [ class_name "language-ocaml" ] signature ];
       p [] description;
       h3 [] [ text "Example" ];
@@ -24,7 +24,8 @@ let view_function_docs ~signature ~description ~example ?preview ?console
             h3 [] [ text "Preview" ];
             div
               [
-                style [ ("padding", "0.5em"); ("background-color", "#F0F0F0") ];
+                style_list
+                  [ ("padding", "0.5em"); ("background-color", "#F0F0F0") ];
               ]
               preview;
           ]
@@ -69,7 +70,7 @@ div []
       [ on Event.click (fun _ -> Signal.update not is_visible) ]
       [ text "Toggle" ]
   ; div
-      [ View.toggle ~on:is_visible (style [("color", "red")]) ]
+      [ View.toggle ~on:is_visible (style_list [("color", "red")]) ]
       [ text "HELLO" ]
   ]|}
       ~preview:
@@ -78,7 +79,7 @@ div []
             [ on Event.click (fun _ -> Signal.update not is_visible) ]
             [ text "Toggle" ];
           div
-            [ View.toggle ~on:is_visible (style [ ("color", "red") ]) ]
+            [ View.toggle ~on:is_visible (style_list [ ("color", "red") ]) ]
             [ text "HELLO" ];
         ]
 end
@@ -86,11 +87,11 @@ end
 let app () =
   let open Html in
   div
-    [ style [ "display" => "flex" ]; class_list [ "w-full" ] ]
+    [ style_list [ "display" => "flex" ]; class_list [ "w-full" ] ]
     [
       ul
         [
-          style
+          style_list
             [
               "position" => "sticky";
               "top" => "0";

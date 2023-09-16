@@ -1,1 +1,1 @@
-(dirs src examples tests)
+(dirs src examples tests vendor playground)

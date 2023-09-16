@@ -1,4 +1,4 @@
-module Event = Stdweb.Dom.Event
+module Ev = Stdweb.Dom.Event
 open Helix
 
 let test_simple () =
@@ -24,7 +24,7 @@ let test_swap_1 () =
   let open Html in
   div []
     [
-      button [ on_click (fun _ -> Signal.update not flag) ] [ text "Swap" ];
+      button [ on Ev.click (fun _ -> Signal.update not flag) ] [ text "Swap" ];
       ul []
         [
           flag
@@ -40,7 +40,7 @@ let test_swap_2 () =
   let open Html in
   div []
     [
-      button [ on_click (fun _ -> Signal.update not flag) ] [ text "Swap" ];
+      button [ on Ev.click (fun _ -> Signal.update not flag) ] [ text "Swap" ];
       ul []
         [
           flag
@@ -56,7 +56,7 @@ let test_swap_3 () =
   let open Html in
   div []
     [
-      button [ on_click (fun _ -> Signal.update not flag) ] [ text "Swap" ];
+      button [ on Ev.click (fun _ -> Signal.update not flag) ] [ text "Swap" ];
       ul []
         [
           flag
@@ -72,7 +72,7 @@ let test_swap_4 () =
   let open Html in
   div []
     [
-      button [ on_click (fun _ -> Signal.update not flag) ] [ text "Swap" ];
+      button [ on Ev.click (fun _ -> Signal.update not flag) ] [ text "Swap" ];
       ul []
         [
           flag
@@ -89,7 +89,7 @@ let test_append () =
     [
       button
         [
-          on_click (fun _ ->
+          on Ev.click (fun _ ->
               Signal.update
                 (fun items ->
                   incr n;
@@ -101,7 +101,7 @@ let test_append () =
         [ text "Add" ];
       button
         [
-          on_click (fun _ ->
+          on Ev.click (fun _ ->
               n := -1;
               Signal.emit [] items
           );
@@ -117,7 +117,7 @@ let test_append_same () =
     [
       button
         [
-          on_click (fun _ ->
+          on Ev.click (fun _ ->
               Signal.update (fun items -> List.append items [ 0 ]) items
           );
         ]
@@ -134,9 +134,11 @@ let test_conditional_1 () =
   div []
     [
       button
-        [ on_click (fun _ -> Signal.update not is_visible) ]
+        [ on Ev.click (fun _ -> Signal.update not is_visible) ]
         [ text "Toggle show" ];
-      button [ on_click (fun _ -> Signal.update not flag) ] [ text "Swap list" ];
+      button
+        [ on Ev.click (fun _ -> Signal.update not flag) ]
+        [ text "Swap list" ];
       ul
         [ View.conditional ~on:is_visible ]
         [
@@ -154,7 +156,7 @@ let test_conditional_2 () =
   div []
     [
       button
-        [ on_click (fun _ -> Signal.update not is_visible) ]
+        [ on Ev.click (fun _ -> Signal.update not is_visible) ]
         [ text "Toggle X" ];
       ul []
         [
@@ -178,7 +180,7 @@ let test_random () =
     [
       button
         [
-          on_click (fun _ ->
+          on Ev.click (fun _ ->
               Signal.emit (List.init (1 + Random.int 10) string_of_int) items
           );
         ]
@@ -193,13 +195,13 @@ let test_interleave () =
     [
       button
         [
-          on_click (fun _ ->
+          on Ev.click (fun _ ->
               Signal.emit (List.init (1 + Random.int 10) string_of_int) items
           );
         ]
         [ text "Generate" ];
       div
-        [ style [ ("display", "flex"); ("flex-direction", "row") ] ]
+        [ style_list [ ("display", "flex"); ("flex-direction", "row") ] ]
         [
           ul []
             [

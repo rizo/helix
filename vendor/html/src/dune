@@ -1,0 +1,4 @@
+(library
+ (public_name html)
+ (libraries jx stdweb)
+ (modes byte))
