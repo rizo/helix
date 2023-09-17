@@ -6,7 +6,7 @@ bug-reports: "https://github.com/odis-labs/helix/issues"
 synopsis: "Build reactive web interfaces with OCaml"
 
 depends: [
-  "ocaml" {= "4.14.0"}
+  "ocaml" {= "4.14.1"}
   "dune" {build}
   "js_of_ocaml-compiler" {build & >= "4.1.0"}
   "signal"

@@ -3,7 +3,7 @@
    "repositories": [
      {
        "url": "https://github.com/ocaml/opam-repository.git",
-       "rev": "8c698f3186bbde9e264253ce4065b4725990b6d4"
+       "rev": "b61304c6db353e679a36720d8b914b029d6fbc0c"
      }
    ],
    "packages" : {
@@ -374,21 +374,14 @@
        ]
      },
      "ocaml": {
-       "version": "4.14.0",
+       "version": "4.14.1",
        "depends": [
-         "ocaml-base-compiler",
-         "ocaml-config"
+         "ocaml-config",
+         "ocaml-system"
        ],
        "build-depends": [
-         "ocaml-base-compiler"
+         "ocaml-system"
        ]
-     },
-     "ocaml-base-compiler": {
-       "version": "4.14.0",
-       "src": {
-         "url": "https://github.com/ocaml/ocaml/archive/4.14.0.tar.gz",
-         "sha256": "39f44260382f28d1054c5f9d8bf4753cb7ad64027da792f7938344544da155e8"
-       }
      },
      "ocaml-compiler-libs": {
        "version": "v0.12.4",
@@ -407,10 +400,10 @@
      "ocaml-config": {
        "version": "2",
        "depends": [
-         "ocaml-base-compiler"
+         "ocaml-system"
        ],
        "build-depends": [
-         "ocaml-base-compiler"
+         "ocaml-system"
        ]
      },
      "ocaml-lsp-server": {
@@ -444,6 +437,12 @@
        ],
        "build-depends": [
          "dune"
+       ]
+     },
+     "ocaml-system": {
+       "version": "4.14.1",
+       "depexts": [
+         "ocaml-ng.ocamlPackages_4_14.ocaml"
        ]
      },
      "ocaml-version": {
@@ -609,10 +608,10 @@
        ]
      },
      "pp": {
-       "version": "1.1.2",
+       "version": "1.2.0",
        "src": {
-         "url": "https://github.com/ocaml-dune/pp/releases/download/1.1.2/pp-1.1.2.tbz",
-         "sha256": "e4a4e98d96b1bb76950fcd6da4e938c86d989df4d7e48f02f7a44595f5af1d56"
+         "url": "https://github.com/ocaml-dune/pp/releases/download/1.2.0/pp-1.2.0.tbz",
+         "sha256": "a5e822573c55afb42db29ec56eacd1f2acd8f65cf2df2878e291de374ce6909c"
        },
        "depends": [
          "dune",
@@ -825,15 +824,14 @@
        ]
      },
      "uucp": {
-       "version": "15.0.0",
+       "version": "15.1.0",
        "src": {
-         "url": "https://erratique.ch/software/uucp/releases/uucp-15.0.0.tbz",
-         "sha512": "ee4acff5666961766321e85e287fb9d5b8d50533319f22bf6f4eceb943242df2d0e0f4e775c4a140f68ca142837938eaa5926e22362215a3365ffe7f8768923b"
+         "url": "https://erratique.ch/software/uucp/releases/uucp-15.1.0.tbz",
+         "sha512": "998f94fadb72357b15a3042a3d11c31b3e16f281822673f2defdd515cd1394d55de1817628be8bd5c030175f9e62c53630d4139a1c0253800f9fb898b0f11364"
        },
        "depends": [
          "cmdliner",
-         "ocaml",
-         "uutf"
+         "ocaml"
        ],
        "build-depends": [
          "ocamlbuild",
@@ -842,10 +840,10 @@
        ]
      },
      "uuseg": {
-       "version": "15.0.0",
+       "version": "15.1.0",
        "src": {
-         "url": "https://erratique.ch/software/uuseg/releases/uuseg-15.0.0.tbz",
-         "sha512": "37ea83b582dd779a026cfae11f08f5d67ef79fce65a2cf03f2a9aabc7eb5de60c8e812524fa7531e4ff6e22a3b18228e3438a0143ce43be95f23237cc283576f"
+         "url": "https://erratique.ch/software/uuseg/releases/uuseg-15.1.0.tbz",
+         "sha512": "1e9460dc5a856c985d40c61fd1560bdfdb8bbaf8d7430405814589b47d4a7f7869658d1e3198c7a9132412e9b4b85402ceb4bda5040da426b69e9aef4222a23a"
        },
        "depends": [
          "cmdliner",

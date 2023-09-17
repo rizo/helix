@@ -10,6 +10,7 @@ in onix.env {
   path = ./.;
   env-file = ./.onix.env;
   deps = {
+    "ocaml-system" = "*";
     # "stdweb" = ./vendor/stdweb/stdweb.opam;
     # "jx" = ./vendor/jx/jx.opam;
   };
