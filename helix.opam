@@ -5,6 +5,21 @@ homepage: "https://github.com/odis-labs/helix"
 bug-reports: "https://github.com/odis-labs/helix/issues"
 synopsis: "Build reactive web interfaces with OCaml"
 
+build: [
+  ["dune" "subst"] {dev}
+  [
+    "dune"
+    "build"
+    "-p"
+    name
+    "-j"
+    jobs
+    "@install"
+    "@runtest" {with-test}
+    "@doc" {with-doc}
+  ]
+]
+
 depends: [
   "ocaml" {< "5.0"}
   "dune" {build}
