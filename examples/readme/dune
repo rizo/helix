@@ -1,0 +1,8 @@
+(executable
+ (name readme)
+ (libraries helix signal html jx.jsoo stdweb)
+ (modes js))
+
+(alias
+ (name all)
+ (deps index.html))
