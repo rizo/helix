@@ -1,21 +1,41 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"><head><title>Helix (helix.Helix)</title><meta charset="utf-8"/><link rel="stylesheet" href="../../odoc.support/odoc.css"/><meta name="generator" content="odoc 2.4.1"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><script src="../../odoc.support/highlight.pack.js"></script><script>hljs.initHighlightingOnLoad();</script></head><body class="odoc"><nav class="odoc-nav"><a href="../index.html">Up</a> – <a href="../index.html">helix</a> &#x00BB; Helix</nav><header class="odoc-preamble"><h1>Module <code><span>Helix</span></code></h1><p>Library for building reactive web interfaces.</p></header><nav class="odoc-toc"><ul><li><a href="#example">Example</a></li><li><a href="#reactive-views">Reactive views</a></li><li><a href="#dynamic-attributes">Dynamic attributes</a></li><li><a href="#syntax">Syntax</a></li></ul></nav><div class="odoc-content"><h4 id="example"><a href="#example" class="anchor"></a>Example</h4><pre class="language-ocaml"><code>open Helix
+open Stdweb
 
 let counter () =
-  let incr = Signal.make 0 in
-  let count = Signal.reduce (fun total n -&gt; total + n) 0 incr in
+  let count = Signal.make 0 in
   let open Html in
-  div []
+  div
+    [ style_list [ (&quot;border&quot;, &quot;1px solid #eee&quot;); (&quot;padding&quot;, &quot;1em&quot;) ] ]
     [
       h2 [] [ text &quot;Counter&quot; ];
-      p [] [ text &quot;Compute a count.&quot; ];
+      div [] [ text &quot;Compute a count.&quot; ];
       div []
         [
-          button [ on_click (fun _ -&gt; Signal.emit 1 incr) ] [ text &quot;+&quot; ];
-          button [ on_click (fun _ -&gt; Signal.emit (-1) incr) ] [ text &quot;-&quot; ];
-          span [ style [ (&quot;margin-left&quot;, &quot;5px&quot;) ] ] [ show int count ];
+          button
+            [ on_click (fun _ -&gt; Signal.update (fun n -&gt; n + 1) count) ]
+            [ text &quot;+&quot; ];
+          button
+            [ on_click (fun _ -&gt; Signal.update (fun n -&gt; n - 1) count) ]
+            [ text &quot;-&quot; ];
+          div
+            [
+              style_list [ (&quot;font-size&quot;, &quot;32px&quot;) ];
+              bind
+                (fun n -&gt;
+                  if n &lt; 0 then style_list [ (&quot;color&quot;, &quot;red&quot;) ]
+                  else style_list [ (&quot;color&quot;, &quot;blue&quot;) ]
+                )
+                count;
+            ]
+            [ show (fun n -&gt; text (string_of_int n)) count ];
         ];
-    ]</code></pre><div class="odoc-spec"><div class="spec type anchored" id="type-html"><a href="#type-html" class="anchor"></a><code><span><span class="keyword">type</span> html</span><span> = <a href="../../html/Html/index.html#type-html">Html.html</a></span></code></div><div class="spec-doc"><p>An alias for <a href="../../html/Html/index.html#type-html"><code>Html.html</code></a>.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-attr"><a href="#type-attr" class="anchor"></a><code><span><span class="keyword">type</span> attr</span><span> = <a href="../../html/Html/index.html#type-attr">Html.attr</a></span></code></div><div class="spec-doc"><p>An alias for <a href="../../html/Html/index.html#type-attr"><code>Html.attr</code></a>.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-signal"><a href="#type-signal" class="anchor"></a><code><span><span class="keyword">type</span> <span>'a signal</span></span><span> = <span><span class="type-var">'a</span> <span class="xref-unresolved">Signal</span>.t</span></span></code></div><div class="spec-doc"><p>An alias for <code>Signal.t</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-signal"><a href="#val-signal" class="anchor"></a><code><span><span class="keyword">val</span> signal : <span><span class="optlabel">?equal</span>:<span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="optlabel">?label</span>:string <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-signal">signal</a></span></span></code></div><div class="spec-doc"><p>An alias for <code>Signal.make</code>.</p></div></div><h2 id="reactive-views"><a href="#reactive-views" class="anchor"></a>Reactive views</h2><div class="odoc-spec"><div class="spec value anchored" id="val-show"><a href="#val-show" class="anchor"></a><code><span><span class="keyword">val</span> show : <span><span class="optlabel">?label</span>:string <span class="arrow">&#45;&gt;</span></span> <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <a href="../../html/Html/index.html#type-html">Html.html</a>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <span class="xref-unresolved">Signal</span>.t</span> <span class="arrow">&#45;&gt;</span></span> <a href="../../html/Html/index.html#type-html">Html.html</a></span></code></div><div class="spec-doc"><p><code>show to_html signal</code> is a dynamic HTML node created from <code>signal</code> values using <code>to_html</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-show_some"><a href="#val-show_some" class="anchor"></a><code><span><span class="keyword">val</span> show_some : 
+    ]
+
+let () =
+  match Dom.Document.get_element_by_id &quot;root&quot; with
+  | Some root -&gt; Html.mount root (counter ())
+  | None -&gt; failwith &quot;No #root element found&quot;</code></pre><div class="odoc-spec"><div class="spec type anchored" id="type-html"><a href="#type-html" class="anchor"></a><code><span><span class="keyword">type</span> html</span><span> = <a href="../../html/Html/index.html#type-html">Html.html</a></span></code></div><div class="spec-doc"><p>An alias for <a href="../../html/Html/index.html#type-html"><code>Html.html</code></a>.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-attr"><a href="#type-attr" class="anchor"></a><code><span><span class="keyword">type</span> attr</span><span> = <a href="../../html/Html/index.html#type-attr">Html.attr</a></span></code></div><div class="spec-doc"><p>An alias for <a href="../../html/Html/index.html#type-attr"><code>Html.attr</code></a>.</p></div></div><div class="odoc-spec"><div class="spec type anchored" id="type-signal"><a href="#type-signal" class="anchor"></a><code><span><span class="keyword">type</span> <span>'a signal</span></span><span> = <span><span class="type-var">'a</span> <span class="xref-unresolved">Signal</span>.t</span></span></code></div><div class="spec-doc"><p>An alias for <code>Signal.t</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-signal"><a href="#val-signal" class="anchor"></a><code><span><span class="keyword">val</span> signal : <span><span class="optlabel">?equal</span>:<span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> bool)</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="optlabel">?label</span>:string <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'a</span> <a href="#type-signal">signal</a></span></span></code></div><div class="spec-doc"><p>An alias for <code>Signal.make</code>.</p></div></div><h2 id="reactive-views"><a href="#reactive-views" class="anchor"></a>Reactive views</h2><div class="odoc-spec"><div class="spec value anchored" id="val-show"><a href="#val-show" class="anchor"></a><code><span><span class="keyword">val</span> show : <span><span class="optlabel">?label</span>:string <span class="arrow">&#45;&gt;</span></span> <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <a href="../../html/Html/index.html#type-html">Html.html</a>)</span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'a</span> <span class="xref-unresolved">Signal</span>.t</span> <span class="arrow">&#45;&gt;</span></span> <a href="../../html/Html/index.html#type-html">Html.html</a></span></code></div><div class="spec-doc"><p><code>show to_html signal</code> is a dynamic HTML node created from <code>signal</code> values using <code>to_html</code>.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-show_some"><a href="#val-show_some" class="anchor"></a><code><span><span class="keyword">val</span> show_some : 
   <span><span class="optlabel">?label</span>:string <span class="arrow">&#45;&gt;</span></span>
   <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <a href="../../html/Html/index.html#type-html">Html.html</a>)</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span><span><span class="type-var">'a</span> option</span> <span class="xref-unresolved">Signal</span>.t</span> <span class="arrow">&#45;&gt;</span></span>
@@ -34,6 +54,10 @@ div [ Html.bind Html.style style ] [ text &quot;Hello!&quot; ]</code></pre></div
   show
     (fun (user_id, todo_title) -&gt;
       let open Html in
-      div [] [ h2 [] [ text &quot;User id: &quot;; text user_id ]; h3 [] [ text &quot;Todo: &quot;; todo_title ] ]
+      div []
+        [
+          h2 [] [ text &quot;User id: &quot;; text user_id ];
+          h3 [] [ text &quot;Todo: &quot;; todo_title ];
+        ]
     )
     (Signal.pair user_id todo_title)</code></pre><p>Additionally, reactive attributes can be bound with <code>let@</code> and <code>and@</code>.</p><div class="odoc-spec"><div class="spec value anchored" id="val-let$"><a href="#val-let$" class="anchor"></a><code><span><span class="keyword">val</span> let$ : <span><span><span class="type-var">'a</span> <a href="#type-signal">signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <a href="#type-html">html</a>)</span> <span class="arrow">&#45;&gt;</span></span> <a href="#type-html">html</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-and$"><a href="#val-and$" class="anchor"></a><code><span><span class="keyword">val</span> and$ : <span><span><span class="type-var">'a</span> <a href="#type-signal">signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'b</span> <a href="#type-signal">signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<span class="type-var">'a</span> * <span class="type-var">'b</span>)</span> <a href="#type-signal">signal</a></span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-let@"><a href="#val-let@" class="anchor"></a><code><span><span class="keyword">val</span> let@ : <span><span><span class="type-var">'a</span> <a href="#type-signal">signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<span><span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span> <a href="#type-attr">attr</a>)</span> <span class="arrow">&#45;&gt;</span></span> <a href="#type-attr">attr</a></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-and@"><a href="#val-and@" class="anchor"></a><code><span><span class="keyword">val</span> and@ : <span><span><span class="type-var">'a</span> <a href="#type-signal">signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span><span class="type-var">'b</span> <a href="#type-signal">signal</a></span> <span class="arrow">&#45;&gt;</span></span> <span><span>(<span class="type-var">'a</span> * <span class="type-var">'b</span>)</span> <a href="#type-signal">signal</a></span></span></code></div></div></div></body></html>
