@@ -5,12 +5,12 @@ let test_simple () =
   let open Html in
   ul []
     [
-      li [] [ View.show Html.text (Signal.make "text") ];
-      li [] [ View.show Html.int (Signal.make 42) ];
-      li [] [ View.show (fun () -> Html.empty) (Signal.make ()) ];
+      li [] [ show Html.text (Signal.make "text") ];
+      li [] [ show Html.int (Signal.make 42) ];
+      li [] [ show (fun () -> Html.empty) (Signal.make ()) ];
       li []
         [
-          View.show
+          show
             (fun (num, msg) ->
               Html.span [] [ text msg; text (string_of_int num) ]
             )
@@ -26,7 +26,7 @@ let test_updates () =
       button
         [ on Ev.click (fun _ -> Signal.update (( + ) 1) number) ]
         [ text "incr" ];
-      View.show int number;
+      show int number;
     ]
 
 let test_nested () =
@@ -34,30 +34,45 @@ let test_nested () =
   let number = Signal.make 0 in
   div []
     [
+      div [] [ show (fun x -> show text (Signal.make x)) (Signal.make "hello") ];
       div []
         [
-          View.show
-            (fun x -> View.show text (Signal.make x))
-            (Signal.make "hello");
+          button
+            [ on Ev.click (fun _ -> Signal.update (( + ) 1) number) ]
+            [ text "incr" ];
+          show (fun x -> show int (Signal.make x)) number;
         ];
       div []
         [
           button
             [ on Ev.click (fun _ -> Signal.update (( + ) 1) number) ]
             [ text "incr" ];
-          View.show (fun x -> View.show int (Signal.make x)) number;
-        ];
-      div []
-        [
-          button
-            [ on Ev.click (fun _ -> Signal.update (( + ) 1) number) ]
-            [ text "incr" ];
-          View.show
+          show
             (fun x ->
-              if x mod 2 = 0 then text "NOP" else View.show int (Signal.make x)
+              if x mod 2 = 0 then text "NOP" else show int (Signal.make x)
             )
             number;
         ];
+    ]
+
+let test_nested_bug_1 () =
+  let signal = Signal.make 0 in
+  let open Html in
+  div []
+    [
+      show ~label:"outer"
+        (fun x1 ->
+          show ~label:"inner"
+            (fun x2 ->
+              text (String.concat "+" [ string_of_int x1; string_of_int x2 ])
+            )
+            signal
+        )
+        signal;
+      br [];
+      button
+        [ on Ev.click (fun _ -> Signal.update (( + ) 1) signal) ]
+        [ text "Trigger nested bug 1" ];
     ]
 
 let test_switcher () =
@@ -66,15 +81,16 @@ let test_switcher () =
     fragment
       [
         h2 [] [ text "h2" ];
-        pre [] [ code [ class_name "language-ocaml" ] "code" ];
+        pre [] [ code [ class_name "language-ocaml" ] [ text "code" ] ];
         p [] [ text "descr" ];
         h3 [] [ text "Example" ];
-        pre [] [ code [ class_name "language-ocaml" ] "example" ];
+        pre [] [ code [ class_name "language-ocaml" ] [ text "example" ] ];
         empty;
         fragment
           [
             h3 [] [ text "Console" ];
-            div [] [ pre [] [ code [ class_name "plaintext" ] "console" ] ];
+            div []
+              [ pre [] [ code [ class_name "plaintext" ] [ text "console" ] ] ];
           ];
       ]
   in
@@ -109,7 +125,7 @@ let test_switcher () =
             [ text "complex2" ];
         ];
       what
-      |> View.show (fun what ->
+      |> show (fun what ->
              match what with
              | `text -> text "Hello!"
              | `fragment1 ->
@@ -149,9 +165,11 @@ let main () =
       hr [];
       h2 [] [ text "Show/switcher" ];
       test_switcher ();
+      h2 [] [ text "Show/nested_bug_1" ];
+      test_nested_bug_1 ();
     ]
 
 let () =
   match Stdweb.Dom.Document.get_element_by_id "root" with
-  | Some root -> Helix.render root (main ())
+  | Some root -> Html.mount root (main ())
   | None -> failwith "no #app"

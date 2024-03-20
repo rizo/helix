@@ -42,6 +42,8 @@ val log : 'a -> unit
     {{:https://developer.mozilla.org/en-US/docs/Web/API/Console/log}
       [console.log]}. *)
 
+val debug : string list -> unit
+
 val is_null : js -> bool
 (** [is_null js] is [js == null]. *)
 
@@ -50,6 +52,12 @@ val is_undefined : js -> bool
 
 val is_defined : js -> bool
 (** [is_defined js] is [js != undefined]. *)
+
+val is_number : js -> bool
+val is_int : js -> bool
+val is_boolean : js -> bool
+val is_string : js -> bool
+val is_object : js -> bool
 
 (** {1 Type helpers} *)
 
@@ -72,8 +80,8 @@ val equal : js -> js -> bool
 (** {1 Global values} *)
 
 val global : string -> js
-(** [global name] is [globalThis\[name\]]. If this evaluates to
-    {!val:undefined}, {!exception:Undefined_property} is raised. *)
+(** [global name] is [globalThis[name]]. If this evaluates to {!val:undefined},
+    {!exception:Undefined_property} is raised. *)
 
 val global_this : js
 (** See
@@ -136,7 +144,19 @@ module Decoder : sig
   val triple : 'a decoder -> 'b decoder -> 'c decoder -> ('a * 'b * 'c) decoder
   val nullable : 'a decoder -> 'a option decoder
   val optional : 'a decoder -> 'a option decoder
-  val field : js -> string -> 'a decoder -> 'a
+  val field : string -> 'a decoder -> 'a decoder
+
+  val ( or ) : 'a decoder -> 'a decoder -> 'a decoder
+  (** [dec1 or dec2] tries to decode a value with [dec1], if that fails, decodes
+      with [dec2].
+
+      This can be useful to decode optional nullable values, i.e., values that
+      can either be null or might be missing. For example:
+
+      {[
+        field "name" (optional string or nullable string) js
+      ]} *)
+
   val any : 'a decoder
 end
 
@@ -159,6 +179,8 @@ module Obj : sig
 
   val of_list : (string * js) list -> t
   (** Create an object from a list of entries. *)
+
+  val to_list : t -> (string * js) list
 
   val of_array : (string * js) array -> t
   (** Create an object from a array of entries. *)
@@ -589,6 +611,13 @@ module Obj : sig
     t
 
   val new_js : t -> t array -> t
+end
+
+module Array : sig
+  type t = js
+
+  val t : js
+  val is_array : t -> bool
 end
 
 (** {1 Function helpers} *)

@@ -22,8 +22,8 @@ let person_of_js_obj js =
 
 let person_of_js_field person_js =
   let open Jx.Decoder in
-  let name = field person_js "name" string in
-  let age = field person_js "age" int in
+  let name = field "name" string person_js in
+  let age = field "age" int person_js in
   { name; age }
 
 let person_to_js person =

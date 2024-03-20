@@ -15,4 +15,4 @@ let make ~options ~data target =
 let set_data uplot data = Jx.Obj.call1_unit uplot "setData" data_to_js data
 
 let mount ~options ~data uplot_ref =
-  Helix.Html.Attr.on_mount (fun el -> uplot_ref := Some (make ~options ~data el))
+  Html.Attr.on_mount (fun el -> uplot_ref := Some (make ~options ~data el))

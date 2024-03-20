@@ -1,4 +1,8 @@
-(executable (name events) (modules Events) (libraries jx stdweb) (modes js))
+(executable
+ (name events)
+ (modules Events)
+ (libraries jx.jsoo stdweb)
+ (modes js))
 
 (alias
  (name all)

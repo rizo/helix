@@ -14,3 +14,5 @@ let iter f t =
       let v = next_value n in
       f v
   done
+
+let unsafe_of_js js = js

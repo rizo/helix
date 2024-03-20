@@ -4,18 +4,12 @@ open Helix
 let test_simple () =
   let open Html in
   ul []
-    [
-      Signal.make [ "a"; "b"; "c" ]
-      |> View.each (fun item -> li [] [ text item ]);
-    ]
+    [ Signal.make [ "a"; "b"; "c" ] |> each (fun item -> li [] [ text item ]) ]
 
 let test_simple_same () =
   let open Html in
   ul []
-    [
-      Signal.make [ "a"; "a"; "a" ]
-      |> View.each (fun item -> li [] [ text item ]);
-    ]
+    [ Signal.make [ "a"; "a"; "a" ] |> each (fun item -> li [] [ text item ]) ]
 
 let test_swap_1 () =
   let l1 = [ "a"; "b"; "c" ] in
@@ -29,7 +23,7 @@ let test_swap_1 () =
         [
           flag
           |> Signal.map (fun b -> if b then l1 else l2)
-          |> View.each (fun item -> li [] [ text item ]);
+          |> each (fun item -> li [] [ text item ]);
         ];
     ]
 
@@ -45,7 +39,7 @@ let test_swap_2 () =
         [
           flag
           |> Signal.map (fun b -> if b then l1 else l2)
-          |> View.each (fun item -> li [] [ text item ]);
+          |> each (fun item -> li [] [ text item ]);
         ];
     ]
 
@@ -61,7 +55,7 @@ let test_swap_3 () =
         [
           flag
           |> Signal.map (fun b -> if b then l1 else l2)
-          |> View.each (fun item -> li [] [ text item ]);
+          |> each (fun item -> li [] [ text item ]);
         ];
     ]
 
@@ -72,12 +66,13 @@ let test_swap_4 () =
   let open Html in
   div []
     [
+      div [] [ text "BUG: seems to be broken!" ];
       button [ on Ev.click (fun _ -> Signal.update not flag) ] [ text "Swap" ];
       ul []
         [
           flag
           |> Signal.map (fun b -> if b then l1 else l2)
-          |> View.each (fun item -> li [] [ text item ]);
+          |> each (fun item -> li [] [ text item ]);
         ];
     ]
 
@@ -107,7 +102,7 @@ let test_append () =
           );
         ]
         [ text "Clear" ];
-      ul [] [ items |> View.each (fun item -> li [] [ int item ]) ];
+      ul [] [ items |> each (fun item -> li [] [ int item ]) ];
     ]
 
 let test_append_same () =
@@ -122,7 +117,7 @@ let test_append_same () =
           );
         ]
         [ text "Add" ];
-      ul [] [ items |> View.each (fun item -> li [] [ int item ]) ];
+      ul [] [ items |> each (fun item -> li [] [ int item ]) ];
     ]
 
 let test_conditional_1 () =
@@ -133,6 +128,7 @@ let test_conditional_1 () =
   let open Html in
   div []
     [
+      div [] [ text "BUG: seems to be broken!" ];
       button
         [ on Ev.click (fun _ -> Signal.update not is_visible) ]
         [ text "Toggle show" ];
@@ -140,11 +136,11 @@ let test_conditional_1 () =
         [ on Ev.click (fun _ -> Signal.update not flag) ]
         [ text "Swap list" ];
       ul
-        [ View.conditional ~on:is_visible ]
+        [ conditional ~on:is_visible ]
         [
           flag
           |> Signal.map (fun b -> if b then l1 else l2)
-          |> View.each (fun item -> li [] [ text item ]);
+          |> each (fun item -> li [] [ text item ]);
         ];
     ]
 
@@ -155,16 +151,17 @@ let test_conditional_2 () =
   let open Html in
   div []
     [
+      div [] [ text "BUG: seems to be broken!" ];
       button
         [ on Ev.click (fun _ -> Signal.update not is_visible) ]
         [ text "Toggle X" ];
       ul []
         [
           items
-          |> View.each (fun item ->
+          |> each (fun item ->
                  li
                    [
-                     ( if item = "X" then View.conditional ~on:is_visible
+                     ( if item = "X" then conditional ~on:is_visible
                        else Attr.empty
                      );
                    ]
@@ -185,7 +182,7 @@ let test_random () =
           );
         ]
         [ text "Generate" ];
-      ul [] [ items |> View.each (fun item -> li [] [ text item ]) ];
+      ul [] [ items |> each (fun item -> li [] [ text item ]) ];
     ]
 
 let test_interleave () =
@@ -206,31 +203,31 @@ let test_interleave () =
           ul []
             [
               li [] [ Html.text "before 1" ];
-              View.each (fun item -> li [] [ Html.text item ]) items;
+              each (fun item -> li [] [ Html.text item ]) items;
             ];
           ul []
             [
-              View.each (fun item -> li [] [ Html.text item ]) items;
-              li [] [ Html.text "after 1" ];
-            ];
-          ul []
-            [
-              li [] [ Html.text "after 1" ];
-              View.each (fun item -> li [] [ Html.text item ]) items;
+              each (fun item -> li [] [ Html.text item ]) items;
               li [] [ Html.text "after 1" ];
             ];
           ul []
             [
               li [] [ Html.text "after 1" ];
-              View.each (fun item -> li [] [ Html.text ("1: " ^ item) ]) items;
-              View.each (fun item -> li [] [ Html.text ("2: " ^ item) ]) items;
+              each (fun item -> li [] [ Html.text item ]) items;
               li [] [ Html.text "after 1" ];
             ];
           ul []
             [
-              View.each (fun item -> li [] [ Html.text ("1: " ^ item) ]) items;
               li [] [ Html.text "after 1" ];
-              View.each (fun item -> li [] [ Html.text ("2: " ^ item) ]) items;
+              each (fun item -> li [] [ Html.text ("1: " ^ item) ]) items;
+              each (fun item -> li [] [ Html.text ("2: " ^ item) ]) items;
+              li [] [ Html.text "after 1" ];
+            ];
+          ul []
+            [
+              each (fun item -> li [] [ Html.text ("1: " ^ item) ]) items;
+              li [] [ Html.text "after 1" ];
+              each (fun item -> li [] [ Html.text ("2: " ^ item) ]) items;
               li [] [ Html.text "after 1" ];
             ];
         ];
@@ -278,5 +275,5 @@ let main () =
 
 let () =
   match Stdweb.Dom.Document.get_element_by_id "root" with
-  | Some root -> Helix.render root (main ())
+  | Some root -> Html.mount root (main ())
   | None -> failwith "no #app"

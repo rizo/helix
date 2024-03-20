@@ -1,0 +1,6 @@
+(library
+ (name jx)
+ (public_name jx)
+ (virtual_modules jx_ffi)
+ (modes byte))
+

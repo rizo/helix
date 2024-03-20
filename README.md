@@ -41,7 +41,7 @@ let counter () =
 
 let () =
   match Dom.Document.get_element_by_id "root" with
-  | Some root -> Html.render root (counter ())
+  | Some root -> Html.mount root (counter ())
   | None -> failwith "No #root element found"
 ```
 

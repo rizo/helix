@@ -1,5 +1,0 @@
-(library
- (name jx)
- (public_name jx)
- (modes byte)
- (libraries js_of_ocaml-compiler.runtime))

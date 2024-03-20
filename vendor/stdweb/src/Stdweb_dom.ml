@@ -1,4 +1,5 @@
 module Global = Stdweb_global
+module Promise = Stdweb_promise
 
 type node = Jx.t
 type event = Jx.t
@@ -40,6 +41,7 @@ module Event = struct
   type t = event
 
   let target t = Jx.Obj.get t "target" Jx.Decoder.any
+  let prevent_default t = Jx.Obj.call0_unit t "preventDefault" ()
 
   (* Generic events *)
 
@@ -52,6 +54,7 @@ module Event = struct
   (* Mouse *)
 
   let click = Jx.Encoder.string "click"
+  let dblclick = Jx.Encoder.string "dblclick"
   let mousemove = Jx.Encoder.string "mousemove"
   let page_x this = Jx.Obj.get this "pageX" Jx.Decoder.float
   let page_y this = Jx.Obj.get this "pageY" Jx.Decoder.float
@@ -66,11 +69,53 @@ module Event = struct
 
   let before_input = Name.make "beforeinput"
   let input = Name.make "input"
+  let cancel = Name.make "cancel"
   let data this = Jx.Obj.get this "data" Jx.Decoder.string
 
   (* Fullscreen events *)
   let fullscreen_change = Name.make "fullscreenchange"
   let fullscreen_error = Name.make "fullscreenerror"
+
+  (* Pop state events *)
+  let popstate = Name.make "popstate"
+
+  (* Hash change events *)
+  let hashchange = Name.make "hashchange"
+
+  (* Focus events *)
+  let blur = Name.make "blur"
+  let focusin = Name.make "focusin"
+  let focusout = Name.make "focusout"
+
+  (* Submit events *)
+  let submit = Name.make "submit"
+end
+
+module Token_list = struct
+  type t = Jx.t
+
+  let toggle this name = Jx.Obj.call1_unit this "toggle" Jx.Encoder.string name
+  let add this name = Jx.Obj.call1_unit this "add" Jx.Encoder.string name
+  let remove this name = Jx.Obj.call1_unit this "remove" Jx.Encoder.string name
+end
+
+module Blob = struct
+  type t = Jx.t
+
+  let size t = Jx.Obj.get t "size" Jx.Decoder.int
+  let type' t = Jx.Obj.get t "type" Jx.Decoder.string
+
+  let text t =
+    Jx.Obj.call0 t "text" ~return:Promise.of_js ()
+    |> Promise.map Jx.Decoder.string
+end
+
+module File = struct
+  type t = Jx.t
+
+  let last_modified t = Jx.Obj.get t "last_modified" Jx.Decoder.float
+  let name t = Jx.Obj.get t "name" Jx.Decoder.string
+  let to_blob t = t
 end
 
 module Node = struct
@@ -128,6 +173,22 @@ module Node = struct
   let replace_children this children =
     Jx.Obj.call_js_unit this "replaceChildren" children
 
+  let insert_adjacent_element this position node =
+    Jx.Obj.call2_unit this "insertAdjacentElement" Jx.Encoder.string
+      Jx.Encoder.js position node
+
+  let insert_before_begin ~reference node =
+    insert_adjacent_element reference "beforebegin" node
+
+  let insert_after_begin ~reference node =
+    insert_adjacent_element reference "afterbegin" node
+
+  let insert_before_end ~reference node =
+    insert_adjacent_element reference "beforeend" node
+
+  let insert_after_end ~reference node =
+    insert_adjacent_element reference "afterend" node
+
   (* Text content *)
 
   let set_text_content this text =
@@ -135,14 +196,20 @@ module Node = struct
 
   let get_text_content this = Jx.Obj.get this "textContent" Jx.Decoder.string
 
+  (* HTML content *)
+
+  let set_inner_html this text =
+    Jx.Obj.set this "innerHTML" Jx.Encoder.string text
+
   (* Event handling *)
 
   let bind this event_type f =
     Jx.Obj.call2_unit this "addEventListener" Jx.Encoder.js Jx.Encoder.fun1
       event_type f
 
-  let unbind this event_type =
-    Jx.Obj.call_js_unit this "removeEventLister" [| Jx.Encoder.js event_type |]
+  let unbind this event_type f =
+    Jx.Obj.call2_unit this "removeEventListener" Jx.Encoder.js Jx.Encoder.fun1
+      event_type f
 
   (* State changes *)
 
@@ -187,12 +254,10 @@ module Node = struct
   let unset_attr this name =
     Jx.Obj.call_js_unit this "removeAttribute" [| Jx.Encoder.string name |]
 
-  let toggle_class this name =
-    let token_list = Jx.Obj.get this "classList" Jx.Decoder.any in
-    Jx.Obj.call1_unit token_list "toggle" Jx.Encoder.string name
-
+  let get_class_list this = Jx.Obj.get this "classList" Jx.Decoder.js
   let set_style this x = Jx.Obj.set this "style" Jx.Encoder.string x
   let get_style this = Jx.Obj.get this "style" Jx.Decoder.js
+  let reset_style this = Jx.Obj.set this "style" Jx.Encoder.string ""
   let get_href this = Jx.Obj.get this "href" Jx.Decoder.string
   let set_href this x = Jx.Obj.set this "href" Jx.Encoder.string x
   let get_value this = Jx.Obj.get this "value" Jx.Decoder.string
@@ -200,6 +265,10 @@ module Node = struct
   let reset_value this = Jx.Obj.set this "value" Jx.Encoder.string ""
   let set_disabled this x = Jx.Obj.set this "disabled" Jx.Encoder.bool x
   let set_autofocus this x = Jx.Obj.set this "autofocus" Jx.Encoder.bool x
+  let get_offset_width this = Jx.Obj.get this "offsetWidth" Jx.Decoder.int
+  let get_checked this = Jx.Obj.get this "checked" Jx.Decoder.bool
+  let set_checked this x = Jx.Obj.set this "checked" Jx.Encoder.bool x
+  let get_files this = Jx.Obj.get this "files" Jx.Decoder.array_js
 end
 
 module Text = struct
@@ -260,6 +329,22 @@ module Document = struct
 
   let create_element name =
     Jx.Obj.call_js Global.document "createElement" [| Jx.Encoder.string name |]
+
+  let active_element this = Jx.Obj.get this "activeElement" Jx.Decoder.js
+end
+
+module Location = struct
+  type t = Jx.t
+
+  let hash t = Jx.Obj.get t "hash" Jx.Decoder.string
+  let set_hash t v = Jx.Obj.set t "hash" Jx.Encoder.string v
+  let href t = Jx.Obj.get t "href" Jx.Decoder.string
+  let set_href t v = Jx.Obj.set t "href" Jx.Encoder.string v
+  let replace t url = Jx.Obj.call1_unit t "replace" Jx.Encoder.string url
+  let assign t url = Jx.Obj.call1_unit t "assign" Jx.Encoder.string url
+  let reload t = Jx.Obj.call0 t "reload" ~return:Jx.Decoder.any ()
+  let hostname t = Jx.Obj.get t "hostname" Jx.Decoder.string
+  let search t = Jx.Obj.get t "search" Jx.Decoder.string
 end
 
 module Window = struct
@@ -267,14 +352,28 @@ module Window = struct
 
   let this = Global.window
   let to_event_target t = t
+  let location = Jx.Obj.get this "location" Jx.Decoder.js
 
   let set_interval f ms =
     Jx.Obj.call_js_unit Global.window "setInterval"
       [| Jx.Encoder.fun1 f; Jx.Encoder.int ms |]
 
   let set_timeout f ms =
-    Jx.Obj.call_js_unit Global.window "setTimeout"
-      [| Jx.Encoder.fun1 f; Jx.Encoder.int ms |]
+    Jx.Obj.call2 Global.window "setTimeout" ~return:Jx.Decoder.int
+      Jx.Encoder.fun1 Jx.Encoder.int f ms
+
+  let clear_timeout id =
+    Jx.Obj.call1_unit Global.window "clearTimeout" Jx.Encoder.int id
+
+  let alert text = Jx.Obj.call1_unit this "alert" Jx.Encoder.string text
+
+  let confirm text =
+    Jx.Obj.call1 this "confirm" ~return:Jx.Decoder.bool Jx.Encoder.string text
+
+  let prompt text =
+    Jx.Obj.call1 this "prompt"
+      ~return:Jx.Decoder.(nullable string)
+      Jx.Encoder.string text
 
   (* Event handling *)
 

@@ -18,10 +18,11 @@ let app () =
       |> View.show (fun what ->
              match what with
              | `a -> text "A"
-             | `b -> text "B");
+             | `b -> text "B"
+         );
     ]
 
 let () =
   match Dom.Document.get_element_by_id "root" with
-  | Some root -> Html.render root (app ())
+  | Some root -> Html.mount root (app ())
   | None -> failwith "no #app"

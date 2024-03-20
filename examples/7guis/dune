@@ -1,6 +1,6 @@
 (executable
  (name index)
- (libraries helix signal stdweb)
+ (libraries helix jx.jsoo signal html stdweb)
  (modes js))
 
 (alias

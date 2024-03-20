@@ -2,17 +2,13 @@
 
 let
   onix = import (builtins.fetchGit {
-    url = "https://github.com/odis-labs/onix.git";
-    rev = "a5de90d3437848d048ed73b7e9aa18fb57702ae7";
+    url = "https://github.com/rizo/onix.git";
+    rev = "8d3ed79ae8875587a2bdcb9d3cbb445fcfbbf5ce";
   }) { inherit pkgs; verbosity = "warning"; };  
 
 in onix.env {
   path = ./.;
-  env-file = ./.onix.env;
-  deps = {
-    # "stdweb" = ./vendor/stdweb/stdweb.opam;
-    # "jx" = ./vendor/jx/jx.opam;
-  };
+  deps = { "ocaml-base-compiler" = "5.1.0"; };
   vars = {
     with-dev-setup = true;
     with-test = true;

@@ -1,5 +1,4 @@
 open Stdweb
-open Helix
 
 let ( => ) a b = (a, b)
 
@@ -59,5 +58,5 @@ let main () =
 
 let () =
   match Dom.Document.get_element_by_id "root" with
-  | Some root -> Helix.render root (main ())
+  | Some root -> Html.mount root (main ())
   | None -> failwith "no #root found"

@@ -8,7 +8,7 @@ let ( => ) a b = (a, b)
 let view_mouse () =
   (* Mouse position at 60fps *)
   let mouse =
-    Mouse.position
+    Mouse.position ()
     |> Signal.sample ~on:(Time.tick ~ms:(1000 / 60))
     |> Signal.map (fun (x, y) ->
            "x = " ^ string_of_float x ^ ", y = " ^ string_of_float y
@@ -23,7 +23,7 @@ let view_mouse () =
       div
         [ style_list [ "margin-bottom" => "20px" ] ]
         [ text "Render mouse position." ];
-      View.show text mouse;
+      show text mouse;
     ]
 
 let view_timer () =
@@ -35,7 +35,7 @@ let view_timer () =
       div
         [ style_list [ "margin-bottom" => "20px" ] ]
         [ text "Render a timer." ];
-      View.show int timer;
+      show int timer;
     ]
 
 let view_input_bind () =
@@ -56,11 +56,9 @@ let view_input_bind () =
         ];
       ul []
         [
-          li [] [ View.show text input_signal ];
+          li [] [ show text input_signal ];
           li []
-            [
-              View.show text (input_signal |> Signal.map String.uppercase_ascii);
-            ];
+            [ show text (input_signal |> Signal.map String.uppercase_ascii) ];
         ];
     ]
 
@@ -80,7 +78,7 @@ let view_counter () =
           button
             [ on Event.click (fun _ -> Signal.emit (-1) incr) ]
             [ text "-" ];
-          span [ style_list [ "margin-left" => "5px" ] ] [ View.show int count ];
+          span [ style_list [ "margin-left" => "5px" ] ] [ show int count ];
         ];
     ]
 
@@ -92,7 +90,7 @@ let view_show () =
       div
         [ style_list [ "margin-bottom" => "20px" ] ]
         [ text "Render signal value with function." ];
-      div [] [ View.show int (Signal.make 5) ];
+      div [] [ show int (Signal.make 5) ];
     ]
 
 let view_toggle () =
@@ -109,7 +107,9 @@ let view_toggle () =
         [ text "Style/unstyle element!" ];
       div
         [
-          View.toggle ~on:stylish (style_list [ "background-color" => "cyan" ]);
+          toggle ~on:Fun.id
+            (style_list [ "background-color" => "cyan" ])
+            stylish;
         ]
         [ text "This element has show attributes!" ];
     ]
@@ -130,7 +130,7 @@ let view_visibility () =
           );
         ]
         [
-          View.show text
+          show text
             (Signal.map
                (fun (editing, text) -> if editing then "Save!" else text)
                editing_state
@@ -138,7 +138,7 @@ let view_visibility () =
         ];
       input
         [
-          View.visible ~on:(Signal.map fst editing_state);
+          visible ~on:(Signal.map fst editing_state);
           style_list [ "margin-left" => "5px" ];
           on Event.input (fun ev ->
               let target = Event.target ev in
@@ -157,8 +157,8 @@ let view_visibility_simple () =
       h2 [ style_list [ "font-family" => "monospace" ] ] [ text "Html.visible" ];
       button
         [ on Event.click (fun _ -> Signal.update not is_visible) ]
-        [ View.show text (Signal.map (bool "Hide" "Show") is_visible) ];
-      span [ View.visible ~on:is_visible ] [ text "HELLO" ];
+        [ show text (Signal.map (bool "Hide" "Show") is_visible) ];
+      span [ visible ~on:is_visible ] [ text "HELLO" ];
     ]
 
 let view_each () =
@@ -182,8 +182,8 @@ let view_each () =
         ]
         [
           li [] [ Html.text "fixed li before 1" ];
-          View.each (fun item -> li [] [ Html.text ("each-1: " ^ item) ]) items;
-          View.each (fun item -> li [] [ Html.text ("each-2: " ^ item) ]) items;
+          each (fun item -> li [] [ Html.text ("each-1: " ^ item) ]) items;
+          each (fun item -> li [] [ Html.text ("each-2: " ^ item) ]) items;
           li [] [ Html.text "fixed li after 2" ];
         ];
     ]
@@ -207,5 +207,5 @@ let main () =
 
 let () =
   match Document.get_element_by_id "root" with
-  | Some root -> Html.render root (main ())
+  | Some root -> Html.mount root (main ())
   | None -> failwith "No #root element found"

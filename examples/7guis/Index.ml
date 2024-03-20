@@ -1,8 +1,6 @@
 open Helix
 open Stdweb.Dom
-open Signal.Syntax
 
-let log = Stdweb.Console.log
 let ( => ) a b = (a, b)
 let ( >> ) g f x = f (g x)
 
@@ -22,7 +20,7 @@ let view_counter () =
           button
             [ on Event.click (fun _ -> Signal.emit (-1) incr) ]
             [ text "-" ];
-          span [ style_list [ "margin-left" => "5px" ] ] [ View.show int count ];
+          span [ style_list [ "margin-left" => "5px" ] ] [ show int count ];
         ];
     ]
 
@@ -47,16 +45,10 @@ let view_temp_conv () =
         [ style_list [ "margin-bottom" => "20px" ] ]
         [ text "Bidirectional temperature converter." ];
       input
-        [
-          View.bind value c_signal;
-          on Event.input (on_temp_input f_of_c f_signal);
-        ];
+        [ bind value c_signal; on Event.input (on_temp_input f_of_c f_signal) ];
       text " Celsius = ";
       input
-        [
-          View.bind value f_signal;
-          on Event.input (on_temp_input c_of_f c_signal);
-        ];
+        [ bind value f_signal; on Event.input (on_temp_input c_of_f c_signal) ];
       text " Fahrenheit";
     ]
 
@@ -117,51 +109,44 @@ let view_flight_booker () =
           input
             [
               placeholder "YYYY-MM-DD";
-              View.bind (fst >> value) dates;
+              bind (fst >> value) dates;
               on Event.input (fun ev ->
                   Signal.update
                     (fun (_, d2) -> (Event.target ev |> Node.get_value, d2))
                     dates
               );
-              View.toggle
-                ~on:(Signal.map (fun (d1, _) -> not (is_valid_date d1)) dates)
-                (style_list [ "outline" => "1px solid red" ]);
+              toggle
+                ~on:(fun (d1, _) -> not (is_valid_date d1))
+                (style_list [ "outline" => "1px solid red" ])
+                dates;
             ];
           input
             [
               placeholder "YYYY-MM-DD";
-              View.bind (snd >> value) dates;
+              bind (snd >> value) dates;
               on Event.input (fun ev ->
                   Signal.update
                     (fun (d1, _) -> (d1, Event.target ev |> Node.get_value))
                     dates
               );
-              View.toggle
-                ~on:(Signal.map (String.equal "oneway") flight_type)
-                disabled;
-              View.toggle
-                ~on:
-                  (Signal.map2
-                     (fun (_, d2) ft ->
-                       String.equal "return" ft && not (is_valid_date d2)
-                     )
-                     dates flight_type
-                  )
-                (style_list [ "outline" => "1px solid red" ]);
+              toggle ~on:(String.equal "oneway") (disabled true) flight_type;
+              toggle
+                ~on:(fun ((_, d2), ft) ->
+                  String.equal "return" ft && not (is_valid_date d2)
+                )
+                (style_list [ "outline" => "1px solid red" ])
+                (Signal.pair dates flight_type);
             ];
           button
             [
               on Event.click click_submit;
-              View.toggle
-                ~on:
-                  (Signal.map2
-                     (fun dates ft -> not (is_valid_book dates ft))
-                     dates flight_type
-                  )
-                disabled;
+              toggle
+                ~on:(fun (dates, ft) -> not (is_valid_book dates ft))
+                (disabled true)
+                (Signal.pair dates flight_type);
             ]
             [ text "Book" ];
-          View.show text msg_signal;
+          show text msg_signal;
         ];
     ]
 
@@ -228,5 +213,5 @@ let main () =
 
 let () =
   match Document.get_element_by_id "root" with
-  | Some root -> Html.render root (main ())
+  | Some root -> Html.mount root (main ())
   | None -> failwith "No #root element found"

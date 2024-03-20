@@ -9,13 +9,13 @@ open Helix
 let view_function_docs ~signature ~description ~example ?preview ?console
     func_title =
   let open Html in
-  fragment
+  div []
     [
       h2 [ style_list [ ("font-family", "monospace") ] ] [ text func_title ];
-      pre [] [ code [ class_name "language-ocaml" ] signature ];
+      pre [] [ code [ class_name "language-ocaml" ] [ text signature ] ];
       p [] description;
       h3 [] [ text "Example" ];
-      pre [] [ code [ class_name "language-ocaml" ] example ];
+      pre [] [ code [ class_name "language-ocaml" ] [ text example ] ];
       ( match preview with
       | None -> empty
       | Some preview ->
@@ -60,7 +60,7 @@ module Doc = struct
           text
             "Toggle an attribute based on a boolean signal. If the signal's \
              value is ";
-          code [] "true";
+          code [] [ text "true" ];
           text " the attribute is added, otherwise it is omitted";
         ]
       ~example:
@@ -70,7 +70,7 @@ div []
       [ on Event.click (fun _ -> Signal.update not is_visible) ]
       [ text "Toggle" ]
   ; div
-      [ View.toggle ~on:is_visible (style_list [("color", "red")]) ]
+      [ toggle ~on:is_visible (style_list [("color", "red")]) ]
       [ text "HELLO" ]
   ]|}
       ~preview:
@@ -79,7 +79,7 @@ div []
             [ on Event.click (fun _ -> Signal.update not is_visible) ]
             [ text "Toggle" ];
           div
-            [ View.toggle ~on:is_visible (style_list [ ("color", "red") ]) ]
+            [ toggle ~on:Fun.id (style_list [ ("color", "red") ]) is_visible ]
             [ text "HELLO" ];
         ]
 end
@@ -109,5 +109,5 @@ let app () =
 
 let () =
   match Dom.Document.get_element_by_id "root" with
-  | Some app_el -> Html.render app_el (app ())
+  | Some app_el -> Html.mount app_el (app ())
   | None -> failwith "no #app"

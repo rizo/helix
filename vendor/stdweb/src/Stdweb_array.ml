@@ -25,6 +25,14 @@ let push arr x = Jx.Obj.call1_unit arr "push" Jx.Encoder.any x
 let pop arr = Jx.Obj.call0 arr "pop" ~return:Jx.Decoder.any ()
 let pop_opt arr = Jx.Obj.call0 arr "pop" ~return:Jx.Decoder.(optional any) ()
 let length arr = Jx.Obj.get arr "length" Jx.Decoder.int
+
+let concat arr1 arr2 =
+  Jx.Obj.call1 ~return:Jx.Decoder.js arr1 "concat" Jx.Encoder.js arr2
+
+let slice arr i j =
+  Jx.Obj.call2 ~return:Jx.Decoder.js arr "slice" Jx.Encoder.int Jx.Encoder.int i
+    j
+
 let iter arr f = Jx.Obj.call1_unit arr "forEach" Jx.Encoder.fun1 f
 
 let of_list l =

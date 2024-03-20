@@ -1,8 +1,12 @@
 (executables
- (names test_conditional test_each test_show)
- (libraries helix signal stdweb jx)
+ (names test_conditional test_each test_show test_router)
+ (libraries helix signal stdweb html jx.jsoo)
  (modes js))
 
 (alias
- (name runtest)
- (deps test_conditional.html test_each.html test_show.html))
+ (name all)
+ (deps
+  test_conditional.html
+  test_each.html
+  test_show.html
+  test_router.html))

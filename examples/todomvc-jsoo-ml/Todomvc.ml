@@ -5,17 +5,12 @@ open Helix
 open Signal.Syntax
 
 module Todos = struct
-  type t = {
-    items : (string * bool) list;
-    filter : [ `all | `completed | `remaining ];
-  }
+  type t = { items : (string * bool) list; filter : [ `all | `completed | `remaining ] }
 
   let empty = { items = []; filter = `all }
   let add todo todos = { todos with items = todo :: todos.items }
   let length todos = List.length todos.items
-
-  let remove title todos =
-    { todos with items = List.remove_assq title todos.items }
+  let remove title todos = { todos with items = List.remove_assq title todos.items }
 
   let toggle target todos =
     {
@@ -23,22 +18,16 @@ module Todos = struct
       items =
         List.map
           (fun (title, completed) ->
-            if String.equal title target then (title, not completed)
-            else (title, completed)
+            if String.equal title target then (title, not completed) else (title, completed)
           )
           todos.items;
     }
 
   let clear todos =
-    {
-      todos with
-      items = List.filter (fun (_, completed) -> not completed) todos.items;
-    }
+    { todos with items = List.filter (fun (_, completed) -> not completed) todos.items }
 
   let count_remaining todos =
-    List.fold_left
-      (fun n (_, completed) -> if completed then n else n + 1)
-      0 todos.items
+    List.fold_left (fun n (_, completed) -> if completed then n else n + 1) 0 todos.items
 
   let set_filter filter todos = { todos with filter }
 
@@ -82,20 +71,18 @@ let main () =
         ];
       section
         [
-          View.conditional
-            ~on:(Signal.map (fun todos -> Todos.length todos > 0) todos);
+          conditional ~on:(Signal.map (fun todos -> Todos.length todos > 0) todos);
           class_list [ "main" ];
         ]
         [
-          input
-            [ id "toggle-all"; type' "checkbox"; class_list [ "toggle-all" ] ];
+          input [ id "toggle-all"; type' "checkbox"; class_list [ "toggle-all" ] ];
           label [ for' "toggle-all" ] [ text "Toggle all" ];
           ul
             [ class_name "todo-list" ]
             [
               todos
               |> Signal.map Todos.filtered
-              |> View.each (fun (title, completed) ->
+              |> each (fun (title, completed) ->
                      li
                        [ class_name "todo" ]
                        [
@@ -106,18 +93,14 @@ let main () =
                                [
                                  class_name "toggle";
                                  type' "checkbox";
-                                 Attr.on completed checked;
-                                 on Event.click (fun _ ->
-                                     Signal.update (Todos.toggle title) todos
-                                 );
+                                 Attr.on completed (checked true);
+                                 on Event.click (fun _ -> Signal.update (Todos.toggle title) todos);
                                ];
                              label [] [ text title ];
                              button
                                [
                                  class_name "destroy";
-                                 on Event.click (fun _ ->
-                                     Signal.update (Todos.remove title) todos
-                                 );
+                                 on Event.click (fun _ -> Signal.update (Todos.remove title) todos);
                                ]
                                [];
                            ];
@@ -133,13 +116,9 @@ let main () =
             [
               strong []
                 [
-                  View.show
+                  show
                     (fun n ->
-                      [
-                        string_of_int n;
-                        (if n = 1 then "item" else "items");
-                        "left";
-                      ]
+                      [ string_of_int n; (if n = 1 then "item" else "items"); "left" ]
                       |> String.concat " "
                       |> text
                     )
@@ -152,37 +131,25 @@ let main () =
               li []
                 [
                   a
-                    [
-                      on Event.click (fun _ ->
-                          Signal.update (Todos.set_filter `all) todos
-                      );
-                    ]
+                    [ on Event.click (fun _ -> Signal.update (Todos.set_filter `all) todos) ]
                     [ text "All" ];
                 ];
               li []
                 [
                   a
-                    [
-                      on Event.click (fun _ ->
-                          Signal.update (Todos.set_filter `remaining) todos
-                      );
-                    ]
+                    [ on Event.click (fun _ -> Signal.update (Todos.set_filter `remaining) todos) ]
                     [ text "Remaining" ];
                 ];
               li []
                 [
                   a
-                    [
-                      on Event.click (fun _ ->
-                          Signal.update (Todos.set_filter `completed) todos
-                      );
-                    ]
+                    [ on Event.click (fun _ -> Signal.update (Todos.set_filter `completed) todos) ]
                     [ text "Completed" ];
                 ];
             ];
           button
             [
-              View.conditional
+              conditional
                 ~on:
                   (let+ todos and+ remaining in
                    let len = Todos.length todos in
@@ -197,5 +164,5 @@ let main () =
 
 let () =
   match Document.get_element_by_id "root" with
-  | Some root -> Html.render root (main ())
+  | Some root -> Html.mount root (main ())
   | None -> failwith "no #app"

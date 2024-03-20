@@ -148,6 +148,6 @@ let main = () => {
 
 let () =
   switch (Dom.Document.get_element_by_id("root")) {
-  | Some(root) => Html.render(root, main())
+  | Some(root) => Html.mount(root, main())
   | None => failwith("no #app")
   };
