@@ -1,4 +1,5 @@
 (library
- (public_name stdweb)
+ (name stdweb)
+ (public_name helix.stdweb)
  (modes byte)
  (libraries jx))

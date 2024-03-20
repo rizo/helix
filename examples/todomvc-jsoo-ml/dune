@@ -2,7 +2,7 @@
 
 (executable
  (name todomvc)
- (libraries helix signal html jx.jsoo stdweb)
+ (libraries helix signal html jx_jsoo stdweb)
  (modes js))
 
 (alias

@@ -1,6 +1,6 @@
 (library
  (name jx)
- (public_name jx)
+ (public_name helix.jx)
  (virtual_modules jx_ffi)
  (modes byte))
 

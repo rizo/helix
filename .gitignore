@@ -11,3 +11,4 @@ node_modules
 _*
 lib
 .onix.env
+./result

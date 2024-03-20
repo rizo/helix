@@ -1,6 +1,6 @@
 (library
  (name jx_jsoo)
- (public_name jx.jsoo)
+ (public_name helix.jx.jsoo)
  (implements jx)
  (modes byte)
  (libraries jx js_of_ocaml-compiler.runtime))
