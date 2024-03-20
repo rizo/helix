@@ -11,10 +11,10 @@
 
 - Reactive signals with
   [`signal`](https://github.com/rizo/signal): signals represent values that change over time and can be used to model any dynamic state in your application.
-- Declarative HTML with [`Helix.Html`](https://rizo.github.io/helix/helix/Helix/Html/index.html): write your HTML templates directly in OCaml.
+- Declarative HTML with [`Helix.Html`](https://rizo.github.io/helix/html/Html/index.html): write your HTML templates directly in OCaml.
 - Fine-grained reactivity without Virtual DOM using
-  [`Helix.View`](https://rizo.github.io/helix/helix/Helix/View/index.html): updates are directly applied to the DOM tree based on values emited by reactive signals.
-- Js-compatibility library [`jx`](https://github.com/rizo/jx): write bindings to interact withe the JavaScript ecosystem.
+  [show/bind](https://rizo.github.io/helix/helix/Helix/index.html#reactive-views): updates are directly applied to the DOM tree based on values emited by reactive signals.
+- Js-compatibility library [`jx`](https://rizo.github.io/helix/jx/Jx/index.html): write bindings to interact withe the JavaScript ecosystem.
 
 
 ## Example
@@ -62,7 +62,6 @@ let () =
 ## Roadmap
 
 - Add support for [Melange](https://github.com/melange-re/melange).
-  - Currently blocked by https://github.com/ocaml/dune/issues/7104.
 - Implement a JSX PPX for [Reason](https://reasonml.github.io).
   - WIP implementation: https://github.com/rizo/helix/tree/master/experiments/helix-ppx.
 - Server-side rendering.
