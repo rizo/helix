@@ -1,5 +1,4 @@
 (library
- (name stdweb)
  (public_name stdweb)
  (modes byte)
  (libraries jx))

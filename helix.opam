@@ -10,8 +10,7 @@ build: [
   [
     "dune"
     "build"
-    "-p"
-    name
+    "-p" "helix,html,stdweb,jx"
     "-j"
     jobs
     "@install"

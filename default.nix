@@ -9,6 +9,7 @@ let
 in onix.env {
   path = ./.;
   deps = { "ocaml-base-compiler" = "5.1.0"; };
+  roots = [ ./helix.opam ];
   vars = {
     with-dev-setup = true;
     with-test = true;
