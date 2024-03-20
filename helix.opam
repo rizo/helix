@@ -23,6 +23,7 @@ depends: [
   "ocaml"
   "dune" {build}
   "signal"
+  "js_of_ocaml-compiler" {>= "4.1.0"} # jx.jsoo
   "odoc" {with-doc}
   "ocaml-lsp-server" {with-dev-setup}
   "ocamlformat" {with-dev-setup}
