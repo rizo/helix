@@ -6,7 +6,6 @@ bug-reports: "https://github.com/odis-labs/helix/issues"
 synopsis: "Build reactive web interfaces with OCaml"
 
 build: [
-  ["dune" "subst"] {dev}
   [
     "dune"
     "build"
