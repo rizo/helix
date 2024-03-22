@@ -28,7 +28,7 @@
 - [ ] Repurpose Jx to a JS FFI module.
 - [ ] Http.get ~url
 - [ ] BUG? Sharing html references leads to problems (See shared_ref)
-
+- [ ] Consider structuring each router segment as "path?opts" to allow passing extra params to intermediate views.
 
 ## shared_ref
 
