@@ -193,6 +193,14 @@ module Http : sig
     'a ->
     'b result option Signal.t
 
+  val delete :
+    ?headers:(string * string) list ->
+    ?mode:Stdweb.Fetch.mode ->
+    decode:'b Decoder.t ->
+    string ->
+    'a ->
+    'b result option Signal.t
+
   module Json : sig
     val request :
       ?meth:Stdweb.Fetch.meth ->
@@ -224,6 +232,14 @@ module Http : sig
       ?headers:(string * string) list ->
       ?mode:Stdweb.Fetch.mode ->
       encode:('a -> Stdweb.Json.t) ->
+      decode:(Stdweb.Json.t -> ('b, 'err) Result.t) ->
+      string ->
+      'a ->
+      'b result option Signal.t
+
+    val delete :
+      ?headers:(string * string) list ->
+      ?mode:Stdweb.Fetch.mode ->
       decode:(Stdweb.Json.t -> ('b, 'err) Result.t) ->
       string ->
       'a ->

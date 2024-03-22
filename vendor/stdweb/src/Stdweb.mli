@@ -545,7 +545,9 @@ module Fetch : sig
     val unsafe_of_js : Jx.t -> t
   end
 
-  type meth = [ `Get | `Put | `Post ]
+  type meth =
+    [ `Get | `Put | `Post | `Delete | `Head | `Connect | `Trace | `Options ]
+
   type mode = [ `Cors | `No_cors ]
 
   val fetch :

@@ -32,7 +32,9 @@ end
 
 (* Options *)
 
-type meth = [ `Get | `Put | `Post ]
+type meth =
+  [ `Get | `Put | `Post | `Delete | `Head | `Connect | `Trace | `Options ]
+
 type mode = [ `Cors | `No_cors ]
 type options = Jx.t
 type headers = Jx.t
@@ -79,6 +81,11 @@ module Options = struct
       | Some `Get -> ("method", string "GET") :: fields
       | Some `Put -> ("method", string "PUT") :: fields
       | Some `Post -> ("method", string "POST") :: fields
+      | Some `Delete -> ("method", string "DELETE") :: fields
+      | Some `Head -> ("method", string "HEAD") :: fields
+      | Some `Connect -> ("method", string "CONNECT") :: fields
+      | Some `Options -> ("method", string "OPTIONS") :: fields
+      | Some `Trace -> ("method", string "TRACE") :: fields
       | None -> fields
     in
     Jx.Obj.of_list fields

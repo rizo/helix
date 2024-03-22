@@ -31,7 +31,8 @@ module Encoder = struct
       String.concat "&"
         (List.map
            (fun (k, v) ->
-             String.concat "=" [ Stdweb.encode_uri_component k; Stdweb.encode_uri_component v ]
+             String.concat "="
+               [ Stdweb.encode_uri_component k; Stdweb.encode_uri_component v ]
            )
            assoc
         )
@@ -39,14 +40,18 @@ module Encoder = struct
     Fetch.Body.of_string string
 
   let form_urlencoded =
-    (Some "application/x-www-form-urlencoded; charset=UTF-8", assoc_to_form_urlencoded_body)
+    ( Some "application/x-www-form-urlencoded; charset=UTF-8",
+      assoc_to_form_urlencoded_body
+    )
 
   let json_to_body json =
     let text = Stdweb.Json.stringify json in
     Fetch.Body.of_string text
 
   let json = (Some "application/json", json_to_body)
-  let map_json encode_json = (Some "application/json", fun x -> json_to_body (encode_json x))
+
+  let map_json encode_json =
+    (Some "application/json", fun x -> json_to_body (encode_json x))
 end
 
 module Decoder = struct
@@ -68,7 +73,8 @@ module Decoder = struct
 end
 
 (* FIXME: prevent signal handler errors from being caught *)
-let request ?meth ?(headers = []) ?mode ~encode:(content_type, to_body) ~decode url request_value =
+let request ?meth ?(headers = []) ?mode ~encode:(content_type, to_body) ~decode
+    url request_value =
   let headers =
     match content_type with
     | Some content_type -> ("Content-Type", content_type) :: headers
@@ -84,11 +90,14 @@ let request ?meth ?(headers = []) ?mode ~encode:(content_type, to_body) ~decode 
              |> Promise.and_then (fun text ->
                     let () =
                       try Signal.emit (Some (Ok text)) s
-                      with exn -> Signal.emit (Some (Error (Handling_error exn))) s
+                      with exn ->
+                        Signal.emit (Some (Error (Handling_error exn))) s
                     in
                     Promise.resolve ()
                 )
-             |> Promise.catch (fun err -> Signal.emit (Some (Error (Decoding_error err))) s)
+             |> Promise.catch (fun err ->
+                    Signal.emit (Some (Error (Decoding_error err))) s
+                )
            else
              let err = Error (Unsuccessful response) in
              Signal.emit (Some err) s
@@ -107,15 +116,26 @@ let put ?headers ?mode ~encode ~decode url request_value =
 let post ?headers ?mode ~encode ~decode url request_value =
   request ~meth:`Post ?headers ?mode ~encode ~decode url request_value
 
+let delete ?headers ?mode ~decode url request_value =
+  request ~meth:`Delete ?headers ?mode ~encode:Encoder.ignore ~decode url
+    request_value
+
 module Json = struct
   let request ?meth ?headers ?mode ~encode ~decode =
-    request ?meth ?headers ?mode ~encode:(Encoder.map_json encode) ~decode:(Decoder.map_json decode)
+    request ?meth ?headers ?mode ~encode:(Encoder.map_json encode)
+      ~decode:(Decoder.map_json decode)
 
-  let get ?headers ?mode ~decode = get ?headers ?mode ~decode:(Decoder.map_json decode)
+  let get ?headers ?mode ~decode =
+    get ?headers ?mode ~decode:(Decoder.map_json decode)
 
   let put ?headers ?mode ~encode ~decode =
-    put ?headers ?mode ~encode:(Encoder.map_json encode) ~decode:(Decoder.map_json decode)
+    put ?headers ?mode ~encode:(Encoder.map_json encode)
+      ~decode:(Decoder.map_json decode)
 
   let post ?headers ?mode ~encode ~decode =
-    post ?headers ?mode ~encode:(Encoder.map_json encode) ~decode:(Decoder.map_json decode)
+    post ?headers ?mode ~encode:(Encoder.map_json encode)
+      ~decode:(Decoder.map_json decode)
+
+  let delete ?headers ?mode ~decode =
+    delete ?headers ?mode ~decode:(Decoder.map_json decode)
 end
