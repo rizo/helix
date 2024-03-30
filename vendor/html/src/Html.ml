@@ -4,7 +4,11 @@ open Stdweb
    Html values are functions that mount and unmount children. *)
 
 type attr = { set : Dom.Node.t -> unit; unset : Dom.Node.t -> unit }
-type html = { mount : parent:Dom.node -> insert:(Dom.node -> unit) -> unit; unmount : unit -> unit }
+
+type html = {
+  mount : parent:Dom.node -> insert:(Dom.node -> unit) -> unit;
+  unmount : unit -> unit;
+}
 
 module Attr = struct
   type t = attr
@@ -48,7 +52,6 @@ module Attr = struct
     }
 
   let list attrs = List.fold_left combine empty attrs
-
   let label = string "label"
 end
 
@@ -59,21 +62,21 @@ let accept value = Attr.string "accept" value
 let accesskey value = Attr.string "accesskey" value
 let action value = Attr.string "action" value
 let autocomplete value = Attr.string "autocomplete" value
-let autofocus = Attr.bool "autofocus" true
+let autofocus value = Attr.bool "autofocus" value
 let charset value = Attr.string "charset" value
-let checked x = Attr.bool "checked" x
+let checked value = Attr.bool "checked" value
 let class_name value = Attr.string "class" value
 let cols value = Attr.int "cols" value
 let content value = Attr.string "content" value
 let contenteditable value = Attr.bool "contenteditable" value
-let defer = Attr.bool "defer" true
+let defer value = Attr.bool "defer" value
 let dir value = Attr.string "dir" value
-let disabled x = Attr.bool "disabled" x
+let disabled value = Attr.bool "disabled" value
 let draggable value = Attr.bool "draggable" value
 let for' value = Attr.string "for" value
 let formaction value = Attr.string "formaction" value
 let height value = Attr.int "height" value
-let hidden = Attr.bool "hidden" true
+let hidden value = Attr.bool "hidden" value
 let href value = Attr.string "href" value
 let id value = Attr.string "id" value
 let lang value = Attr.string "lang" value
@@ -84,15 +87,17 @@ let name value = Attr.string "name" value
 let open' value = Attr.bool "open" value
 let placeholder value = Attr.string "placeholder" value
 let rel value = Attr.string "rel" value
-let required = Attr.bool "required" true
+let required value = Attr.bool "required" value
 let rows value = Attr.int "rows" value
-let selected = Attr.bool "selected" true
+let selected value = Attr.bool "selected" value
 let spellcheck value = Attr.string "spellcheck" value
 let src value = Attr.string "src" value
 let tabindex value = Attr.int "tabindex" value
 let title value = Attr.string "title" value
 let type' value = Attr.string "type" value
-let value x = { set = (fun el -> Dom.Node.set_value el x); unset = Dom.Node.reset_value }
+
+let value x =
+  { set = (fun el -> Dom.Node.set_value el x); unset = Dom.Node.reset_value }
 
 let value_or default opt =
   match opt with
@@ -127,7 +132,9 @@ let class_list items =
   { set; unset }
 
 let class_flags options =
-  let list = List.fold_left (fun acc (c, b) -> if b then c :: acc else acc) [] options in
+  let list =
+    List.fold_left (fun acc (c, b) -> if b then c :: acc else acc) [] options
+  in
   class_list list
 
 let on ?(default = true) ?confirm (name : Dom.Event.name) f =
@@ -145,16 +152,25 @@ let on ?(default = true) ?confirm (name : Dom.Event.name) f =
           f ev
         else Dom.Event.prevent_default ev
   in
-  { set = (fun el -> Dom.Node.bind el name f'); unset = (fun el -> Dom.Node.unbind el name f') }
+  {
+    set = (fun el -> Dom.Node.bind el name f');
+    unset = (fun el -> Dom.Node.unbind el name f');
+  }
 
 let on_change ?confirm handler =
-  on ~default:false ?confirm Dom.Event.change (fun ev -> handler (Dom.Node.get_value (Dom.Event.target ev)))
+  on ~default:false ?confirm Dom.Event.change (fun ev ->
+      handler (Dom.Node.get_value (Dom.Event.target ev))
+  )
 
 let on_checked ?confirm handler =
-  on ~default:false ?confirm Dom.Event.change (fun ev -> handler (Dom.Node.get_checked (Dom.Event.target ev)))
+  on ~default:false ?confirm Dom.Event.change (fun ev ->
+      handler (Dom.Node.get_checked (Dom.Event.target ev))
+  )
 
 let on_input ?confirm handler =
-  on ~default:false ?confirm Dom.Event.input (fun ev -> handler (Dom.Node.get_value (Dom.Event.target ev)))
+  on ~default:false ?confirm Dom.Event.input (fun ev ->
+      handler (Dom.Node.get_value (Dom.Event.target ev))
+  )
 
 let on_click ?confirm handler =
   on ~default:false ?confirm Dom.Event.click (fun _ -> handler ())
@@ -165,7 +181,9 @@ let on_double_click ?confirm handler =
 (* Elem *)
 
 module Elem_util = struct
-  let mount ~parent ?(insert = Dom.Node.append parent) html = html.mount ~parent ~insert
+  let mount ~parent ?(insert = Dom.Node.append parent) html =
+    html.mount ~parent ~insert
+
   let unmount html = html.unmount ()
 end
 
@@ -175,7 +193,9 @@ let elem name attrs children =
     let node = Dom.Document.create_element name in
     node_ref := Some node;
     insert node;
-    List.iter (fun (child : html) -> Elem_util.mount ~parent:node child) children;
+    List.iter
+      (fun (child : html) -> Elem_util.mount ~parent:node child)
+      children;
     List.iter (fun attr -> Attr.set attr node) attrs
   in
   let unmount () =
@@ -214,19 +234,25 @@ let text data =
   in
   let unmount () =
     match !node_ref with
-    | None -> failwith ("bug: attempting to remove a text node that was not mounted: " ^ data)
+    | None ->
+      failwith
+        ("bug: attempting to remove a text node that was not mounted: " ^ data)
     | Some node -> (
       match Dom.Node.parent node with
       | Some parent -> Dom.Node.remove_child ~parent node
       | None ->
         Jx.log (Jx.Encoder.string ("#TEXT: " ^ data));
-        failwith ("bug: attempting to remove a text node without a parent: " ^ data)
+        failwith
+          ("bug: attempting to remove a text node without a parent: " ^ data)
     )
   in
   { mount; unmount }
 
 let int n = text (string_of_int n)
-let empty = { mount = (fun ~parent:_ ~insert:_ -> ()); unmount = (fun () -> ()) }
+
+let empty =
+  { mount = (fun ~parent:_ ~insert:_ -> ()); unmount = (fun () -> ()) }
+
 let nbsp = text "\u{00A0}"
 let a attrs children = elem "a" attrs children
 let abbr attrs children = elem "abbr" attrs children
@@ -383,7 +409,9 @@ module Elem = struct
     let unmount () =
       match Dom.Node.parent node with
       | Some parent -> Dom.Node.remove_child ~parent node
-      | None -> failwith "bug: attempting to remove an HTML element node without a parent."
+      | None ->
+        failwith
+          "bug: attempting to remove an HTML element node without a parent."
     in
     { mount; unmount }
 end
