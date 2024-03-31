@@ -219,10 +219,14 @@ let elem name attrs children =
   { mount; unmount }
 
 let fragment children =
-  let mount ~parent ~insert =
-    List.iter (fun child -> Elem_util.mount ~parent ~insert child) children
+  let mount ~parent:_ ~insert =
+    let fragment_node = Dom.Fragment.make () in
+    List.iter
+      (fun child_html -> Elem_util.mount ~parent:fragment_node child_html)
+      children;
+    insert fragment_node
   in
-  let unmount () = List.iter (fun child -> child.unmount ()) children in
+  let unmount () = List.iter Elem_util.unmount children in
   { mount; unmount }
 
 let text data =
