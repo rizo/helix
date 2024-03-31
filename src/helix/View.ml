@@ -11,7 +11,8 @@ let option_get option =
 
 let insert_after_anchor ~parent ~anchor node =
   match Node.next_sibling anchor with
-  | Some anchor_sibling -> Node.insert_before ~parent ~reference:anchor_sibling node
+  | Some anchor_sibling ->
+    Node.insert_before ~parent ~reference:anchor_sibling node
   | None -> Node.append_child ~parent node
 
 (* Show *)
@@ -19,7 +20,11 @@ let insert_after_anchor ~parent ~anchor node =
 let debug_html ~render_count:_ ~comment_data:_ x = x
 
 let _debug_html =
-  let colors = [| "magenta"; "cyan"; "salmon"; "aquamarine"; "lime"; "yellow"; "palegreen" |] in
+  let colors =
+    [|
+      "magenta"; "cyan"; "salmon"; "aquamarine"; "lime"; "yellow"; "palegreen";
+    |]
+  in
   let i = ref (-1) in
   let get_color () =
     if !i + 1 >= Array.length colors then i := 0 else incr i;
@@ -30,7 +35,11 @@ let _debug_html =
     Html.div
       [
         Html.style_list
-          [ ("display", "flex"); ("flex-direction", "column"); ("border", "2px solid " ^ c) ];
+          [
+            ("display", "flex");
+            ("flex-direction", "column");
+            ("border", "2px solid " ^ c);
+          ];
       ]
       [
         Html.span
@@ -65,7 +74,8 @@ type show = {
   mutable mounted : bool;
 }
 
-let init_show () = { render_count = 0; prev = Html.empty; unsub = ignore; mounted = false }
+let init_show () =
+  { render_count = 0; prev = Html.empty; unsub = ignore; mounted = false }
 
 let reset_show show =
   show.render_count <- 0;
@@ -90,9 +100,14 @@ let show ?label (to_html : 'a -> Html.html) signal : Html.html =
               ^ ", signal: "
               ^ Signal.label signal
               );
-          let next = to_html x |> debug_html ~render_count:state.render_count ~comment_data in
+          let next =
+            to_html x
+            |> debug_html ~render_count:state.render_count ~comment_data
+          in
           Html.Elem.unmount state.prev;
-          Html.Elem.mount ~parent ~insert:(insert_after_anchor ~parent ~anchor) next;
+          Html.Elem.mount ~parent
+            ~insert:(insert_after_anchor ~parent ~anchor)
+            next;
           state.prev <- next;
           state.render_count <- state.render_count + 1
         )
@@ -146,16 +161,19 @@ let conditional ~on:active_sig : Html.Attr.t =
     let parent =
       match Node.parent node with
       | Some parent -> parent
-      | None -> failwith "[BUG]: View.conditional: element does not have a parent"
+      | None ->
+        failwith "[BUG]: View.conditional: element does not have a parent"
     in
 
     (* The node is mounted initially. Do we unmount? *)
-    if not should_activate0 then Node.replace_child ~parent ~reference:node anchor;
+    if not should_activate0 then
+      Node.replace_child ~parent ~reference:node anchor;
 
     (* Subscribe to updates. *)
     Signal.sub
       (fun should_activate ->
-        if should_activate then Node.replace_child ~parent ~reference:anchor node
+        if should_activate then
+          Node.replace_child ~parent ~reference:anchor node
         else Node.replace_child ~parent ~reference:node anchor
       )
       active_sig
@@ -164,10 +182,12 @@ let conditional ~on:active_sig : Html.Attr.t =
     let parent =
       match Node.parent node with
       | Some parent -> parent
-      | None -> failwith "[BUG]: View.conditional: element does not have a parent"
+      | None ->
+        failwith "[BUG]: View.conditional: element does not have a parent"
     in
     (* Put to the original state. *)
-    if not should_activate0 then Node.replace_child ~parent ~reference:anchor node
+    if not should_activate0 then
+      Node.replace_child ~parent ~reference:anchor node
   in
   Html.Attr.make ~set ~unset ()
 
@@ -349,7 +369,8 @@ let toggle' ~on:active_sig attr : Html.Attr.t =
     if should_activate0 then Html.Attr.set attr node;
     Signal.use
       (fun should_activate ->
-        if should_activate then Html.Attr.set attr node else Html.Attr.unset attr node
+        if should_activate then Html.Attr.set attr node
+        else Html.Attr.unset attr node
       )
       active_sig
   in
