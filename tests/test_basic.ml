@@ -6,10 +6,9 @@ let test_insert_1 () =
   let n_sig = Signal.make 0 in
   let open Html in
   div
-    [ id "root" ]
+    [ style "border: 1px solid cyan" ]
     [
-      ul
-        [ style "border: 1px solid cyan" ]
+      ul []
         [
           li [] [ text "static_1" ];
           li [] [ text "static_2" ];
