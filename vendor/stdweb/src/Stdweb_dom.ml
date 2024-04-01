@@ -131,6 +131,7 @@ module Node = struct
   let first_child this = Jx.Obj.get this "firstChild" Jx.Decoder.(nullable js)
   let last_child this = Jx.Obj.get this "lastChild" Jx.Decoder.(nullable js)
   let next_sibling this = Jx.Obj.get this "nextSibling" Jx.Decoder.(nullable js)
+  let _next_sibling_js this = Jx.Obj.get this "nextSibling" Jx.Decoder.js
 
   let iter_children this f =
     let node_list = Jx.Obj.get this "childNodes" Jx.Decoder.js in
@@ -156,7 +157,8 @@ module Node = struct
 
   (* Children manipulation *)
 
-  let append this other = Jx.Obj.call_js_unit this "append" [| other |]
+  let append_text ~parent text =
+    Jx.Obj.call1_unit parent "append" Jx.Encoder.string text
 
   let append_child ~parent other =
     Jx.Obj.call_js_unit parent "appendChild" [| other |]
@@ -166,6 +168,9 @@ module Node = struct
 
   let insert_before ~parent ~reference new_node =
     Jx.Obj.call_js_unit parent "insertBefore" [| new_node; reference |]
+
+  let insert_after ~parent ~reference new_node =
+    insert_before ~parent ~reference:(_next_sibling_js reference) new_node
 
   let replace_child ~parent ~reference new_node =
     Jx.Obj.call_js_unit parent "replaceChild" [| new_node; reference |]

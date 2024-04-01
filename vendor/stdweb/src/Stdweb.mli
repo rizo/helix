@@ -360,10 +360,11 @@ module Dom : sig
 
     (** {2 Children manipulation} *)
 
-    val append : t -> t -> unit
+    val append_text : parent:t -> string -> unit
     val append_child : parent:t -> t -> unit
     val remove_child : parent:t -> t -> unit
     val insert_before : parent:t -> reference:t -> t -> unit
+    val insert_after : parent:t -> reference:t -> t -> unit
     val replace_child : parent:t -> reference:t -> t -> unit
     val replace_children : t -> t array -> unit
     val insert_before_begin : reference:t -> t -> unit
