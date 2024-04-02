@@ -164,7 +164,7 @@ module Http : sig
     ?mode:Stdweb.Fetch.mode ->
     encode:'a Encoder.t ->
     decode:'b Decoder.t ->
-    string ->
+    url:string ->
     'a ->
     'b result option Signal.t
 
@@ -172,7 +172,8 @@ module Http : sig
     ?headers:(string * string) list ->
     ?mode:Stdweb.Fetch.mode ->
     decode:'a Decoder.t ->
-    string ->
+    url:string ->
+    unit ->
     'a result option Signal.t
 
   val put :
@@ -180,7 +181,7 @@ module Http : sig
     ?mode:Stdweb.Fetch.mode ->
     encode:'a Encoder.t ->
     decode:'b Decoder.t ->
-    string ->
+    url:string ->
     'a ->
     'b result option Signal.t
 
@@ -189,7 +190,7 @@ module Http : sig
     ?mode:Stdweb.Fetch.mode ->
     encode:'a Encoder.t ->
     decode:'b Decoder.t ->
-    string ->
+    url:string ->
     'a ->
     'b result option Signal.t
 
@@ -197,7 +198,7 @@ module Http : sig
     ?headers:(string * string) list ->
     ?mode:Stdweb.Fetch.mode ->
     decode:'b Decoder.t ->
-    string ->
+    url:string ->
     'a ->
     'b result option Signal.t
 
@@ -208,7 +209,7 @@ module Http : sig
       ?mode:Stdweb.Fetch.mode ->
       encode:('a -> Stdweb.Json.t) ->
       decode:(Stdweb.Json.t -> ('b, 'err) Result.t) ->
-      string ->
+      url:string ->
       'a ->
       'b result option Signal.t
 
@@ -216,7 +217,8 @@ module Http : sig
       ?headers:(string * string) list ->
       ?mode:Stdweb.Fetch.mode ->
       decode:(Stdweb.Json.t -> ('a, 'err) Result.t) ->
-      string ->
+      url:string ->
+      unit ->
       'a result option Signal.t
 
     val put :
@@ -224,7 +226,7 @@ module Http : sig
       ?mode:Stdweb.Fetch.mode ->
       encode:('a -> Stdweb.Json.t) ->
       decode:(Stdweb.Json.t -> ('b, 'err) Result.t) ->
-      string ->
+      url:string ->
       'a ->
       'b result option Signal.t
 
@@ -233,7 +235,7 @@ module Http : sig
       ?mode:Stdweb.Fetch.mode ->
       encode:('a -> Stdweb.Json.t) ->
       decode:(Stdweb.Json.t -> ('b, 'err) Result.t) ->
-      string ->
+      url:string ->
       'a ->
       'b result option Signal.t
 
@@ -241,7 +243,7 @@ module Http : sig
       ?headers:(string * string) list ->
       ?mode:Stdweb.Fetch.mode ->
       decode:(Stdweb.Json.t -> ('b, 'err) Result.t) ->
-      string ->
+      url:string ->
       'a ->
       'b result option Signal.t
   end

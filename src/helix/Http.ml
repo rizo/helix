@@ -74,7 +74,7 @@ end
 
 (* FIXME: prevent signal handler errors from being caught *)
 let request ?meth ?(headers = []) ?mode ~encode:(content_type, to_body) ~decode
-    url request_value =
+    ~url request_value =
   let headers =
     match content_type with
     | Some content_type -> ("Content-Type", content_type) :: headers
@@ -107,17 +107,17 @@ let request ?meth ?(headers = []) ?mode ~encode:(content_type, to_body) ~decode
   |> Promise.catch (fun err -> Signal.emit (Some (Error (Fetch_error err))) s);
   s
 
-let get ?headers ?mode ~decode url =
-  request ~meth:`Get ?headers ?mode ~encode:Encoder.ignore ~decode url ()
+let get ?headers ?mode ~decode ~url () =
+  request ~meth:`Get ?headers ?mode ~encode:Encoder.ignore ~decode ~url ()
 
-let put ?headers ?mode ~encode ~decode url request_value =
-  request ~meth:`Put ?headers ?mode ~encode ~decode url request_value
+let put ?headers ?mode ~encode ~decode ~url request_value =
+  request ~meth:`Put ?headers ?mode ~encode ~decode ~url request_value
 
-let post ?headers ?mode ~encode ~decode url request_value =
-  request ~meth:`Post ?headers ?mode ~encode ~decode url request_value
+let post ?headers ?mode ~encode ~decode ~url request_value =
+  request ~meth:`Post ?headers ?mode ~encode ~decode ~url request_value
 
-let delete ?headers ?mode ~decode url request_value =
-  request ~meth:`Delete ?headers ?mode ~encode:Encoder.ignore ~decode url
+let delete ?headers ?mode ~decode ~url request_value =
+  request ~meth:`Delete ?headers ?mode ~encode:Encoder.ignore ~decode ~url
     request_value
 
 module Json = struct
