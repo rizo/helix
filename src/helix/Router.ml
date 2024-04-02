@@ -124,14 +124,24 @@ module Table = struct
         | Partial route -> Ok { route; matched = List.rev matched; args = List.rev args }
       )
       | input_hd :: input' -> (
-        match node.capture with
-        | Partial route -> Ok { route; matched = List.rev matched; args = List.rev args @ input }
-        | _ -> (
-          match String_map.find_opt input_hd node.children with
-          | Some node' -> loop node' input' (input_hd :: matched) args
-          | None -> (
+        (* Const *)
+        match String_map.find_opt input_hd node.children with
+        | Some node' -> loop node' input' (input_hd :: matched) args
+        | None -> (
+          (* Rest *)
+          match node.capture with
+          | Partial route ->
+            Ok
+              {
+                route;
+                matched = List.rev matched;
+                args = List.rev args @ input;
+              }
+          | _ -> (
+            (* Var *)
             match String_map.find_opt ":" node.children with
-            | Some node' -> loop node' input' (input_hd :: matched) (input_hd :: args)
+            | Some node' ->
+              loop node' input' (input_hd :: matched) (input_hd :: args)
             | None -> Error (No_match input0)
           )
         )

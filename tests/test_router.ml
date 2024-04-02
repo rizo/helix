@@ -232,6 +232,14 @@ module Links = struct
     let open Router in
     Const ("devices", Var (string, None, Rest))
 
+  let devices_edit =
+    let open Router in
+    Const ("devices", Var (string, None, Const ("!edit", End)))
+
+  let devices_new =
+    let open Router in
+    Const ("devices", Const ("!new", End))
+
   let account =
     let open Router in
     Const ("account", End)
@@ -242,7 +250,12 @@ let view router =
   div []
     [
       h1 [] [ text "INDEX" ];
-      (*pre [] [ show (fun parts -> text ("/" ^ String.concat "/" parts)) (Router.path router) ];*)
+      pre []
+        [
+          show
+            (fun parts -> text ("/" ^ String.concat "/" parts))
+            (Router.path router);
+        ];
       hr [];
       ul []
         [
@@ -328,6 +341,26 @@ let view router =
                 ]
                 [ text "#/devices/dev_2/metrics" ];
             ];
+          li []
+            [
+              a
+                [
+                  Router.link router
+                    ~active:(style_list [ ("font-weight", "bold") ])
+                    Links.devices_edit "dev_2";
+                ]
+                [ text "#/devices/dev_2/!edit" ];
+            ];
+          li []
+            [
+              a
+                [
+                  Router.link router
+                    ~active:(style_list [ ("font-weight", "bold") ])
+                    Links.devices_new;
+                ]
+                [ text "#/devices/!new" ];
+            ];
         ];
       hr [];
       Router.dispatch router ~label:"main" ~default:(text "NOT FOUND")
@@ -335,6 +368,10 @@ let view router =
           Router.route Links.root (fun () -> Html.text "ROOT");
           Router.route Links.account (fun () -> Html.text "ACCOUNT");
           Router.route Links.devices Device.view;
+          Router.route Links.devices_edit (fun id () ->
+              show (fun id -> Html.text ("DEVICE EDIT: " ^ id)) id
+          );
+          Router.route Links.devices_new (fun () -> Html.text "DEVICE NEW");
         ];
     ]
 
