@@ -181,7 +181,7 @@ let on_double_click ?confirm handler =
 (* Elem *)
 
 module Elem_util = struct
-  let mount ~parent ?(insert = Dom.Node.append parent) html =
+  let mount ~parent ?(insert = Dom.Node.append_child ~parent) html =
     html.mount ~parent ~insert
 
   let unmount html = html.unmount ()

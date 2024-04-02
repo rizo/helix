@@ -19,9 +19,9 @@ let () =
     Dom.Node.set_text_content lnk "Link";
     Dom.Node.set_href lnk "#";
 
-    Dom.Node.append main btn;
-    Dom.Node.append main inp;
-    Dom.Node.append main lnk;
+    Dom.Node.append_child ~parent:main btn;
+    Dom.Node.append_child ~parent:main inp;
+    Dom.Node.append_child ~parent:main lnk;
 
     (* Element listener *)
     Dom.Node.bind btn Dom.Event.click (fun ev ->
