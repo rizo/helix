@@ -2,12 +2,12 @@ open Stdweb
 
 let ( => ) a b = (a, b)
 
-let options =
+let make_options ~w () =
   let open Jx.Encoder in
   obj
     [
       "title" => string "Helix - uPlot";
-      "width" => int 600;
+      "width" => int w;
       "height" => int 400;
       "scales" => obj [ "x" => obj [ "time" => bool false ] ];
       "series"
@@ -41,19 +41,41 @@ let data2 =
 let main () =
   let flag = Signal.make true in
   let uplot = ref None in
+  let uplot_node = ref None in
   let adjust_data flag =
     match !uplot with
     | None -> Console.log "uplot not loaded"
     | Some uplot -> Uplot.set_data uplot (if flag then data1 else data2)
   in
   Signal.sub adjust_data flag;
+
+  Dom.Window.bind Dom.Event.resize (fun _ev ->
+      match !uplot_node with
+      | None -> ()
+      | Some node ->
+        let w = Dom.Node.get_client_width node in
+        Uplot.set_size ~w ~h:400 (Option.get !uplot)
+  );
+
   let open Html in
-  div []
+  div
+    [ id "parent" ]
     [
       button
         [ on Dom.Event.click (fun _ -> Signal.update not flag) ]
         [ text "Toggle data" ];
-      div [ Uplot.mount ~options ~data:data1 uplot ] [];
+      div
+        [
+          id "uplot-container";
+          style_list [ "width" => "100%"; "border" => "2px solid blue" ];
+          Attr.on_mount (fun node ->
+              let w = Dom.Node.get_client_width node in
+              let options = make_options ~w () in
+              uplot := Some (Uplot.make ~options ~data:data1 node);
+              uplot_node := Some node
+          );
+        ]
+        [];
     ]
 
 let () =

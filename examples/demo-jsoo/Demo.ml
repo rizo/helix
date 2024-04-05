@@ -27,7 +27,9 @@ let view_mouse () =
     ]
 
 let view_timer () =
-  let timer = Time.tick ~ms:333 |> Signal.const 1 |> Signal.reduce ( + ) 0 in
+  (* [TODO] pass custom equal to prevent dedup *)
+  (* let timer = Time.tick ~ms:333 |> Signal.const 1 |> Signal.reduce ( + ) 0 in *)
+  let timer = Time.tick ~ms:333 |> Signal.reduce (fun t () -> t + 1) 0 in
   let open Html in
   fragment
     [
@@ -63,8 +65,7 @@ let view_input_bind () =
     ]
 
 let view_counter () =
-  let incr = Signal.make 0 in
-  let count = incr |> Signal.reduce (fun x y -> x + y) 0 in
+  let count = Signal.make 0 in
   let open Html in
   fragment
     [
@@ -74,9 +75,11 @@ let view_counter () =
         [ text "Compute a count." ];
       div []
         [
-          button [ on Event.click (fun _ -> Signal.emit 1 incr) ] [ text "+" ];
           button
-            [ on Event.click (fun _ -> Signal.emit (-1) incr) ]
+            [ on Event.click (fun _ -> Signal.update (fun n -> n + 1) count) ]
+            [ text "+" ];
+          button
+            [ on Event.click (fun _ -> Signal.update (fun n -> n - 1) count) ]
             [ text "-" ];
           span [ style_list [ "margin-left" => "5px" ] ] [ show int count ];
         ];

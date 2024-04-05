@@ -4,58 +4,39 @@ open Helix
 
 let test_leaky_1 () =
   let n_sig = Signal.make 0 in
+  let is_visible = Signal.make true in
   let open Html in
   div
-    [ id "root" ]
+    [ id "main" ]
     [
-      show ~label:"baseline_1"
+      show ~label:"baseline"
         (fun n -> text ("baseline: " ^ string_of_int n))
         n_sig;
       br [];
-      button
+      label []
         [
-          id "leaky_1";
-          on Ev.click (fun ev ->
-              let node = Ev.target ev in
-              match Node.parent node with
-              | None -> Jx.log "No parent"
-              | Some parent -> Node.remove_child ~parent node
-          );
-        ]
-        [
-          show ~label:"leaky_1"
-            (fun n -> text ("target: " ^ string_of_int n ^ " - Click to remove"))
-            n_sig;
+          text "Active: ";
+          input
+            [
+              type' "checkbox";
+              checked (Signal.get is_visible);
+              on_checked (fun x -> Signal.emit x is_visible);
+            ];
         ];
       br [];
-      button
-        [ on_click (fun () -> Signal.update (( + ) 1) n_sig) ]
-        [ text "Increment" ];
-    ]
-
-let test_leaky_2 () =
-  let n_sig = Signal.make 0 in
-  let open Html in
-  let target_1 =
-    div
-      [ id "leaky_2"; style "border: 1px solid cyan" ]
-      [
-        show ~label:"leaky_2"
-          (fun n -> text ("target_1: " ^ string_of_int n))
-          n_sig;
-      ]
-  in
-  div
-    [ id "root" ]
-    [
-      show ~label:"baseline_2"
-        (fun n -> text ("baseline: " ^ string_of_int n))
-        n_sig;
-      br [];
-      target_1;
-      button
-        [ on_click (fun () -> Html.Elem.unmount target_1) ]
-        [ text "Delete" ];
+      show ~label:"container"
+        (function
+          | true ->
+            div
+              [ id "leaky"; style "border: 1px solid cyan" ]
+              [
+                show ~label:"leaky"
+                  (fun n -> text ("target: " ^ string_of_int n))
+                  n_sig;
+              ]
+          | false -> div [ style "border: 1px solid red" ] [ text "--" ]
+          )
+        is_visible;
       br [];
       button
         [ on_click (fun () -> Signal.update (( + ) 1) n_sig) ]
@@ -64,13 +45,7 @@ let test_leaky_2 () =
 
 let main () =
   let open Html in
-  div []
-    [
-      (* h2 [] [ text "test_leaky_1" ]; *)
-      (* test_leaky_1 (); *)
-      h2 [] [ text "test_leaky_2" ];
-      test_leaky_2 ();
-    ]
+  div [] [ h2 [] [ text "test_leaky_1" ]; test_leaky_1 () ]
 
 let () =
   match Stdweb.Dom.Document.get_element_by_id "root" with

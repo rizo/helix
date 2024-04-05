@@ -7,3 +7,4 @@ val mount :
   options:Jx.Obj.t -> data:float array array -> t option ref -> Html.attr
 
 val set_data : t -> float array array -> unit
+val set_size : w:int -> h:int -> t -> unit

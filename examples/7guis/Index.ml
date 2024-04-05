@@ -5,8 +5,7 @@ let ( => ) a b = (a, b)
 let ( >> ) g f x = f (g x)
 
 let view_counter () =
-  let incr = Signal.make 0 in
-  let count = incr |> Signal.reduce (fun x y -> x + y) 0 in
+  let count = Signal.make 0 in
   let open Html in
   fragment
     [
@@ -16,9 +15,11 @@ let view_counter () =
         [ text "Increment or decrement a number by 1." ];
       div []
         [
-          button [ on Event.click (fun _ -> Signal.emit 1 incr) ] [ text "+" ];
           button
-            [ on Event.click (fun _ -> Signal.emit (-1) incr) ]
+            [ on Event.click (fun _ -> Signal.update (fun n -> n + 1) count) ]
+            [ text "+" ];
+          button
+            [ on Event.click (fun _ -> Signal.update (fun n -> n - 1) count) ]
             [ text "-" ];
           span [ style_list [ "margin-left" => "5px" ] ] [ show int count ];
         ];
@@ -109,11 +110,9 @@ let view_flight_booker () =
           input
             [
               placeholder "YYYY-MM-DD";
-              bind (fst >> value) dates;
-              on Event.input (fun ev ->
-                  Signal.update
-                    (fun (_, d2) -> (Event.target ev |> Node.get_value, d2))
-                    dates
+              value (fst (Signal.get dates));
+              on_input (fun value ->
+                  Signal.update (fun (_, d2) -> (value, d2)) dates
               );
               toggle
                 ~on:(fun (d1, _) -> not (is_valid_date d1))
@@ -123,11 +122,9 @@ let view_flight_booker () =
           input
             [
               placeholder "YYYY-MM-DD";
-              bind (snd >> value) dates;
-              on Event.input (fun ev ->
-                  Signal.update
-                    (fun (d1, _) -> (d1, Event.target ev |> Node.get_value))
-                    dates
+              value (snd (Signal.get dates));
+              on_input (fun value ->
+                  Signal.update (fun (d1, _) -> (d1, value)) dates
               );
               toggle ~on:(String.equal "oneway") (disabled true) flight_type;
               toggle
@@ -150,6 +147,7 @@ let view_flight_booker () =
         ];
     ]
 
+(* [TODO] Incomplete impl. *)
 let view_timer () =
   let open Html in
   fragment

@@ -5,11 +5,6 @@ open Stdweb
 
 type attr = { set : Dom.Node.t -> unit; unset : Dom.Node.t -> unit }
 
-type html = {
-  mount : parent:Dom.node -> insert:(Dom.node -> unit) -> unit;
-  unmount : unit -> unit;
-}
-
 module Attr = struct
   type t = attr
 
@@ -178,85 +173,85 @@ let on_click ?confirm handler =
 let on_double_click ?confirm handler =
   on ~default:false ?confirm Dom.Event.dblclick (fun _ -> handler ())
 
-(* Elem *)
+(* Elem
 
-module Elem_util = struct
-  let mount ~parent ?(insert = Dom.Node.append_child ~parent) html =
-    html.mount ~parent ~insert
+    html state is composed of two cleanup functions:
+    - free: cleans up any non-dom resources (like signal subscriptions);
+    - remove: calls free and also removes the top-level dom resources.
 
-  let unmount html = html.unmount ()
-end
+   These two functions are needed since deleting a top-level dom node,
+   automatically deletes the children nodes, but will not free any manually
+   acquired resources.
+*)
 
-let elem name attrs children =
-  let node_ref = ref None in
-  let mount ~parent:_ ~insert =
-    let node = Dom.Document.create_element name in
-    node_ref := Some node;
-    insert node;
+type html_state = { free : (unit -> unit) option; remove : unit -> unit }
+type html = Dom.node -> (Dom.node -> unit) -> html_state
+
+(*
+  [NOTE] Invariant
+  The parent MUST NOT change.
+
+  [NOTE] Oredr
+  The initialization order MUST be:
+  1. create node
+  2. add children
+  3. set attrs
+
+  If this order isn't followed, all kinds of things will break. For example,
+  `select` requires that children are present for the `value` attr to work.
+
+  The `conditional` attribute requires that the node is mounted on a parent.
+*)
+let elem name attrs children parent insert =
+  let node = Dom.Document.create_element name in
+  insert node;
+  let free =
+    match
+      List.fold_left
+        (fun acc (child : html) ->
+          let state = child node (Dom.Node.append_child ~parent:node) in
+          match state.free with
+          | None -> acc
+          | Some f -> f :: acc
+        )
+        [] children
+    with
+    | [] -> None
+    | fs -> Some (fun () -> List.iter (fun f -> f ()) fs)
+  in
+  List.iter (fun attr -> Attr.set attr node) attrs;
+  let remove () =
+    List.iter (fun attr -> Attr.unset attr node) attrs;
+    Dom.Node.remove_child ~parent node
+  in
+  { free; remove }
+
+let fragment children parent insert =
+  let children_states_rev =
+    List.rev_map (fun (child : html) -> child parent insert) children
+  in
+  let free =
+    match
+      List.filter_map (fun (s : html_state) -> s.free) children_states_rev
+    with
+    | [] -> None
+    | fs -> Some (fun () -> List.iter (fun f -> f ()) fs)
+  in
+  let remove () =
     List.iter
-      (fun (child : html) -> Elem_util.mount ~parent:node child)
-      children;
-    List.iter (fun attr -> Attr.set attr node) attrs
+      (fun (child_state : html_state) -> child_state.remove ())
+      children_states_rev
   in
-  let unmount () =
-    match !node_ref with
-    | None ->
-      Jx.log (Jx.Encoder.string ("#ELEM: " ^ name));
-      failwith "bug: attempting to remove an element that was not mounted."
-    | Some node -> (
-      (* FIXME: this is likely an overkill (but ensures correctness).
-         Ideally we do not want to unset regular attrs for nodes that will be removed.
-         We only need this for stateful attrs (like signal "bind" events). *)
-      List.iter (fun attr -> Attr.unset attr node) attrs;
-      List.iter (fun (child : html) -> child.unmount ()) children;
-      match Dom.Node.parent node with
-      | Some parent -> Dom.Node.remove_child ~parent node
-      | None ->
-        Jx.log (Jx.Encoder.string ("#ELEM: " ^ name));
-        failwith "bug: attempting to remove an element without a parent."
-    )
-  in
-  { mount; unmount }
+  { free; remove }
 
-let fragment children =
-  let mount ~parent:_ ~insert =
-    let fragment_node = Dom.Fragment.make () in
-    List.iter
-      (fun child_html -> Elem_util.mount ~parent:fragment_node child_html)
-      children;
-    insert fragment_node
-  in
-  let unmount () = List.iter Elem_util.unmount children in
-  { mount; unmount }
-
-let text data =
-  let node_ref = ref None in
-  let mount ~parent:_ ~insert =
-    let node = Dom.Document.create_text_node data in
-    insert node;
-    node_ref := Some node
-  in
-  let unmount () =
-    match !node_ref with
-    | None ->
-      failwith
-        ("bug: attempting to remove a text node that was not mounted: " ^ data)
-    | Some node -> (
-      match Dom.Node.parent node with
-      | Some parent -> Dom.Node.remove_child ~parent node
-      | None ->
-        Jx.log (Jx.Encoder.string ("#TEXT: " ^ data));
-        failwith
-          ("bug: attempting to remove a text node without a parent: " ^ data)
-    )
-  in
-  { mount; unmount }
+let text data parent insert =
+  let node = Dom.Document.create_text_node data in
+  insert node;
+  let remove () = Dom.Node.remove_child ~parent node in
+  { free = None; remove }
 
 let int n = text (string_of_int n)
-
-let empty =
-  { mount = (fun ~parent:_ ~insert:_ -> ()); unmount = (fun () -> ()) }
-
+let empty _parent _insert = { free = None; remove = (fun () -> ()) }
 let nbsp = text "\u{00A0}"
 let a attrs children = elem "a" attrs children
 let abbr attrs children = elem "abbr" attrs children
@@ -364,20 +359,25 @@ let video attrs children = elem "video" attrs children
 let wbr attrs = elem "wbr" attrs []
 let text_list l = fragment (List.map text l)
 
-let resource ~init ~free use =
+let resource ~init ~free (use : 'a -> html) parent insert : html_state =
   let r = init () in
   let html = use r in
-  let unmount () =
-    free r;
-    html.unmount ()
+  let html_state = html parent insert in
+  let free =
+    match html_state.free with
+    | None -> Some (fun () -> free r)
+    | Some html_free ->
+      Some
+        (fun () ->
+          html_free ();
+          free r
+        )
   in
-  { html with unmount }
+  { html_state with free }
 
 (* Extra constructors. *)
 module Elem = struct
   type t = html
-
-  include Elem_util
 
   let of_some to_html option =
     match option with
@@ -389,35 +389,39 @@ module Elem = struct
     | Ok x -> to_html x
     | Error _ -> empty
 
-  let make ~mount ~unmount () = { mount; unmount }
   let list f list = fragment (List.map f list)
   let list_indexed f list = fragment (List.mapi f list)
 
-  let on_unmount f t =
+  let on_unmount f t parent insert =
+    let s = t parent insert in
     {
-      t with
-      unmount =
-        (fun () ->
-          f ();
-          t.unmount ()
+      s with
+      free =
+        ( match s.free with
+        | None -> Some f
+        | Some s_free ->
+          Some
+            (fun () ->
+              s_free ();
+              f ()
+            )
         );
     }
 
-  let unsafe name attrs content =
+  let unsafe name attrs content parent insert =
     let node = Dom.Document.create_element name in
     Dom.Node.set_inner_html node content;
-    let mount ~parent:_ ~insert =
-      insert node;
-      List.iter (fun attr -> Attr.set attr node) attrs
+    insert node;
+    List.iter (fun attr -> Attr.set attr node) attrs;
+    let remove () =
+      List.iter (fun attr -> Attr.unset attr node) attrs;
+      Dom.Node.remove_child ~parent node
     in
-    let unmount () =
-      match Dom.Node.parent node with
-      | Some parent -> Dom.Node.remove_child ~parent node
-      | None ->
-        failwith
-          "bug: attempting to remove an HTML element node without a parent."
-    in
-    { mount; unmount }
+    { free = None; remove }
+
+  let unmount (html_state : html_state) =
+    Option.iter (fun f -> f ()) html_state.free;
+    html_state.remove ()
 end
 
 (*
@@ -434,4 +438,6 @@ end
 
 (* DOM helpers *)
 
-let mount parent html = Elem.mount html ~parent
+let mount parent html =
+  let _html_state = html parent (Dom.Node.append_child ~parent) in
+  ()

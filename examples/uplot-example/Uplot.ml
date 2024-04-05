@@ -14,5 +14,9 @@ let make ~options ~data target =
 
 let set_data uplot data = Jx.Obj.call1_unit uplot "setData" data_to_js data
 
+let set_size ~w ~h uplot =
+  Jx.Obj.call1_unit uplot "setSize" Jx.Encoder.obj
+    [ ("width", Jx.Encoder.int w); ("height", Jx.Encoder.int h) ]
+
 let mount ~options ~data uplot_ref =
   Html.Attr.on_mount (fun el -> uplot_ref := Some (make ~options ~data el))

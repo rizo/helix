@@ -67,61 +67,33 @@ let gen_show_id =
     | None -> ""
     | Some x -> "/" ^ x
 
-type show = {
-  mutable render_count : int;
-  mutable prev : Html.html;
-  mutable unsub : unit -> unit;
-  mutable mounted : bool;
-}
-
-let init_show () =
-  { render_count = 0; prev = Html.empty; unsub = ignore; mounted = false }
-
-let reset_show show =
-  show.render_count <- 0;
-  show.prev <- Html.empty;
-  show.unsub <- ignore;
-  show.mounted <- false
-
 let show ?label (to_html : 'a -> Html.html) signal : Html.html =
+ fun parent insert ->
   let comment_data = gen_show_id label in
   let anchor = Comment.make comment_data in
-  let state = init_show () in
-  let mount ~parent ~insert =
-    state.mounted <- true;
-    insert anchor;
-    state.unsub <-
-      Signal.use' ~label:comment_data
-        (fun x ->
-          if not state.mounted then
-            failwith
-              ("bug: signal leak: sub update for unmounted show elem: "
-              ^ comment_data
-              ^ ", signal: "
-              ^ Signal.label signal
-              );
-          let next =
-            to_html x
-            |> debug_html ~render_count:state.render_count ~comment_data
-          in
-          Html.Elem.unmount state.prev;
-          Html.Elem.mount ~parent
-            ~insert:(insert_after_anchor ~parent ~anchor)
-            next;
-          state.prev <- next;
-          state.render_count <- state.render_count + 1
-        )
-        signal
+  let state = ref { Html.free = None; remove = ignore } in
+  insert anchor;
+  let unsub =
+    Signal.use' ~label:comment_data
+      (fun x ->
+        let next_html = to_html x in
+        Html.Elem.unmount !state;
+        let next_state =
+          next_html parent (Node.insert_after ~parent ~reference:anchor)
+        in
+        state := next_state
+      )
+      signal
   in
-  let unmount () =
-    if not state.mounted then
-      failwith ("bug: called unmount on not mounted show elem: " ^ comment_data);
-    state.unsub ();
-    Html.Elem.unmount state.prev;
-    Node.remove anchor;
-    reset_show state
+  let free () =
+    unsub ();
+    Option.iter (fun f -> f ()) !state.free
   in
-  Html.Elem.make ~mount ~unmount ()
+  let remove () =
+    !state.remove ();
+    Node.remove anchor
+  in
+  { free = Some free; remove }
 
 let show_some ?label to_html opt_signal =
   show ?label
@@ -157,38 +129,31 @@ let conditional ~on:active_sig : Html.Attr.t =
   (* Initial state. *)
   let should_activate0 = Signal.get active_sig in
 
+  let unsub = ref ignore in
+
   let set node =
-    let parent =
+    (* Initial render *)
+    let () =
       match Node.parent node with
-      | Some parent -> parent
-      | None ->
-        failwith "[BUG]: View.conditional: element does not have a parent"
+      | None -> ()
+      | Some parent ->
+        if not should_activate0 then
+          Node.replace_child ~parent ~reference:node anchor
     in
-
-    (* The node is mounted initially. Do we unmount? *)
-    if not should_activate0 then
-      Node.replace_child ~parent ~reference:node anchor;
-
     (* Subscribe to updates. *)
-    Signal.sub
-      (fun should_activate ->
-        if should_activate then
-          Node.replace_child ~parent ~reference:anchor node
-        else Node.replace_child ~parent ~reference:node anchor
-      )
-      active_sig
+    unsub :=
+      Signal.sub'
+        (fun should_activate ->
+          match (Node.parent node, Node.parent anchor) with
+          | None, None -> ()
+          | Some parent, _ | _, Some parent ->
+            if should_activate then
+              Node.replace_child ~parent ~reference:anchor node
+            else Node.replace_child ~parent ~reference:node anchor
+        )
+        active_sig
   in
-  let unset node =
-    let parent =
-      match Node.parent node with
-      | Some parent -> parent
-      | None ->
-        failwith "[BUG]: View.conditional: element does not have a parent"
-    in
-    (* Put to the original state. *)
-    if not should_activate0 then
-      Node.replace_child ~parent ~reference:anchor node
-  in
+  let unset _node = !unsub () in
   Html.Attr.make ~set ~unset ()
 
 (* Each *)
@@ -199,126 +164,55 @@ let gen_each_id =
     incr i;
     "each:" ^ string_of_int !i
 
-module Each_cache : sig
-  type t
-  type slots
-  type key
-
-  val key : 'a -> key
-  val make : unit -> t
-  val set : t -> key:key -> slots -> unit
-  val get : t -> key:key -> slots option
-  val get_slot : slots -> int * Html.html
-  val add_slot : t -> key:key -> int -> Html.html -> unit
-  val del_slot : t -> key:key -> slots -> int -> unit
-  val clear : t -> unit
-end = struct
-  module Map = Stdweb.Map
-  module Iterator = Stdweb.Iterator
-  module Dict = Stdweb.Dict
-
-  type key = string
-  type slots = Html.html Map.t
-  type t = slots Dict.t
-
-  let key x = string_of_int (Hashtbl.hash x)
-  let make () = Dict.empty ()
-  let make_slots = Map.make
-
-  let get_slot slots =
-    match Map.first_key slots with
-    | None -> failwith "BUG: get_slot: slots must not be empty"
-    | Some idx_js ->
-      let idx = Jx.Decoder.int idx_js in
-      let html = Map.get slots idx_js in
-      (idx, html)
-
-  let set cache ~key slots = Dict.set cache key slots
-  let get cache ~key = Dict.get_opt cache key
-
-  let add_slot cache ~key idx html =
-    let slots =
-      match get cache ~key with
-      | None -> make_slots ()
-      | Some slots -> slots
-    in
-    Map.set slots (Jx.Encoder.int idx) html;
-    set cache ~key slots
-
-  let del_slot cache ~key slots idx =
-    Map.delete slots (Jx.Encoder.int idx);
-    if Map.size slots = 0 then Dict.del cache key
-
-  let clear cache =
-    Dict.iter cache (fun (slots : slots) ->
-        let values = Map.values slots in
-        Iterator.iter Html.Elem.unmount values;
-        Map.clear slots
-    )
-end
-
-let each (render : 'a -> Html.html) items_signal : Html.html =
+let each (to_html : 'a -> Html.html) items_signal : Html.html =
+ fun parent insert ->
   (* Create anchor. *)
-  let comment = Comment.make (gen_each_id ()) in
-  let anchor = ref comment in
+  let anchor = Comment.make (gen_each_id ()) in
 
   (* Initialize cache with items0. *)
-  let fragment = Fragment.make () in
-  let items0 = Signal.get items_signal in
+  (* let fragment = Fragment.make () in *)
+  let items0_rev = Signal.get items_signal |> List.rev in
 
-  let old_cache = ref (Each_cache.make ()) in
-  List.iteri
-    (fun i item ->
-      let key = Each_cache.key item in
-      let html = render item in
-      Html.Elem.mount html ~parent:fragment;
-      Each_cache.add_slot !old_cache ~key i html
-    )
-    items0;
+  (* Initial render *)
+  insert anchor;
+  let states0 =
+    List.map
+      (fun item ->
+        let html = to_html item in
+        html parent (Node.insert_after ~parent ~reference:anchor)
+      )
+      items0_rev
+  in
 
-  let mount ~parent ~insert =
-    (* Append anchor and initial fragment. *)
-    Node.append_child ~parent !anchor;
-    Node.append_child ~parent fragment;
+  let states = ref states0 in
 
-    (* Subscribe to changes. *)
-    Signal.sub
+  (* Subscribe to changes. *)
+  let unsub =
+    Signal.sub'
       (fun new_items ->
-        let new_cache = Each_cache.make () in
-        List.iteri
-          (fun j item ->
-            let key = Each_cache.key item in
-            match Each_cache.get !old_cache ~key with
-            | None ->
-              (* New. *)
-              let html = render item in
-              Html.Elem.mount html ~parent:fragment;
-              Each_cache.add_slot new_cache ~key j html
-            | Some old_slots ->
-              let i, i_html = Each_cache.get_slot old_slots in
-              if i = j then begin
-                (* Keep. *)
-                anchor := Node.next_sibling !anchor |> option_get;
-                Each_cache.del_slot !old_cache ~key old_slots j;
-                Each_cache.add_slot new_cache ~key j i_html
-              end
-              else begin
-                (* Swap. *)
-                Html.Elem.mount i_html ~parent:fragment;
-                Each_cache.del_slot !old_cache ~key old_slots i;
-                Each_cache.add_slot new_cache ~key j i_html
-              end
-          )
-          new_items;
-        Each_cache.clear !old_cache;
-        insert_after_anchor ~parent ~anchor:!anchor fragment;
-        old_cache := new_cache;
-        anchor := comment
+        let new_items_rev = List.rev new_items in
+        List.iter Html.Elem.unmount !states;
+        states :=
+          List.map
+            (fun item ->
+              let html = to_html item in
+              html parent (Node.insert_after ~parent ~reference:anchor)
+            )
+            new_items_rev
       )
       items_signal
   in
-  let unmount () = Each_cache.clear !old_cache in
-  Html.Elem.make ~mount ~unmount ()
+  let free () =
+    List.iter
+      (fun (state : Html.html_state) -> Option.iter (fun f -> f ()) state.free)
+      !states;
+    unsub ();
+    states := []
+  in
+  let remove () =
+    List.iter (fun (state : Html.html_state) -> state.remove ()) !states
+  in
+  { free = Some free; remove }
 
 (* Bind *)
 

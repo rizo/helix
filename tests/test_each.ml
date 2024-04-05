@@ -66,7 +66,6 @@ let test_swap_4 () =
   let open Html in
   div []
     [
-      div [] [ text "BUG: seems to be broken!" ];
       button [ on Ev.click (fun _ -> Signal.update not flag) ] [ text "Swap" ];
       ul []
         [
@@ -128,7 +127,6 @@ let test_conditional_1 () =
   let open Html in
   div []
     [
-      div [] [ text "BUG: seems to be broken!" ];
       button
         [ on Ev.click (fun _ -> Signal.update not is_visible) ]
         [ text "Toggle show" ];
@@ -144,14 +142,12 @@ let test_conditional_1 () =
         ];
     ]
 
-(* FIXME *)
 let test_conditional_2 () =
   let is_visible = Signal.make true in
   let items = Signal.make [ "a"; "b"; "X"; "c" ] in
   let open Html in
   div []
     [
-      div [] [ text "BUG: seems to be broken!" ];
       button
         [ on Ev.click (fun _ -> Signal.update not is_visible) ]
         [ text "Toggle X" ];
@@ -167,6 +163,75 @@ let test_conditional_2 () =
                    ]
                    [ text item ]
              );
+        ];
+    ]
+
+let test_show_1 () =
+  let count_a = Signal.make 100 in
+  let count_b = Signal.make 200 in
+  let count_c = Signal.make 300 in
+  let items = Signal.make [ `a; `b; `c ] in
+  let open Html in
+  div []
+    [
+      button
+        [ on Ev.click (fun _ -> Signal.update (( + ) 1) count_a) ]
+        [ text "Increment a" ];
+      button
+        [ on Ev.click (fun _ -> Signal.update (( + ) 1) count_b) ]
+        [ text "Increment b" ];
+      button
+        [ on Ev.click (fun _ -> Signal.update (( + ) 1) count_c) ]
+        [ text "Increment c" ];
+      ul []
+        [
+          items
+          |> each (function
+               | `a -> show (fun n -> li [] [ text "a: "; int n ]) count_a
+               | `b -> show (fun n -> li [] [ text "b: "; int n ]) count_b
+               | `c -> show (fun n -> li [] [ text "c: "; int n ]) count_c
+               );
+        ];
+    ]
+
+let test_show_2 () =
+  let count_a = Signal.make 100 in
+  let count_b = Signal.make 200 in
+  let count_c = Signal.make 300 in
+  let items = Signal.make [ "a"; "b"; "c" ] in
+  let open Html in
+  div []
+    [
+      button
+        [
+          on_click (fun () ->
+              Signal.update
+                (fun xs ->
+                  if List.length xs = 3 then [ "a"; "c" ] else [ "a"; "b"; "c" ]
+                )
+                items
+          );
+        ]
+        [ text "Toggle b" ];
+      br [];
+      button
+        [ on_click (fun () -> Signal.update (( + ) 1) count_a) ]
+        [ text "Increment a" ];
+      button
+        [ on_click (fun () -> Signal.update (( + ) 1) count_b) ]
+        [ text "Increment b" ];
+      button
+        [ on_click (fun () -> Signal.update (( + ) 1) count_c) ]
+        [ text "Increment c" ];
+      ul []
+        [
+          items
+          |> each (function
+               | "a" -> show (fun n -> li [] [ text "a: "; int n ]) count_a
+               | "b" -> show (fun n -> li [] [ text "b: "; int n ]) count_b
+               | "c" -> show (fun n -> li [] [ text "c: "; int n ]) count_c
+               | _ -> assert false
+               );
         ];
     ]
 
@@ -212,13 +277,13 @@ let test_interleave () =
             ];
           ul []
             [
-              li [] [ Html.text "after 1" ];
+              li [] [ Html.text "before 1" ];
               each (fun item -> li [] [ Html.text item ]) items;
               li [] [ Html.text "after 1" ];
             ];
           ul []
             [
-              li [] [ Html.text "after 1" ];
+              li [] [ Html.text "before 1" ];
               each (fun item -> li [] [ Html.text ("1: " ^ item) ]) items;
               each (fun item -> li [] [ Html.text ("2: " ^ item) ]) items;
               li [] [ Html.text "after 1" ];
@@ -226,7 +291,7 @@ let test_interleave () =
           ul []
             [
               each (fun item -> li [] [ Html.text ("1: " ^ item) ]) items;
-              li [] [ Html.text "after 1" ];
+              li [] [ Html.text "middle 1" ];
               each (fun item -> li [] [ Html.text ("2: " ^ item) ]) items;
               li [] [ Html.text "after 1" ];
             ];
@@ -260,6 +325,12 @@ let main () =
       hr [];
       h2 [] [ text "conditional_2" ];
       test_conditional_2 ();
+      hr [];
+      h2 [] [ text "show_1" ];
+      test_show_1 ();
+      hr [];
+      h2 [] [ text "show_2" ];
+      test_show_2 ();
       hr [];
       h2 [] [ text "append" ];
       test_append ();

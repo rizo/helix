@@ -14,7 +14,9 @@ let test_toggle_simple () =
   let open Html in
   div []
     [
-      button [ on Ev.click (fun _ -> Signal.update not is_present) ] [ text "Toggle present" ];
+      button
+        [ on Ev.click (fun _ -> Signal.update not is_present) ]
+        [ text "Toggle present" ];
       ul [] [ li [] [ span [ conditional ~on:is_present ] [ text "HELLO" ] ] ];
     ]
 
@@ -24,8 +26,12 @@ let test_toggle_siblings () =
   let open Html in
   div []
     [
-      button [ on Ev.click (fun _ -> Signal.update not hello) ] [ text "Toggle HELLO" ];
-      button [ on Ev.click (fun _ -> Signal.update not bye) ] [ text "Toggle BYE" ];
+      button
+        [ on Ev.click (fun _ -> Signal.update not hello) ]
+        [ text "Toggle HELLO" ];
+      button
+        [ on Ev.click (fun _ -> Signal.update not bye) ]
+        [ text "Toggle BYE" ];
       button
         [
           on Ev.click (fun _ ->

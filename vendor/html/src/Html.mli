@@ -2,7 +2,9 @@
 
 open Stdweb
 
-type html
+type html_state = { free : (unit -> unit) option; remove : unit -> unit }
+
+type html = Dom.node -> (Dom.node -> unit) -> html_state
 (** The type for HTML elements or character data. *)
 
 (** {1:attr Attributes}
@@ -739,14 +741,6 @@ module Elem : sig
 
   (** {2 Low-level operations} *)
 
-  val make :
-    mount:(parent:Dom.node -> insert:(Dom.node -> unit) -> unit) ->
-    unmount:(unit -> unit) ->
-    unit ->
-    html
-
-  val mount : parent:Dom.node -> ?insert:(Dom.node -> unit) -> html -> unit
-  val unmount : t -> unit
   val on_unmount : (unit -> unit) -> t -> t
 
   (** {2 List transformations} *)
@@ -754,6 +748,7 @@ module Elem : sig
   val list : ('a -> html) -> 'a list -> html
   val list_indexed : (int -> 'a -> html) -> 'a list -> html
   val unsafe : string -> attr list -> string -> html
+  val unmount : html_state -> unit
 end
 
 (** {2 DOM helpers} *)
