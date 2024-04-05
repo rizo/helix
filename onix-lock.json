@@ -3,7 +3,7 @@
    "repositories": [
      {
        "url": "https://github.com/ocaml/opam-repository.git",
-       "rev": "b530f3bbd2a60c24277923f6f8324eafd17ea7d5"
+       "rev": "689abe198230df164170b233c08b7722d4fea5b3"
      }
    ],
    "packages" : {
@@ -736,8 +736,8 @@
      "ppxlib": {
        "version": "0.32.1~5.2preview",
        "src": {
-         "url": "https://github.com/ocaml-ppx/ppxlib/archive/953398a914e6d23a0e21af5d73c70da306eec188.tar.gz",
-         "sha256": "a160ec1b2b3f42e310681344a440261fda341c13b3a0cd4c039ed6316e9e23f4"
+         "url": "https://github.com/ocaml-ppx/ppxlib/archive/04e050cbe2cf3e5cdb4441c480e4f472a5033941.tar.gz",
+         "sha256": "f0e61123b33b2acca23a388a367226674a7bccdedbaa41b0fd62fa42344dccd9"
        },
        "depends": [
          "dune",
