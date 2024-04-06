@@ -170,6 +170,7 @@ let main () =
     ]
 
 let () =
+  Helix.enable_debug true;
   match Stdweb.Dom.Document.get_element_by_id "root" with
   | Some root -> Html.mount root (main ())
   | None -> failwith "no #app"

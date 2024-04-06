@@ -17,9 +17,9 @@ let insert_after_anchor ~parent ~anchor node =
 
 (* Show *)
 
-let debug_html ~render_count:_ ~comment_data:_ x = x
+let fake_debug_html _render_count _comment_data html = html
 
-let _debug_html =
+let real_debug_html =
   let colors =
     [|
       "magenta"; "cyan"; "salmon"; "aquamarine"; "lime"; "yellow"; "palegreen";
@@ -30,7 +30,7 @@ let _debug_html =
     if !i + 1 >= Array.length colors then i := 0 else incr i;
     Array.get colors !i
   in
-  fun ~render_count ~comment_data html ->
+  fun render_count comment_data html ->
     let c = get_color () in
     Html.div
       [
@@ -56,27 +56,38 @@ let _debug_html =
         html;
       ]
 
+let debug_html : (int -> string -> Html.elem -> Html.elem) ref =
+  ref fake_debug_html
+
+let enable_debug flag =
+  debug_html := if flag then real_debug_html else fake_debug_html
+
 let gen_show_id =
   let i = ref (-1) in
   fun label ->
     incr i;
-    "show:"
-    ^ string_of_int !i
-    ^
-    match label with
-    | None -> ""
-    | Some x -> "/" ^ x
+    String.concat ""
+      [
+        "show:";
+        string_of_int !i;
+        ( match label with
+        | None -> ""
+        | Some x -> "/" ^ x
+        );
+      ]
 
-let show ?label (to_html : 'a -> Html.html) signal : Html.html =
+let show ?label (to_html : 'a -> Html.elem) signal : Html.elem =
  fun parent insert ->
   let comment_data = gen_show_id label in
   let anchor = Comment.make comment_data in
-  let state = ref { Html.free = None; remove = ignore } in
+  let state = ref { Html.Elem.free = None; remove = ignore } in
+  let count = ref 0 in
   insert anchor;
   let unsub =
     Signal.use' ~label:comment_data
       (fun x ->
-        let next_html = to_html x in
+        let next_html = !debug_html !count comment_data (to_html x) in
+        incr count;
         Html.Elem.unmount !state;
         let next_state =
           next_html parent (Node.insert_after ~parent ~reference:anchor)
@@ -119,42 +130,41 @@ let gen_conditional_id =
     incr i;
     "conditional:" ^ string_of_int !i
 
-let conditional ~on:active_sig : Html.Attr.t =
-  (* Dedup the boolean signal. *)
+(* [TODO] on should be a pred fn. *)
+let conditional ~on:active_sig node =
   let active_sig = Signal.uniq ~equal:( == ) active_sig in
-
-  (* Anchor for the conditional node. *)
   let anchor = Comment.make (gen_conditional_id ()) in
-
-  (* Initial state. *)
-  let should_activate0 = Signal.get active_sig in
-
+  let parent =
+    match Node.parent node with
+    | None -> failwith "conditional: attribute node has no parent"
+    | Some parent -> parent
+  in
   let unsub = ref ignore in
 
-  let set node =
-    (* Initial render *)
-    let () =
-      match Node.parent node with
-      | None -> ()
-      | Some parent ->
-        if not should_activate0 then
-          Node.replace_child ~parent ~reference:node anchor
-    in
-    (* Subscribe to updates. *)
+  let set () =
+    let active0 = Signal.get active_sig in
+    if not active0 then Node.replace_child ~parent ~reference:node anchor;
+
     unsub :=
       Signal.sub'
-        (fun should_activate ->
-          match (Node.parent node, Node.parent anchor) with
-          | None, None -> ()
-          | Some parent, _ | _, Some parent ->
-            if should_activate then
-              Node.replace_child ~parent ~reference:anchor node
-            else Node.replace_child ~parent ~reference:node anchor
+        (fun active ->
+          if active then Node.replace_child ~parent ~reference:anchor node
+          else Node.replace_child ~parent ~reference:node anchor
         )
         active_sig
   in
-  let unset _node = !unsub () in
-  Html.Attr.make ~set ~unset ()
+  let unset () =
+    let () =
+      (* Put the node back, if not mounted. *)
+      if Option.is_none (Node.parent node) then
+        Node.replace_child ~parent ~reference:anchor node
+    in
+    !unsub ();
+    (* [IMPORTANT] Must be set to ignore in case free is called. *)
+    unsub := ignore
+  in
+  let free () = !unsub () in
+  { Html.Attr.set; unset; free = Some free }
 
 (* Each *)
 
@@ -164,7 +174,7 @@ let gen_each_id =
     incr i;
     "each:" ^ string_of_int !i
 
-let each (to_html : 'a -> Html.html) items_signal : Html.html =
+let each (to_html : 'a -> Html.elem) items_signal : Html.elem =
  fun parent insert ->
   (* Create anchor. *)
   let anchor = Comment.make (gen_each_id ()) in
@@ -204,39 +214,40 @@ let each (to_html : 'a -> Html.html) items_signal : Html.html =
   in
   let free () =
     List.iter
-      (fun (state : Html.html_state) -> Option.iter (fun f -> f ()) state.free)
+      (fun (state : Html.Elem.state) -> Option.iter (fun f -> f ()) state.free)
       !states;
     unsub ();
     states := []
   in
   let remove () =
-    List.iter (fun (state : Html.html_state) -> state.remove ()) !states
+    List.iter (fun (state : Html.Elem.state) -> state.remove ()) !states
   in
   { free = Some free; remove }
 
 (* Bind *)
 
-let bind to_attr signal : Html.Attr.t =
-  let prev = ref Html.Attr.empty in
+let bind to_attr signal node =
+  let state = ref { Html.Attr.set = ignore; unset = ignore; free = None } in
   let unsub = ref ignore in
-  let set elem =
+  let set () =
     unsub :=
       Signal.use'
         (fun x ->
-          let next = to_attr x in
-          Html.Attr.unset !prev elem;
-          Html.Attr.set next elem;
-          prev := next
+          Html.Attr.unset !state;
+          let next_state : Html.Attr.state = (to_attr x) node in
+          next_state.set ();
+          state := next_state
         )
         signal
   in
-  let unset elem =
-    Html.Attr.unset !prev elem;
+  let unset () =
+    Html.Attr.unset !state;
     Signal.unsub !unsub;
-    unsub := ignore;
-    prev := Html.Attr.empty
+    (* [IMPORTANT] Must be set to ignore in case free is called. *)
+    unsub := ignore
   in
-  Html.Attr.make ~set ~unset ()
+  let free () = Signal.unsub !unsub in
+  { Html.Attr.set; unset; free = Some free }
 
 let bind_some to_attr opt_signal =
   bind
@@ -256,20 +267,28 @@ let bind_ok to_attr res_signal =
 
 (* Toggle *)
 
-let toggle' ~on:active_sig attr : Html.Attr.t =
-  let active_sig = Signal.uniq ~equal:( = ) active_sig in
-  let should_activate0 = Signal.get active_sig in
-  let set node =
-    if should_activate0 then Html.Attr.set attr node;
-    Signal.use
-      (fun should_activate ->
-        if should_activate then Html.Attr.set attr node
-        else Html.Attr.unset attr node
-      )
-      active_sig
+let toggle' ~on:active_sig attr node =
+  let active_sig = Signal.uniq ~equal:( == ) active_sig in
+  let state : Html.Attr.state = attr node in
+  let unsub = ref ignore in
+  let is_active = ref false in
+  let set () =
+    unsub :=
+      Signal.use'
+        (fun active ->
+          if active then state.set () else state.unset ();
+          is_active := active
+        )
+        active_sig
   in
-  let unset node = Html.Attr.unset attr node in
-  Html.Attr.make ~set ~unset ()
+  let unset () =
+    if !is_active then state.unset ();
+    !unsub ();
+    (* [IMPORTANT] Must be set to ignore in case free is called. *)
+    unsub := ignore
+  in
+  let free () = !unsub () in
+  { Html.Attr.set; unset; free = Some free }
 
 let toggle ~on:pred attr s = toggle' ~on:(Signal.map pred s) attr
 
@@ -277,17 +296,3 @@ let toggle ~on:pred attr s = toggle' ~on:(Signal.map pred s) attr
 
 let visible ~on:cond : Html.Attr.t =
   toggle' ~on:(Signal.map not cond) (Html.style_list [ ("display", "none") ])
-
-(* Sync *)
-
-(*
-let sync ~on:event_name ~get ~set signal =
-  let bind_attr = bind (fun x -> Html.value (get x)) signal in
-  let on_attr =
-    Html.on event_name (fun event ->
-        let value = Node.get_value (Event.target event) in
-        Signal.update (fun x -> set x value) signal
-    )
-  in
-  Html.Attr.combine bind_attr on_attr
-*)

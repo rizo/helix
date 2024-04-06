@@ -1,4 +1,4 @@
-type html = Html.html
+type elem = Html.elem
 type attr = Html.attr
 type 'a signal = 'a Signal.t
 
@@ -12,6 +12,7 @@ module Http = Http
 module Router = Router
 include View
 
+let enable_debug = View.enable_debug
 let ( let$ ) s f = show f s
 let ( and$ ) = Signal.pair
 let ( let@ ) s f = bind f s

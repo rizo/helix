@@ -2,19 +2,101 @@
 
 open Stdweb
 
-type html_state = { free : (unit -> unit) option; remove : unit -> unit }
-
-type html = Dom.node -> (Dom.node -> unit) -> html_state
-(** The type for HTML elements or character data. *)
-
 (** {1:attr Attributes}
 
     See the
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes} MDN HTML
       attribute reference}. *)
 
-type attr
-(** The type for attributes and their values. *)
+(** Additional attribute operations. *)
+module Attr : sig
+  type state = {
+    set : unit -> unit;
+    unset : unit -> unit;
+    free : (unit -> unit) option;
+  }
+
+  type t = Dom.Node.t -> state
+  (** The type for HTML attributes. *)
+
+  val empty : t
+  (** [empty] is an attribute that doesn't get rendered. *)
+
+  val string : string -> string -> t
+
+  val bool : string -> bool -> t
+  (** [bool name value] is [attr name ""] if [value] is [true] and {!empty}
+      otherwise.
+
+      This sets the
+      {{:https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#boolean-attributes}
+        boolean attribute} [n] to true. The attribute will be omitted if [b] is
+      false. *)
+
+  val int : string -> int -> t
+  (** [int name value] is [attr name (string_of_int i)]. *)
+
+  val on : bool -> t -> t
+  (** [on cond attr] is [attr] if [cond] is [true] and {!empty} otherwise. *)
+
+  val on_some : t option -> t
+  (** [on_some option] is [attr] if [option] is [Some attr] and {!empty} if
+      [option] is [None]. *)
+
+  val on_ok : (t, 'e) result -> t
+  (** [on_ok result] is [attr] if [result] is [Ok attr] and {!empty} if [result]
+      is [Error _]. *)
+
+  val on_mount : (Dom.node -> unit) -> t
+  (** [on_mount f] is an HTML attribute that calls [f] with an element this
+      attribute is added to. *)
+
+  (** {2 Low-level operations} *)
+
+  val make : (Dom.node -> state) -> t
+  val set : t -> Dom.node -> state
+  val unset : state -> unit
+  val combine : t -> t -> t
+  val list : t list -> t
+
+  val label : string -> t
+  (** See
+      {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/optgroup#label}
+        [otgroup#label]}. *)
+end
+
+(** Additional element operations. *)
+module Elem : sig
+  type state = { free : (unit -> unit) option; remove : unit -> unit }
+
+  type t = Dom.node -> (Dom.node -> unit) -> state
+  (** The type for HTML elements or character data. *)
+
+  val of_some : ('a -> t) -> 'a option -> t
+  (** [of_some to_html option] is [to_html x] if [option] is [Some x] and
+      [empty] otherwise. *)
+
+  val of_ok : ('a -> t) -> ('a, 'e) result -> t
+  (** [of_ok to_html result] is [to_html x] if [result] is [Ok x] and [empty]
+      otherwise. *)
+
+  (** {2 Low-level operations} *)
+
+  val on_unmount : (unit -> unit) -> t -> t
+
+  (** {2 List transformations} *)
+
+  val list : ('a -> t) -> 'a list -> t
+  val list_indexed : (int -> 'a -> t) -> 'a list -> t
+  val unsafe : string -> Attr.t list -> string -> t
+  val unmount : state -> unit
+end
+
+type elem = Elem.t
+(** Type alias for HTML elements. *)
+
+type attr = Attr.t
+(** Type alias for HTML attributes. *)
 
 val attr : string -> string -> attr
 (** [attr name v] is an attribute [name] with value [v]. *)
@@ -260,497 +342,421 @@ val on_double_click : ?confirm:string -> (unit -> unit) -> attr
     {{:https://developer.mozilla.org/en-US/docs/Web/API/Element/dblclick_event}
       [dblclick]} event. *)
 
-(** Additional attribute operations. *)
-module Attr : sig
-  type t = attr
-  (** The type for HTML attributes. *)
-
-  val empty : attr
-  (** [empty] is an attribute that doesn't get rendered. *)
-
-  val string : string -> string -> attr
-
-  val bool : string -> bool -> attr
-  (** [bool name value] is [attr name ""] if [value] is [true] and {!empty}
-      otherwise.
-
-      This sets the
-      {{:https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#boolean-attributes}
-        boolean attribute} [n] to true. The attribute will be omitted if [b] is
-      false. *)
-
-  val int : string -> int -> attr
-  (** [int name value] is [attr name (string_of_int i)]. *)
-
-  val on : bool -> attr -> attr
-  (** [on cond attr] is [attr] if [cond] is [true] and {!empty} otherwise. *)
-
-  val on_some : attr option -> attr
-  (** [on_some option] is [attr] if [option] is [Some attr] and {!empty} if
-      [option] is [None]. *)
-
-  val on_ok : (attr, 'e) result -> attr
-  (** [on_ok result] is [attr] if [result] is [Ok attr] and {!empty} if [result]
-      is [Error _]. *)
-
-  val on_mount : (Dom.node -> unit) -> attr
-  (** [on_mount f] is an HTML attribute that calls [f] with an element this
-      attribute is added to. *)
-
-  (** {2 Low-level operations} *)
-
-  val make : set:(Dom.node -> unit) -> unset:(Dom.node -> unit) -> unit -> attr
-  val set : attr -> Dom.node -> unit
-  val unset : attr -> Dom.node -> unit
-  val combine : attr -> attr -> attr
-  val list : attr list -> attr
-
-  val label : string -> attr
-  (** See
-      {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/optgroup#label}
-        [otgroup#label]}. *)
-end
-
 (** {1:elem Elements} *)
 
-val elem : string -> attr list -> html list -> html
+val elem : string -> attr list -> elem list -> elem
 (** [elem name attrs children] is an HTML element named [name] with attributes
     [attr] and [children]. *)
 
-val empty : html
+val empty : elem
 (** [empty] is an empty element that will not be rendered. *)
 
-val text : string -> html
+val text : string -> elem
 (** [text s] is character data [s]. [s] will be escaped. *)
 
-val int : int -> html
+val int : int -> elem
 (** [int n] is [text (string_of_int n)]. *)
 
-val nbsp : html
+val nbsp : elem
 (** [nbsp] is [text "\u{00A0}"]. *)
 
-val fragment : html list -> html
+val fragment : elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment}
       [DocumentFragment]}. *)
 
-val a : attr list -> html list -> html
+val a : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a} a}. *)
 
-val abbr : attr list -> html list -> html
+val abbr : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/abbr} abbr}. *)
 
-val address : attr list -> html list -> html
+val address : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/address}
       address}. *)
 
-val area : attr list -> html
+val area : attr list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/area} area}. *)
 
-val article : attr list -> html list -> html
+val article : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/article}
       article}. *)
 
-val aside : attr list -> html list -> html
+val aside : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/aside} aside}. *)
 
-val audio : attr list -> html list -> html
+val audio : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio} audio}. *)
 
-val b : attr list -> html list -> html
+val b : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/b} b}. *)
 
-val base : attr list -> html
+val base : attr list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base} base}. *)
 
-val bdi : attr list -> html list -> html
+val bdi : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/bdi} bdi}. *)
 
-val bdo : attr list -> html list -> html
+val bdo : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/bdo} bdo}. *)
 
-val blockquote : attr list -> html list -> html
+val blockquote : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/blockquote}
       blockquote}. *)
 
-val br : attr list -> html
+val br : attr list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/br} br}. *)
 
-val button : attr list -> html list -> html
+val button : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button} button}. *)
 
-val canvas : attr list -> html list -> html
+val canvas : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas} canvas}. *)
 
-val caption : attr list -> html list -> html
+val caption : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/caption}
       caption}. *)
 
-val cite : attr list -> html list -> html
+val cite : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/cite} cite}. *)
 
-val code : attr list -> html list -> html
+val code : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/code} code}. *)
 
-val col : attr list -> html
+val col : attr list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/col} col}. *)
 
-val colgroup : attr list -> html list -> html
+val colgroup : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/colgroup}
       colgroup}. *)
 
-val command : attr list -> html list -> html
+val command : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/command}
       command}. *)
 
-val datalist : attr list -> html list -> html
+val datalist : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/datalist}
       datalist}. *)
 
-val dd : attr list -> html list -> html
+val dd : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dd} dd}. *)
 
-val del : attr list -> html list -> html
+val del : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/del} del}. *)
 
-val details : attr list -> html list -> html
+val details : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details}
       details}. *)
 
-val dfn : attr list -> html list -> html
+val dfn : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dfn} dfn}. *)
 
-val div : attr list -> html list -> html
+val div : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/div} div}. *)
 
-val dl : attr list -> html list -> html
+val dl : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dl} dl}. *)
 
-val dt : attr list -> html list -> html
+val dt : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dt} dt}. *)
 
-val em : attr list -> html list -> html
+val em : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/em} em}. *)
 
-val embed : attr list -> html
+val embed : attr list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/embed} embed}. *)
 
-val fieldset : attr list -> html list -> html
+val fieldset : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/fieldset}
       fieldset}. *)
 
-val figcaption : attr list -> html list -> html
+val figcaption : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figcaption}
       figcaption}. *)
 
-val figure : attr list -> html list -> html
+val figure : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figure} figure}. *)
 
-val footer : attr list -> html list -> html
+val footer : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/footer} footer}. *)
 
-val form : attr list -> html list -> html
+val form : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form} form}. *)
 
-val h1 : attr list -> html list -> html
+val h1 : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/h1} h1}. *)
 
-val h2 : attr list -> html list -> html
+val h2 : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/h2} h2}. *)
 
-val h3 : attr list -> html list -> html
+val h3 : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/h3} h3}. *)
 
-val h4 : attr list -> html list -> html
+val h4 : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/h4} h4}. *)
 
-val h5 : attr list -> html list -> html
+val h5 : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/h5} h5}. *)
 
-val h6 : attr list -> html list -> html
+val h6 : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/h6} h6}. *)
 
-val head : attr list -> html list -> html
+val head : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head} head}. *)
 
-val header : attr list -> html list -> html
+val header : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header} header}. *)
 
-val hgroup : attr list -> html list -> html
+val hgroup : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/hgroup} hgroup}. *)
 
-val hr : attr list -> html
+val hr : attr list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/hr} hr}. *)
 
-(* val html : attr list -> html list -> html *)
+(* val html : attr list -> elem list -> elem *)
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html} html}. *)
 
-val i : attr list -> html list -> html
+val i : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/i} i}. *)
 
-val iframe : attr list -> html list -> html
+val iframe : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe} iframe}. *)
 
-val img : attr list -> html
+val img : attr list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img} img}. *)
 
-val input : attr list -> html
+val input : attr list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input} input}. *)
 
-val ins : attr list -> html list -> html
+val ins : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ins} ins}. *)
 
-val kbd : attr list -> html list -> html
+val kbd : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/kbd} kbd}. *)
 
-val keygen : attr list -> html list -> html
+val keygen : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/keygen} keygen}. *)
 
-val label : attr list -> html list -> html
+val label : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label} label}. *)
 
-val legend : attr list -> html list -> html
+val legend : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/legend} legend}. *)
 
-val li : attr list -> html list -> html
+val li : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/li} li}. *)
 
-val main : attr list -> html list -> html
+val main : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/main} main}. *)
 
-val map : attr list -> html list -> html
+val map : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/map} map}. *)
 
-val mark : attr list -> html list -> html
+val mark : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/mark} mark}. *)
 
-val menu : attr list -> html list -> html
+val menu : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu} menu}. *)
 
-val meta : attr list -> html
+val meta : attr list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta} meta}. *)
 
-val meter : attr list -> html list -> html
+val meter : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meter} meter}. *)
 
-val nav : attr list -> html list -> html
+val nav : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/nav} nav}. *)
 
-val object' : attr list -> html list -> html
+val object' : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/object} object}. *)
 
-val ol : attr list -> html list -> html
+val ol : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol} ol}. *)
 
-val optgroup : attr list -> html list -> html
+val optgroup : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/optgroup}
       optgroup}. *)
 
-val option : attr list -> html list -> html
+val option : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/option} option}. *)
 
-val output : attr list -> html list -> html
+val output : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/output} output}. *)
 
-val p : attr list -> html list -> html
+val p : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/p} p}. *)
 
-val param : attr list -> html
+val param : attr list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/param} param}. *)
 
-val pre : attr list -> html list -> html
+val pre : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/pre} pre}. *)
 
-val progress : attr list -> html list -> html
+val progress : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/progress}
       progress}. *)
 
-val q : attr list -> html list -> html
+val q : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/q} q}. *)
 
-val rp : attr list -> html list -> html
+val rp : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/rp} rp}. *)
 
-val rt : attr list -> html list -> html
+val rt : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/rt} rt}. *)
 
-val ruby : attr list -> html list -> html
+val ruby : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ruby} ruby}. *)
 
-val s : attr list -> html list -> html
+val s : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/s} s}. *)
 
-val samp : attr list -> html list -> html
+val samp : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/samp} samp}. *)
 
-val section : attr list -> html list -> html
+val section : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/section}
       section}. *)
 
-val select : attr list -> html list -> html
+val select : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select} select}. *)
 
-val small : attr list -> html list -> html
+val small : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/small} small}. *)
 
-val source : attr list -> html
+val source : attr list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/source} source}. *)
 
-val span : attr list -> html list -> html
+val span : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/span} span}. *)
 
-val strong : attr list -> html list -> html
+val strong : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/strong} strong}. *)
 
-val sub : attr list -> html list -> html
+val sub : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/sub} sub}. *)
 
-val summary : attr list -> html list -> html
+val summary : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/summary}
       summary}. *)
 
-val sup : attr list -> html list -> html
+val sup : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/sup} sup}. *)
 
-val table : attr list -> html list -> html
+val table : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table} table}. *)
 
-val tbody : attr list -> html list -> html
+val tbody : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tbody} tbody}. *)
 
-val td : attr list -> html list -> html
+val td : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/td} td}. *)
 
-val textarea : attr list -> html list -> html
+val textarea : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea}
       textarea}. *)
 
-val tfoot : attr list -> html list -> html
+val tfoot : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tfoot} tfoot}. *)
 
-val th : attr list -> html list -> html
+val th : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th} th}. *)
 
-val thead : attr list -> html list -> html
+val thead : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/thead} thead}. *)
 
-val time : attr list -> html list -> html
+val time : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/time} time}. *)
 
-val tr : attr list -> html list -> html
+val tr : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tr} tr}. *)
 
-val track : attr list -> html
+val track : attr list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/track} track}. *)
 
-val u : attr list -> html list -> html
+val u : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/u} u}. *)
 
-val ul : attr list -> html list -> html
+val ul : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul} ul}. *)
 
-val var : attr list -> html list -> html
+val var : attr list -> elem list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/var} var}. *)
 
-val video : attr list -> html list -> html
+val video : attr list -> elem list -> elem
 (** See
     {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video} video}. *)
 
-val wbr : attr list -> html
+val wbr : attr list -> elem
 (** See {{:https://developer.mozilla.org/en-US/docs/Web/HTML/Element/wbr} wbr}. *)
 
-val text_list : string list -> html
+val text_list : string list -> elem
 
 val resource :
   init:(unit -> 'resource) ->
   free:('resource -> unit) ->
-  ('resource -> html) ->
-  html
-
-(** Additional element operations. *)
-module Elem : sig
-  type t = html
-  (** Type alias for HTML elements. *)
-
-  val of_some : ('a -> html) -> 'a option -> html
-  (** [of_some to_html option] is [to_html x] if [option] is [Some x] and
-      [empty] otherwise. *)
-
-  val of_ok : ('a -> html) -> ('a, 'e) result -> html
-  (** [of_ok to_html result] is [to_html x] if [result] is [Ok x] and [empty]
-      otherwise. *)
-
-  (** {2 Low-level operations} *)
-
-  val on_unmount : (unit -> unit) -> t -> t
-
-  (** {2 List transformations} *)
-
-  val list : ('a -> html) -> 'a list -> html
-  val list_indexed : (int -> 'a -> html) -> 'a list -> html
-  val unsafe : string -> attr list -> string -> html
-  val unmount : html_state -> unit
-end
+  ('resource -> elem) ->
+  elem
 
 (** {2 DOM helpers} *)
 
-val mount : Dom.node -> html -> unit
+val mount : Dom.node -> elem -> unit

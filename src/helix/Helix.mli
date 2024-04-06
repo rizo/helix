@@ -42,8 +42,8 @@
         | None -> failwith "No #root element found"
     ]}*)
 
-type html = Html.html
-(** An alias for {!type:Html.html}. *)
+type elem = Html.elem
+(** An alias for {!type:Html.elem}. *)
 
 type attr = Html.attr
 (** An alias for {!type:Html.attr}. *)
@@ -56,21 +56,21 @@ val signal : ?equal:('a -> 'a -> bool) -> ?label:string -> 'a -> 'a signal
 
 (** {1 Reactive views} *)
 
-val show : ?label:string -> ('a -> Html.html) -> 'a Signal.t -> Html.html
+val show : ?label:string -> ('a -> Html.elem) -> 'a Signal.t -> Html.elem
 (** [show to_html signal] is a dynamic HTML node created from [signal] values
     using [to_html]. *)
 
 val show_some :
-  ?label:string -> ('a -> Html.html) -> 'a option Signal.t -> Html.html
+  ?label:string -> ('a -> Html.elem) -> 'a option Signal.t -> Html.elem
 (** [show_some] is similar to {!val:show}, but operates on reactive option
     values. When the signal's value is [None], {!val:Html.empty} is rendered. *)
 
 val show_ok :
-  ?label:string -> ('a -> Html.html) -> ('a, _) result Signal.t -> Html.html
+  ?label:string -> ('a -> Html.elem) -> ('a, _) result Signal.t -> Html.elem
 (** [show_ok] is similar to {!val:show}, but operates on reactive result values.
     When the signal's value is [Error _], {!val:Html.empty} is rendered. *)
 
-val each : ('a -> Html.html) -> 'a list Signal.t -> Html.html
+val each : ('a -> Html.elem) -> 'a list Signal.t -> Html.elem
 (** [each to_html signal] reactively renders items from [signal] with [to_html].
 
     {[
@@ -340,7 +340,7 @@ module Router : sig
       prefix of the current path, unless [exact] is [true], in which case the
       path is only considered active when it is equal to the current path. *)
 
-  val route : ('view, 'link, Html.html) path -> 'view -> route
+  val route : ('view, 'link, Html.elem) path -> 'view -> route
   (** Create a route by assigning a path to a view. *)
 
   val alias : (unit -> 'a, 'a, 'a) path -> ('view, 'link, route) path -> 'link
@@ -356,7 +356,7 @@ module Router : sig
       hash, which will trigger a routing event. *)
 
   val dispatch :
-    ?label:string -> ?default:Html.html -> t -> route list -> Html.html
+    ?label:string -> ?default:Html.elem -> t -> route list -> Html.elem
   (** [dispatch router routes] the current routing state described by [router]
       to [routes] rendering a view that matches the current path. If no matches
       are found, render [default]. *)
@@ -405,7 +405,25 @@ end
 
     Additionally, reactive attributes can be bound with [let@] and [and@]. *)
 
-val ( let$ ) : 'a signal -> ('a -> html) -> html
+val ( let$ ) : 'a signal -> ('a -> elem) -> elem
 val ( and$ ) : 'a signal -> 'b signal -> ('a * 'b) signal
 val ( let@ ) : 'a signal -> ('a -> attr) -> attr
 val ( and@ ) : 'a signal -> 'b signal -> ('a * 'b) signal
+
+(** View debugging *)
+
+val enable_debug : bool -> unit
+(** Set to [true] to activate visual debugging details.
+
+    If enabled, all reactive elements will be annoated with rendering details.
+    The following format is used:
+    [show:{elem_count}/{elem_label?}#{update_count}], where:
+
+    - [{elem_count}] is the sequential count assigned to each [show] element;
+    - [{elem_label}] is the optional user-provided label for the [show] element;
+    - [{update_count}] is the sequential count of re-renders of the same [show]
+      element.
+
+    Note that the [update_count] is, in practice, the number of signal emits.
+
+    With each update, the color of the container will change. *)

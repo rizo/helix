@@ -3,7 +3,7 @@ module Node = Stdweb.Dom.Node
 open Helix
 
 let test_leaky_1 () =
-  let n_sig = Signal.make 0 in
+  let n_sig = Signal.make 1 in
   let is_visible = Signal.make true in
   let open Html in
   div
@@ -24,11 +24,23 @@ let test_leaky_1 () =
             ];
         ];
       br [];
+      button
+        [ on_click (fun () -> Signal.update (( + ) 1) n_sig) ]
+        [ text "Increment" ];
+      br [];
       show ~label:"container"
         (function
           | true ->
             div
-              [ id "leaky"; style "border: 1px solid cyan" ]
+              [
+                id "leaky";
+                style_list [ ("border", "1px dashed blue") ];
+                bind
+                  (fun n ->
+                    style_list [ ("border-width", string_of_int n ^ "px") ]
+                  )
+                  n_sig;
+              ]
               [
                 show ~label:"leaky"
                   (fun n -> text ("target: " ^ string_of_int n))
@@ -37,10 +49,6 @@ let test_leaky_1 () =
           | false -> div [ style "border: 1px solid red" ] [ text "--" ]
           )
         is_visible;
-      br [];
-      button
-        [ on_click (fun () -> Signal.update (( + ) 1) n_sig) ]
-        [ text "Increment" ];
     ]
 
 let test_nested_1 () =
@@ -131,6 +139,7 @@ let main () =
     ]
 
 let () =
+  Helix.enable_debug true;
   match Stdweb.Dom.Document.get_element_by_id "root" with
   | Some root -> Html.mount root (main ())
   | None -> failwith "no #app"

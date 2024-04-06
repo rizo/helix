@@ -64,7 +64,7 @@ type ('view, 'link, 'a) path =
   | End : (unit -> 'a, 'a, 'a) path
 
 type route =
-  | Route : ('view, 'link, Html.html) path * 'view -> route
+  | Route : ('view, 'link, Html.elem) path * 'view -> route
   | Alias : (unit -> 'a, 'a, 'a) path * string list -> route
 
 type lookup = { route : route; matched : string list; args : string list }
@@ -297,9 +297,9 @@ let apply emits ~prefix:absprefix0 ~matched ~args:args0 =
       string list ->
       _ list ->
       (string, string signal) Either.t list ->
-      (view, link, Html.html) path ->
+      (view, link, Html.elem) path ->
       view ->
-      (Html.html * (string, string signal) Either.t list, string) result =
+      (Html.elem * (string, string signal) Either.t list, string) result =
    fun args args_emits rev_qualified_path path view ->
     match (path, args) with
     | Rest, _ ->
@@ -377,7 +377,7 @@ let render_lookup_error ~prefix ?alias ~label ~default err =
 
 (* TODO: must be lazy initialized similar to View.show. *)
 (* TODO: improve exn context logging. *)
-let dispatch_table ?label ?default ({ prefix; rest } : t) table : Html.html =
+let dispatch_table ?label ?default ({ prefix; rest } : t) table : Html.elem =
  fun parent insert ->
   let label =
     match label with

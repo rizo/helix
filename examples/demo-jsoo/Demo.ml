@@ -69,7 +69,7 @@ let view_counter () =
   let open Html in
   fragment
     [
-      h2 [ style_list [ "font-family" => "monospace" ] ] [ text "Html.select" ];
+      h2 [ style_list [ "font-family" => "monospace" ] ] [ text "counter" ];
       div
         [ style_list [ "margin-bottom" => "20px" ] ]
         [ text "Compute a count." ];
@@ -209,6 +209,7 @@ let main () =
     ]
 
 let () =
+  Helix.enable_debug true;
   match Document.get_element_by_id "root" with
   | Some root -> Html.mount root (main ())
   | None -> failwith "No #root element found"
