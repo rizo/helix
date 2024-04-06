@@ -325,6 +325,7 @@ module Elem = struct
         List.fold_left
           (fun acc (attr : Attr.t) ->
             let state = attr node in
+            state.set ();
             match state.free with
             | None -> acc
             | Some f -> f :: acc
