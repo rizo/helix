@@ -222,9 +222,10 @@ module Elem = struct
 
     [NOTE] Oredr
     The initialization order MUST be:
-    1. create node
-    2. add children
+    1. create elem
+    2. insert elem
     3. set attrs
+    2. add children
 
     If this order isn't followed, all kinds of things will break. For example,
     `select` requires that children are present for the `value` attr to work.
@@ -233,31 +234,33 @@ module Elem = struct
   *)
 
   let make name attrs children parent insert =
+    (* Create elem *)
     let node = Dom.Document.create_element name in
+    (* Add to parent *)
     insert node;
-    (* Append childrend and collect cleanup actions. *)
-    let free_children =
+    (* Set attrs and collect cleanup actions. *)
+    let free_attrs =
       List.fold_left
-        (fun acc (child : t) ->
-          let state = child node (Dom.Node.append_child ~parent:node) in
+        (fun acc (attr : Attr.t) ->
+          let state = attr node in
+          state.set ();
           match state.free with
           | None -> acc
           | Some f -> f :: acc
         )
-        [] children
+        [] attrs
     in
-    (* Set attrs and collect cleanup actions. *)
+    (* Append childrend and collect cleanup actions. *)
     let free =
       match
         List.fold_left
-          (fun acc (attr : Attr.t) ->
-            let state = attr node in
-            state.set ();
+          (fun acc (child : t) ->
+            let state = child node (Dom.Node.append_child ~parent:node) in
             match state.free with
             | None -> acc
             | Some f -> f :: acc
           )
-          free_children attrs
+          free_attrs children
       with
       | [] -> None
       | fs -> Some (fun () -> List.iter (fun f -> f ()) fs)
