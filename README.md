@@ -21,7 +21,6 @@
 
 ```ocaml
 open Helix
-open Stdweb
 
 let counter () =
   let count = Signal.make 0 in
@@ -34,18 +33,17 @@ let counter () =
       div []
         [
           button
-            [ on_click (fun _ -> Signal.update (fun n -> n + 1) count) ]
+            [ on_click (fun () -> Signal.update (fun n -> n + 1) count) ]
             [ text "+" ];
           button
-            [ on_click (fun _ -> Signal.update (fun n -> n - 1) count) ]
+            [ on_click (fun () -> Signal.update (fun n -> n - 1) count) ]
             [ text "-" ];
+          button [ on_click (fun () -> Signal.emit 0 count) ] [ text "Reset" ];
           div
             [
               style_list [ ("font-size", "32px") ];
               bind
-                (fun n ->
-                  if n < 0 then style_list [ ("color", "red") ]
-                  else style_list [ ("color", "blue") ])
+                (fun n -> style_list [ ("color", if n < 0 then "red" else "blue") ])
                 count;
             ]
             [ show (fun n -> text (string_of_int n)) count ];
@@ -53,7 +51,7 @@ let counter () =
     ]
 
 let () =
-  match Dom.Document.get_element_by_id "root" with
+  match Stdweb.Dom.Document.get_element_by_id "root" with
   | Some root -> Html.mount root (counter ())
   | None -> failwith "No #root element found"
 ```
