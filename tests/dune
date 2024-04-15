@@ -4,6 +4,7 @@
   test_each
   test_show
   test_router
+  test_router_specialize
   test_cleanup
   test_basic)
  (libraries helix signal stdweb html jx_jsoo)
@@ -20,6 +21,8 @@
   test_show.html
   test_router.bc.js
   test_router.html
+  test_router_specialize.bc.js
+  test_router_specialize.html
   test_cleanup.bc.js
   test_cleanup.html
   test_basic.bc.js

@@ -129,22 +129,23 @@ module Table = struct
   exception No_match of string list
 
   let lookup (table0 : t) (input0 : string list) : (lookup, exn) result =
-    let rec loop node input matched args =
+    let rec loop ?bt node input matched args =
       match input with
       | [] -> (
         match node.capture with
-        | No_match -> Error (Incomplete_match input0)
+        | No_match -> (
+          (* If we have a backtracking continuation, try that before failing. *)
+          match bt with
+          | None -> Error (Incomplete_match input0)
+          | Some bt -> bt ()
+        )
         | Match route ->
           Ok { route; matched = List.rev matched; args = List.rev args }
         | Partial route ->
           Ok { route; matched = List.rev matched; args = List.rev args }
       )
       | input_hd :: input' -> (
-        (* Const *)
-        match String_map.find_opt input_hd node.children with
-        | Some node' -> loop node' input' (input_hd :: matched) args
-        | None -> (
-          (* Rest *)
+        let bt () =
           match node.capture with
           | Partial route ->
             Ok
@@ -154,13 +155,18 @@ module Table = struct
                 args = List.rev args @ input;
               }
           | _ -> (
-            (* Var *)
             match String_map.find_opt ":" node.children with
             | Some node' ->
               loop node' input' (input_hd :: matched) (input_hd :: args)
             | None -> Error (No_match input0)
           )
-        )
+        in
+        (* Follow Const. If not defined, check for Rest and Var.
+           In addition to checking this now, we create a "backtracking"
+           continuation that might attempt the Rest/Var match if Const fails. *)
+        match String_map.find_opt input_hd node.children with
+        | Some node' -> loop ~bt node' input' (input_hd :: matched) args
+        | None -> bt ()
       )
     in
     loop table0 input0 [] []

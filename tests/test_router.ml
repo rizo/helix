@@ -240,6 +240,10 @@ module Links = struct
     let open Router in
     Const ("devices", Const ("!new", End))
 
+  let device_schema_edit =
+    let open Router in
+    Const ("devices", Var (string, None, Const ("schema", (Const ("!edit", End)))))
+
   let account =
     let open Router in
     Const ("account", End)
@@ -361,6 +365,16 @@ let view router =
                 ]
                 [ text "#/devices/!new" ];
             ];
+          li []
+            [
+              a
+                [
+                  Router.link router
+                    ~active:(style_list [ ("font-weight", "bold") ])
+                    Links.device_schema_edit "dev_1";
+                ]
+                [ text "#/devices/dev_1/schema/!edit" ];
+            ];
         ];
       hr [];
       Router.dispatch router ~label:"main" ~default:(text "NOT FOUND")
@@ -372,6 +386,7 @@ let view router =
               show (fun id -> Html.text ("DEVICE EDIT: " ^ id)) id
           );
           Router.route Links.devices_new (fun () -> Html.text "DEVICE NEW");
+          Router.route Links.device_schema_edit (fun dev_id () -> let$ dev_id in Html.text  ("DEVICE SCHEMA EDIT: " ^ dev_id));
         ];
     ]
 
