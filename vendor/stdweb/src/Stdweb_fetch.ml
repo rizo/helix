@@ -36,6 +36,7 @@ type meth =
   [ `Get | `Put | `Post | `Delete | `Head | `Connect | `Trace | `Options ]
 
 type mode = [ `Cors | `No_cors ]
+type credentials = [ `Omit | `Same_origin | `Include ]
 type options = Jx.t
 type headers = Jx.t
 
@@ -54,7 +55,7 @@ end
 module Options = struct
   type t = options
 
-  let make ?body ?meth ?(headers = []) ?mode () =
+  let make ?body ?meth ?(headers = []) ?mode ?credentials () =
     let open Jx.Encoder in
     let fields = [] in
     let fields =
@@ -69,6 +70,13 @@ module Options = struct
       match mode with
       | Some `Cors -> ("mode", string "cors") :: fields
       | Some `No_cors -> ("mode", string "no-cors") :: fields
+      | None -> fields
+    in
+    let fields =
+      match credentials with
+      | Some `Omit -> ("credentials", string "omit") :: fields
+      | Some `Same_origin -> ("credentials", string "same-origin") :: fields
+      | Some `Include -> ("credentials", string "include") :: fields
       | None -> fields
     in
     let fields =
@@ -116,7 +124,7 @@ module Response = struct
   let to_js = Jx.Encoder.js
 end
 
-let fetch ?body ?(meth = `Get) ?headers ?mode url =
-  let opts = Options.make ~meth ?headers ?mode ?body () in
+let fetch ?body ?(meth = `Get) ?headers ?mode ?credentials url =
+  let opts = Options.make ~meth ?headers ?mode ?credentials ?body () in
   Jx.Obj.call2 Stdweb_global.window "fetch" ~return:Response.of_js
     Jx.Encoder.string Options.to_js url opts

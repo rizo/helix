@@ -551,12 +551,14 @@ module Fetch : sig
     [ `Get | `Put | `Post | `Delete | `Head | `Connect | `Trace | `Options ]
 
   type mode = [ `Cors | `No_cors ]
+  type credentials = [ `Omit | `Same_origin | `Include ]
 
   val fetch :
     ?body:Body.t ->
     ?meth:meth ->
     ?headers:(string * string) list ->
     ?mode:mode ->
+    ?credentials:credentials ->
     string ->
     response Promise.t
 end
