@@ -162,6 +162,7 @@ module Http : sig
     ?meth:Stdweb.Fetch.meth ->
     ?headers:(string * string) list ->
     ?mode:Stdweb.Fetch.mode ->
+    ?credentials:Stdweb.Fetch.credentials ->
     encode:'a Encoder.t ->
     decode:'b Decoder.t ->
     url:string ->
@@ -171,6 +172,7 @@ module Http : sig
   val get :
     ?headers:(string * string) list ->
     ?mode:Stdweb.Fetch.mode ->
+    ?credentials:Stdweb.Fetch.credentials ->
     decode:'a Decoder.t ->
     url:string ->
     unit ->
@@ -179,6 +181,7 @@ module Http : sig
   val put :
     ?headers:(string * string) list ->
     ?mode:Stdweb.Fetch.mode ->
+    ?credentials:Stdweb.Fetch.credentials ->
     encode:'a Encoder.t ->
     decode:'b Decoder.t ->
     url:string ->
@@ -188,6 +191,7 @@ module Http : sig
   val post :
     ?headers:(string * string) list ->
     ?mode:Stdweb.Fetch.mode ->
+    ?credentials:Stdweb.Fetch.credentials ->
     encode:'a Encoder.t ->
     decode:'b Decoder.t ->
     url:string ->
@@ -197,6 +201,7 @@ module Http : sig
   val delete :
     ?headers:(string * string) list ->
     ?mode:Stdweb.Fetch.mode ->
+    ?credentials:Stdweb.Fetch.credentials ->
     decode:'b Decoder.t ->
     url:string ->
     'a ->
@@ -207,6 +212,7 @@ module Http : sig
       ?meth:Stdweb.Fetch.meth ->
       ?headers:(string * string) list ->
       ?mode:Stdweb.Fetch.mode ->
+      ?credentials:Stdweb.Fetch.credentials ->
       encode:('a -> Stdweb.Json.t) ->
       decode:(Stdweb.Json.t -> ('b, 'err) Result.t) ->
       url:string ->
@@ -216,6 +222,7 @@ module Http : sig
     val get :
       ?headers:(string * string) list ->
       ?mode:Stdweb.Fetch.mode ->
+      ?credentials:Stdweb.Fetch.credentials ->
       decode:(Stdweb.Json.t -> ('a, 'err) Result.t) ->
       url:string ->
       unit ->
@@ -224,6 +231,7 @@ module Http : sig
     val put :
       ?headers:(string * string) list ->
       ?mode:Stdweb.Fetch.mode ->
+      ?credentials:Stdweb.Fetch.credentials ->
       encode:('a -> Stdweb.Json.t) ->
       decode:(Stdweb.Json.t -> ('b, 'err) Result.t) ->
       url:string ->
@@ -233,6 +241,7 @@ module Http : sig
     val post :
       ?headers:(string * string) list ->
       ?mode:Stdweb.Fetch.mode ->
+      ?credentials:Stdweb.Fetch.credentials ->
       encode:('a -> Stdweb.Json.t) ->
       decode:(Stdweb.Json.t -> ('b, 'err) Result.t) ->
       url:string ->
@@ -242,6 +251,7 @@ module Http : sig
     val delete :
       ?headers:(string * string) list ->
       ?mode:Stdweb.Fetch.mode ->
+      ?credentials:Stdweb.Fetch.credentials ->
       decode:(Stdweb.Json.t -> ('b, 'err) Result.t) ->
       url:string ->
       'a ->

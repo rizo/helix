@@ -73,8 +73,8 @@ module Decoder = struct
 end
 
 (* FIXME: prevent signal handler errors from being caught *)
-let request ?meth ?(headers = []) ?mode ~encode:(content_type, to_body) ~decode
-    ~url request_value =
+let request ?meth ?(headers = []) ?mode ?credentials
+    ~encode:(content_type, to_body) ~decode ~url request_value =
   let headers =
     match content_type with
     | Some content_type -> ("Content-Type", content_type) :: headers
@@ -82,7 +82,7 @@ let request ?meth ?(headers = []) ?mode ~encode:(content_type, to_body) ~decode
   in
   let body = to_body request_value in
   let s = Signal.make None in
-  Fetch.fetch ~body ?meth ~headers ?mode url
+  Fetch.fetch ~body ?meth ~headers ?mode ?credentials url
   |> Promise.and_then (fun response ->
          let () =
            if Fetch.Response.ok response then
@@ -107,35 +107,38 @@ let request ?meth ?(headers = []) ?mode ~encode:(content_type, to_body) ~decode
   |> Promise.catch (fun err -> Signal.emit (Some (Error (Fetch_error err))) s);
   s
 
-let get ?headers ?mode ~decode ~url () =
-  request ~meth:`Get ?headers ?mode ~encode:Encoder.ignore ~decode ~url ()
+let get ?headers ?mode ?credentials ~decode ~url () =
+  request ~meth:`Get ?headers ?mode ?credentials ~encode:Encoder.ignore ~decode
+    ~url ()
 
-let put ?headers ?mode ~encode ~decode ~url request_value =
-  request ~meth:`Put ?headers ?mode ~encode ~decode ~url request_value
-
-let post ?headers ?mode ~encode ~decode ~url request_value =
-  request ~meth:`Post ?headers ?mode ~encode ~decode ~url request_value
-
-let delete ?headers ?mode ~decode ~url request_value =
-  request ~meth:`Delete ?headers ?mode ~encode:Encoder.ignore ~decode ~url
+let put ?headers ?mode ?credentials ~encode ~decode ~url request_value =
+  request ~meth:`Put ?headers ?mode ?credentials ~encode ~decode ~url
     request_value
 
+let post ?headers ?mode ?credentials ~encode ~decode ~url request_value =
+  request ~meth:`Post ?headers ?mode ?credentials ~encode ~decode ~url
+    request_value
+
+let delete ?headers ?mode ?credentials ~decode ~url request_value =
+  request ~meth:`Delete ?headers ?mode ?credentials ~encode:Encoder.ignore
+    ~decode ~url request_value
+
 module Json = struct
-  let request ?meth ?headers ?mode ~encode ~decode =
-    request ?meth ?headers ?mode ~encode:(Encoder.map_json encode)
+  let request ?meth ?headers ?mode ?credentials ~encode ~decode =
+    request ?meth ?headers ?mode ?credentials ~encode:(Encoder.map_json encode)
       ~decode:(Decoder.map_json decode)
 
-  let get ?headers ?mode ~decode =
-    get ?headers ?mode ~decode:(Decoder.map_json decode)
+  let get ?headers ?mode ?credentials ~decode =
+    get ?headers ?mode ?credentials ~decode:(Decoder.map_json decode)
 
-  let put ?headers ?mode ~encode ~decode =
-    put ?headers ?mode ~encode:(Encoder.map_json encode)
+  let put ?headers ?mode ?credentials ~encode ~decode =
+    put ?headers ?mode ?credentials ~encode:(Encoder.map_json encode)
       ~decode:(Decoder.map_json decode)
 
-  let post ?headers ?mode ~encode ~decode =
-    post ?headers ?mode ~encode:(Encoder.map_json encode)
+  let post ?headers ?mode ?credentials ~encode ~decode =
+    post ?headers ?mode ?credentials ~encode:(Encoder.map_json encode)
       ~decode:(Decoder.map_json decode)
 
-  let delete ?headers ?mode ~decode =
-    delete ?headers ?mode ~decode:(Decoder.map_json decode)
+  let delete ?headers ?mode ?credentials ~decode =
+    delete ?headers ?mode ?credentials ~decode:(Decoder.map_json decode)
 end
