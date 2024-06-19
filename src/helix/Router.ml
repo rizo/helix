@@ -12,6 +12,15 @@ open struct
     match opt with
     | Some x -> x
     | None -> failwith msg
+
+  let rec list_starts_with ~equal ~prefix:p l =
+    match p with
+    | [] -> true
+    | p0 :: p' -> (
+      match l with
+      | l0 :: l' when equal p0 l0 -> list_starts_with ~equal ~prefix:p' l'
+      | _ -> false
+    )
 end
 
 type 'a var = {
@@ -92,6 +101,22 @@ let string_of_path : type a k out. (a, k, out) path -> string =
   match path0 with
   | End -> "/"
   | _ -> String.concat "" [ "/"; loop path0 ]
+
+let list_of_path : type a k out. (a, k, out) path -> string list =
+ fun path0 ->
+  let rec loop : type a k out. (a, k, out) path -> string list =
+   fun path ->
+    match path with
+    | End -> []
+    | Rest -> [ "**" ]
+    | Const (const, End) -> [ const ]
+    | Const (const, tail) -> [ const ] @ loop tail
+    | Var (var, _, End) -> [ ":" ^ var.label ]
+    | Var (var, _, tail) -> [ var.label ] @ loop tail
+  in
+  match path0 with
+  | End -> []
+  | _ -> loop path0
 
 module Table = struct
   type t = table
@@ -233,16 +258,17 @@ let pick_qpath segments =
       )
     segments
 
-let link ?(absolute = false) ?(active = Html.Attr.empty)
-    ?(inactive = Html.Attr.empty) ?(exact = false) ?alias ?(up = 0) (router : t)
-    path0 =
-  let alias = Option.map string_of_path alias in
+let link ?(absolute = false) ?(up = 0) ?(active = Html.Attr.empty)
+    ?(inactive = Html.Attr.empty) ?(exact = false) ?alias (router : t) path0 =
+  let alias = Option.map list_of_path alias in
   let check_is_active link curr =
+    let eq =
+      if exact then List.equal String.equal link curr
+      else list_starts_with ~equal:String.equal ~prefix:link curr
+    in
     match alias with
-    | Some alias -> String.equal alias curr
-    | None ->
-      if exact then String.equal link curr
-      else String.starts_with ~prefix:link curr
+    | Some alias -> eq || List.equal String.equal alias curr
+    | None -> eq
   in
   eval_path
     (fun str_path ->
@@ -267,11 +293,8 @@ let link ?(absolute = false) ?(active = Html.Attr.empty)
              let href_attr = Html.href path_str in
              let user_attr =
                if active == Html.Attr.empty then inactive
-               else
-                 let rest_str = String.concat "/" rest in
-                 let link_suffix_str = String.concat "/" link_suffix in
-                 if check_is_active link_suffix_str rest_str then active
-                 else inactive
+               else if check_is_active link_suffix rest then active
+               else inactive
              in
              Html.Attr.combine href_attr user_attr
          )
