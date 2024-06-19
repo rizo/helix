@@ -234,11 +234,15 @@ let pick_qpath segments =
     segments
 
 let link ?(absolute = false) ?(active = Html.Attr.empty)
-    ?(inactive = Html.Attr.empty) ?(exact = false) ?(up = 0) (router : t) path0
-    =
+    ?(inactive = Html.Attr.empty) ?(exact = false) ?alias ?(up = 0) (router : t)
+    path0 =
+  let alias = Option.map string_of_path alias in
   let check_is_active link curr =
-    if exact then String.equal link curr
-    else String.starts_with ~prefix:link curr
+    match alias with
+    | Some alias -> String.equal alias curr
+    | None ->
+      if exact then String.equal link curr
+      else String.starts_with ~prefix:link curr
   in
   eval_path
     (fun str_path ->

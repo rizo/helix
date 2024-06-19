@@ -335,20 +335,24 @@ module Router : sig
     ?active:Html.attr ->
     ?inactive:Html.attr ->
     ?exact:bool ->
+    ?alias:(unit -> 'alias, 'alias, 'alias) path ->
     ?up:int ->
     t ->
     ('view, 'link, Html.attr) path ->
     'link
-  (** [link ?absolute ?active ?exact router path vars...] is an HTML [href]
-      attribute that binds a link described by [path] and any [vars] contained
-      in it (or none, if it's a const only path). A link relative to [router]
-      will be created, unless [absolute] is [true].
+  (** [link ?absolute ?active ?exact ?alias router path vars...] is an HTML
+      [href] attribute that binds a link described by [path] and any [vars]
+      contained in it (or none, if it's a const only path). A link relative to
+      [router] will be created, unless [absolute] is [true].
 
       If [active] attribute is provided, in addition to binding [href], [active]
       will be bound in case the current path is active, otherwise [inactive] is
-      bound (if provided). By default a path is considered active if it is a
-      prefix of the current path, unless [exact] is [true], in which case the
-      path is only considered active when it is equal to the current path. *)
+      bound (if provided).
+
+      By default a path is considered active if it is a prefix of the current
+      path, unless [exact] is [true], in which case the path is only considered
+      active when it is equal to the current path. Additionally, the path is
+      considered active if it is equal to [alias]. *)
 
   val route : ('view, 'link, Html.elem) path -> 'view -> route
   (** Create a route by assigning a path to a view. *)
