@@ -395,7 +395,7 @@ end
 
     {[
       let view user_id todo_title =
-        let$ user_id = Signal.map int_of_string site_id in
+        let$ user_id = Signal.map int_of_string user_id in
         and$ todo_title in
         let open Html in
         div [] [ h2 [] [ text "User id: "; text user_id ]; h3 [] [ text "Todo: "; todo_title ] ]
