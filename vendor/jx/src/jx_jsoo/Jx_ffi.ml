@@ -1,10 +1,10 @@
 type t
 
-external _pure_js_expr : string -> 'a = "caml_pure_js_expr"
+external raw : string -> 'a = "caml_pure_js_expr"
 
-let global_this = _pure_js_expr "globalThis"
-let null = _pure_js_expr "null"
-let undefined = _pure_js_expr "undefined"
+let global_this = raw "globalThis"
+let null = raw "null"
+let undefined = raw "undefined"
 
 external debugger : unit -> unit = "debugger"
 external equal : t -> t -> bool = "caml_js_equals"
@@ -42,12 +42,8 @@ external of_fun : int -> (_ -> _) -> t = "caml_js_wrap_callback_strict"
 
 (* type_of *)
 
-external _type_of : t -> t = "caml_js_typeof"
-
-let type_of js = to_string (_type_of js)
+external type_of : t -> string = "caml_js_typeof"
 
 (* instance_of *)
 
-external _instance_of : t -> t -> bool = "caml_js_instanceof"
-
-let instance_of t ~constr = _instance_of t constr
+external instance_of : t -> constr:t -> bool = "caml_js_instanceof"

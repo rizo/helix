@@ -14,6 +14,7 @@ let is_number js = String.equal (Jx_ffi.type_of js) "number"
 let is_boolean js = String.equal (Jx_ffi.type_of js) "boolean"
 let is_string js = String.equal (Jx_ffi.type_of js) "string"
 let is_object js = String.equal (Jx_ffi.type_of js) "object"
+let raw = Jx_ffi.raw
 
 let is_int js =
   if is_number js then

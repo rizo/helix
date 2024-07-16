@@ -44,6 +44,9 @@ val log : 'a -> unit
 
 val debug : string list -> unit
 
+val raw : string -> js
+(** An unsafe JavaScript expression. *)
+
 val is_null : js -> bool
 (** [is_null js] is [js == null]. *)
 
