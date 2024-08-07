@@ -141,6 +141,7 @@ module Http : sig
   module Encoder : sig
     type 'a t
 
+    val make : ?content_type:string -> ('a -> Stdweb.Fetch.Body.t) -> 'a t
     val empty : unit t
     val text : string t
     val form_data : Stdweb.Form_data.t t

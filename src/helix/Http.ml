@@ -20,6 +20,8 @@ type body = Stdweb.Fetch.Body.t
 module Encoder = struct
   type 'a t = string option * ('a -> Fetch.Body.t)
 
+  let make ?(content_type) f = content_type, f
+
   let to_undefined_body _ = Fetch.Body.unsafe_of_js Jx.undefined
   let empty = (None, to_undefined_body)
   let ignore = (None, to_undefined_body)
