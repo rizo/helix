@@ -4,7 +4,7 @@ let
   ocamlPackages = pkgs.ocaml-ng.ocamlPackages_5_1;
   onix = import (builtins.fetchGit {
     url = "https://github.com/rizo/onix.git";
-    rev = "2af576afb5ee0f5485deb534697d805b22d8100c";
+    rev = "41bf9e887fa8f1399ac328f1868d6d2ba27aab9f";
   }) {
     inherit pkgs ocamlPackages;
     verbosity = "info";
