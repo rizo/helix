@@ -1,0 +1,9 @@
+
+(executable
+ (name index)
+ (libraries helix signal html jx_jsoo stdweb)
+ (modes js))
+
+(alias
+ (name all)
+ (deps index.html))
