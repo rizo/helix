@@ -11,8 +11,7 @@ let option_get option =
 
 let insert_after_anchor ~parent ~anchor node =
   match Node.next_sibling anchor with
-  | Some anchor_sibling ->
-    Node.insert_before ~parent ~reference:anchor_sibling node
+  | Some anchor_sibling -> Node.insert_before ~parent ~reference:anchor_sibling node
   | None -> Node.append_child ~parent node
 
 (* Show *)
@@ -20,11 +19,7 @@ let insert_after_anchor ~parent ~anchor node =
 let fake_debug_html _render_count _comment_data html = html
 
 let real_debug_html =
-  let colors =
-    [|
-      "magenta"; "cyan"; "salmon"; "aquamarine"; "lime"; "yellow"; "palegreen";
-    |]
-  in
+  let colors = [| "magenta"; "cyan"; "salmon"; "aquamarine"; "lime"; "yellow"; "palegreen" |] in
   let i = ref (-1) in
   let get_color () =
     if !i + 1 >= Array.length colors then i := 0 else incr i;
@@ -33,47 +28,35 @@ let real_debug_html =
   fun render_count comment_data html ->
     let c = get_color () in
     Html.div
-      [
-        Html.style_list
-          [
-            ("display", "flex");
-            ("flex-direction", "column");
-            ("border", "2px solid " ^ c);
-          ];
+      [ Html.style_list
+          [ ("display", "flex"); ("flex-direction", "column"); ("border", "2px solid " ^ c) ]
       ]
-      [
-        Html.span
-          [
-            Html.style_list
-              [
-                ("background-color", c);
-                ("font-size", "small");
-                ("font-weight", "bold");
-                ("font-family", "courier");
-              ];
+      [ Html.span
+          [ Html.style_list
+              [ ("background-color", c)
+              ; ("font-size", "small")
+              ; ("font-weight", "bold")
+              ; ("font-family", "courier")
+              ]
           ]
-          [ Html.text_list [ comment_data; "#"; string_of_int render_count ] ];
-        html;
+          [ Html.text_list [ comment_data; "#"; string_of_int render_count ] ]
+      ; html
       ]
 
-let debug_html : (int -> string -> Html.elem -> Html.elem) ref =
-  ref fake_debug_html
-
-let enable_debug flag =
-  debug_html := if flag then real_debug_html else fake_debug_html
+let debug_html : (int -> string -> Html.elem -> Html.elem) ref = ref fake_debug_html
+let enable_debug flag = debug_html := if flag then real_debug_html else fake_debug_html
 
 let gen_show_id =
   let i = ref (-1) in
   fun label ->
     incr i;
     String.concat ""
-      [
-        "show:";
-        string_of_int !i;
-        ( match label with
+      [ "show:"
+      ; string_of_int !i
+      ; ( match label with
         | None -> ""
         | Some x -> "/" ^ x
-        );
+        )
       ]
 
 let show ?label (to_html : 'a -> Html.elem) signal : Html.elem =
@@ -89,9 +72,7 @@ let show ?label (to_html : 'a -> Html.elem) signal : Html.elem =
         let next_html = !debug_html !count comment_data (to_html x) in
         incr count;
         Html.Elem.unmount !state;
-        let next_state =
-          next_html parent (Node.insert_after ~parent ~reference:anchor)
-        in
+        let next_state = next_html parent (Node.insert_after ~parent ~reference:anchor) in
         state := next_state
       )
       signal
@@ -156,8 +137,7 @@ let conditional ~on:active_sig node =
   let unset () =
     let () =
       (* Put the node back, if not mounted. *)
-      if Option.is_none (Node.parent node) then
-        Node.replace_child ~parent ~reference:anchor node
+      if Option.is_none (Node.parent node) then Node.replace_child ~parent ~reference:anchor node
     in
     !unsub ();
     (* [IMPORTANT] Must be set to ignore in case free is called. *)
@@ -167,6 +147,64 @@ let conditional ~on:active_sig node =
   { Html.Attr.set; unset; free = Some free }
 
 (* Each *)
+
+module Each_cache : sig
+  type t
+  type slots
+  type key
+
+  val key : 'a -> key
+  val make : unit -> t
+  val set : t -> key:key -> slots -> unit
+  val get : t -> key:key -> slots option
+  val get_slot : slots -> int * Html.elem
+  val add_slot : t -> key:key -> int -> Html.elem -> unit
+  val del_slot : t -> key:key -> slots -> int -> unit
+  val clear : t -> unit
+end = struct
+  module Map = Stdweb.Map
+  module Iterator = Stdweb.Iterator
+  module Dict = Stdweb.Dict
+
+  type key = string
+  type slots = Html.elem Map.t
+  type t = slots Dict.t
+
+  let key x = string_of_int (Hashtbl.hash x)
+  let make () = Dict.empty ()
+  let make_slots = Map.make
+
+  let get_slot slots =
+    match Map.first_key slots with
+    | None -> failwith "BUG: get_slot: slots must not be empty"
+    | Some idx_js ->
+      let idx = Jx.Decoder.int idx_js in
+      let html = Map.get slots idx_js in
+      (idx, html)
+
+  let set cache ~key slots = Dict.set cache key slots
+  let get cache ~key = Dict.get_opt cache key
+
+  let add_slot cache ~key idx html =
+    let slots =
+      match get cache ~key with
+      | None -> make_slots ()
+      | Some slots -> slots
+    in
+    Map.set slots (Jx.Encoder.int idx) html;
+    set cache ~key slots
+
+  let del_slot cache ~key slots idx =
+    Map.delete slots (Jx.Encoder.int idx);
+    if Map.size slots = 0 then Dict.del cache key
+
+  let clear cache =
+    Dict.iter cache (fun (slots : slots) ->
+        let values = Map.values slots in
+        (* Iterator.iter (fun (elem : Html.elem) -> Html.Elem.unmount elem ()) values; *)
+        Map.clear slots
+    )
+end
 
 let gen_each_id =
   let i = ref (-1) in
@@ -213,15 +251,11 @@ let each (to_html : 'a -> Html.elem) items_signal : Html.elem =
       items_signal
   in
   let free () =
-    List.iter
-      (fun (state : Html.Elem.state) -> Option.iter (fun f -> f ()) state.free)
-      !states;
+    List.iter (fun (state : Html.Elem.state) -> Option.iter (fun f -> f ()) state.free) !states;
     unsub ();
     states := []
   in
-  let remove () =
-    List.iter (fun (state : Html.Elem.state) -> state.remove ()) !states
-  in
+  let remove () = List.iter (fun (state : Html.Elem.state) -> state.remove ()) !states in
   { free = Some free; remove }
 
 (* Bind *)
