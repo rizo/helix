@@ -11,8 +11,8 @@ break-cases = fit-or-vertical
 break-infix = fit-or-vertical
 
 break-collection-expressions = fit-or-vertical
-break-separators = before
+break-separators = after
 space-around-lists = true
-dock-collection-brackets = false
+dock-collection-brackets = true
 wrap-fun-args = true
 indicate-multiline-delimiters = closing-on-separate-line

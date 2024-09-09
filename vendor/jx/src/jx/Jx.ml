@@ -6,6 +6,7 @@ type js = Jx_ffi.t
 let null = Jx_ffi.null
 let undefined = Jx_ffi.undefined
 let equal = Jx_ffi.equal
+let strict_equal = Jx_ffi.strict_equal
 let debugger = Jx_ffi.debugger
 let is_null v = v == null
 let is_undefined v = v == undefined

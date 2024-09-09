@@ -35,58 +35,75 @@ let main () =
   let open Html in
   section
     [ class_list [ "todoapp" ] ]
-    [ header
+    [
+      header
         [ class_list [ "header" ] ]
-        [ h1 [] [ text "todos" ]
-        ; input
-            [ class_name "new-todo"
-            ; autofocus true
-            ; placeholder "What is to be done?"
-            ; on Event.keydown on_todo_input
-            ]
-        ]
-    ; section
-        [ conditional ~on:(Signal.map (fun todos -> Todos.length todos > 0) todos)
-        ; class_list [ "main" ]
-        ]
-        [ input [ id "toggle-all"; type' "checkbox"; class_list [ "toggle-all" ] ]
-        ; label [ for' "toggle-all" ] [ text "Toggle all" ]
-        ; ul
-            [ class_name "todo-list" ]
-            [ todos
-              |> Signal.map Todos.filtered
-              |> each (fun (title, completed) ->
-                     li
-                       [ class_name "todo" ]
-                       [ div
-                           [ class_name "view" ]
-                           [ input
-                               [ class_name "toggle"
-                               ; type' "checkbox"
-                               ; Attr.on completed (checked true)
-                               ; on Event.click (fun _ -> Signal.update (Todos.toggle title) todos)
-                               ]
-                           ; label [] [ text title ]
-                           ; button
-                               [ class_name "destroy"
-                               ; on Event.click (fun _ -> Signal.update (Todos.remove title) todos)
-                               ]
-                               []
-                           ]
-                       ]
-                 )
-            ]
-        ]
-    ; footer
+        [
+          h1 [] [ text "todos" ];
+          input
+            [
+              class_name "new-todo";
+              autofocus true;
+              placeholder "What is to be done?";
+              on Event.keydown on_todo_input;
+            ];
+        ];
+      conditional
+        ~on:(Signal.map (fun todos -> Todos.length todos > 0) todos)
+        (section
+           [ class_list [ "main" ] ]
+           [
+             input [ id "toggle-all"; type' "checkbox"; class_list [ "toggle-all" ] ];
+             label [ for' "toggle-all" ] [ text "Toggle all" ];
+             ul
+               [ class_name "todo-list" ]
+               [
+                 todos
+                 |> Signal.map Todos.filtered
+                 |> each (fun (title, completed) ->
+                        li
+                          [ class_name "todo" ]
+                          [
+                            div
+                              [ class_name "view" ]
+                              [
+                                input
+                                  [
+                                    class_name "toggle";
+                                    type' "checkbox";
+                                    Attr.on completed (checked true);
+                                    on Event.click (fun _ ->
+                                        Signal.update (Todos.toggle title) todos
+                                    );
+                                  ];
+                                label [] [ text title ];
+                                button
+                                  [
+                                    class_name "destroy";
+                                    on Event.click (fun _ ->
+                                        Signal.update (Todos.remove title) todos
+                                    );
+                                  ]
+                                  [];
+                              ];
+                          ]
+                    );
+               ];
+           ]
+        );
+      footer
         [ class_name "footer" ]
-        [ span
+        [
+          span
             [ class_name "todo-count" ]
-            [ strong []
-                [ (let$ n = remaining in
+            [
+              strong []
+                [
+                  (let$ n = remaining in
                    [ string_of_int n; (if n = 1 then "item" else "items"); "left" ]
                    |> String.concat " "
                    |> text
-                  )
+                  );
                 ]
               (* [ show
                      (fun n ->
@@ -95,38 +112,44 @@ let main () =
                        |> text
                      )
                      remaining
-                 ] *)
-            ]
-        ; ul
+                 ] *);
+            ];
+          ul
             [ class_name "filters" ]
-            [ li []
-                [ a
+            [
+              li []
+                [
+                  a
                     [ on Event.click (fun _ -> Signal.update (Todos.set_filter `all) todos) ]
-                    [ text "All" ]
-                ]
-            ; li []
-                [ a
+                    [ text "All" ];
+                ];
+              li []
+                [
+                  a
                     [ on Event.click (fun _ -> Signal.update (Todos.set_filter `remaining) todos) ]
-                    [ text "Remaining" ]
-                ]
-            ; li []
-                [ a
+                    [ text "Remaining" ];
+                ];
+              li []
+                [
+                  a
                     [ on Event.click (fun _ -> Signal.update (Todos.set_filter `completed) todos) ]
-                    [ text "Completed" ]
-                ]
-            ]
-        ; button
-            [ conditional
-                ~on:
-                  (let+ todos and+ remaining in
-                   let len = Todos.length todos in
-                   len > 0 && len - remaining > 0
-                  )
-            ; class_name "clear-completed"
-            ; on Event.click (fun _ -> Signal.update Todos.clear todos)
-            ]
-            [ text "Clear completed" ]
-        ]
+                    [ text "Completed" ];
+                ];
+            ];
+          conditional
+            ~on:
+              (let+ todos and+ remaining in
+               let len = Todos.length todos in
+               len > 0 && len - remaining > 0
+              )
+            (button
+               [
+                 class_name "clear-completed";
+                 on Event.click (fun _ -> Signal.update Todos.clear todos);
+               ]
+               [ text "Clear completed" ]
+            );
+        ];
     ]
 
 let () =

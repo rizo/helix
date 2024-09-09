@@ -6,13 +6,14 @@ let length todos = List.length todos.items
 let remove title todos = { todos with items = List.remove_assq title todos.items }
 
 let toggle target todos =
-  { todos with
+  {
+    todos with
     items =
       List.map
         (fun (title, completed) ->
           if String.equal title target then (title, not completed) else (title, completed)
         )
-        todos.items
+        todos.items;
   }
 
 let clear todos =

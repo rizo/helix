@@ -42,8 +42,8 @@
         | None -> failwith "No #root element found"
     ]}*)
 
-type elem = Html.elem
-(** An alias for {!type:Html.elem}. *)
+type html = Html.t
+(** An alias for {!type:Html.t}. *)
 
 type attr = Html.attr
 (** An alias for {!type:Html.attr}. *)
@@ -56,21 +56,19 @@ val signal : ?equal:('a -> 'a -> bool) -> ?label:string -> 'a -> 'a signal
 
 (** {1 Reactive views} *)
 
-val show : ?label:string -> ('a -> Html.elem) -> 'a Signal.t -> Html.elem
+val show : ?label:string -> ('a -> html) -> 'a signal -> html
 (** [show to_html signal] is a dynamic HTML node created from [signal] values
     using [to_html]. *)
 
-val show_some :
-  ?label:string -> ('a -> Html.elem) -> 'a option Signal.t -> Html.elem
+val show_some : ?label:string -> ('a -> html) -> 'a option signal -> html
 (** [show_some] is similar to {!val:show}, but operates on reactive option
     values. When the signal's value is [None], {!val:Html.empty} is rendered. *)
 
-val show_ok :
-  ?label:string -> ('a -> Html.elem) -> ('a, _) result Signal.t -> Html.elem
+val show_ok : ?label:string -> ('a -> html) -> ('a, _) result signal -> html
 (** [show_ok] is similar to {!val:show}, but operates on reactive result values.
     When the signal's value is [Error _], {!val:Html.empty} is rendered. *)
 
-val each : ('a -> Html.elem) -> 'a list Signal.t -> Html.elem
+val each : ('a -> html) -> 'a list signal -> html
 (** [each to_html signal] reactively renders items from [signal] with [to_html].
 
     {[
@@ -101,7 +99,7 @@ val toggle : on:('a -> bool) -> Html.attr -> 'a Signal.t -> Html.attr
 (** [toggle ~on:pred attr s] is [attr] if [pred x] is [true] and
     {!val:Html.empty} otherwise, where [x] is the value of [s]. *)
 
-val conditional : on:bool Signal.t -> Html.attr
+val conditional : on:bool Signal.t -> Html.t -> Html.t
 (** [conditional on:signal] an attribute that shows the element if [signal] is
     [true]. *)
 
@@ -356,7 +354,7 @@ module Router : sig
       equal to the current path. Additionally, the path is considered active if
       it is equal to [alias]. *)
 
-  val route : ('view, 'link, Html.elem) path -> 'view -> route
+  val route : ('view, 'link, html) path -> 'view -> route
   (** Create a route by assigning a path to a view. *)
 
   val alias : (unit -> 'a, 'a, 'a) path -> ('view, 'link, route) path -> 'link
@@ -371,8 +369,7 @@ module Router : sig
   (** [go ?absolute ?up path vars...] navigates to [path] by updating browser's
       hash, which will trigger a routing event. *)
 
-  val dispatch :
-    ?label:string -> ?default:Html.elem -> t -> route list -> Html.elem
+  val dispatch : ?label:string -> ?default:html -> t -> route list -> html
   (** [dispatch router routes] the current routing state described by [router]
       to [routes] rendering a view that matches the current path. If no matches
       are found, render [default]. *)
@@ -421,7 +418,7 @@ end
 
     Additionally, reactive attributes can be bound with [let@] and [and@]. *)
 
-val ( let$ ) : 'a signal -> ('a -> elem) -> elem
+val ( let$ ) : 'a signal -> ('a -> html) -> html
 val ( and$ ) : 'a signal -> 'b signal -> ('a * 'b) signal
 val ( let@ ) : 'a signal -> ('a -> attr) -> attr
 val ( and@ ) : 'a signal -> 'b signal -> ('a * 'b) signal

@@ -6,8 +6,7 @@ let ( => ) a b = (a, b)
 open Stdweb
 open Helix
 
-let view_function_docs ~signature ~description ~example ?preview ?console
-    func_title =
+let view_function_docs ~signature ~description ~example ?preview ?console func_title =
   let open Html in
   div []
     [
@@ -17,26 +16,20 @@ let view_function_docs ~signature ~description ~example ?preview ?console
       h3 [] [ text "Example" ];
       pre [] [ code [ class_name "language-ocaml" ] [ text example ] ];
       ( match preview with
-      | None -> empty
+      | None -> null
       | Some preview ->
         fragment
           [
             h3 [] [ text "Preview" ];
-            div
-              [
-                style_list
-                  [ ("padding", "0.5em"); ("background-color", "#F0F0F0") ];
-              ]
-              preview;
+            div [ style_list [ ("padding", "0.5em"); ("background-color", "#F0F0F0") ] ] preview;
           ]
       );
       ( match console with
-      | None -> empty
+      | None -> null
       | Some console ->
         fragment
           [
-            h3 [] [ text "Console" ];
-            div [] [ pre [] [ code [ class_name "plaintext" ] console ] ];
+            h3 [] [ text "Console" ]; div [] [ pre [] [ code [ class_name "plaintext" ] console ] ];
           ]
       );
     ]
@@ -53,13 +46,10 @@ module Doc = struct
   let toggle_attributes () =
     let is_visible = Signal.make false in
     let open Html in
-    view_function_docs "Toggle attributes"
-      ~signature:"val toggle : on:bool signal -> attr -> attr"
+    view_function_docs "Toggle attributes" ~signature:"val toggle : on:bool signal -> attr -> attr"
       ~description:
         [
-          text
-            "Toggle an attribute based on a boolean signal. If the signal's \
-             value is ";
+          text "Toggle an attribute based on a boolean signal. If the signal's value is ";
           code [] [ text "true" ];
           text " the attribute is added, otherwise it is omitted";
         ]
@@ -75,12 +65,8 @@ div []
   ]|}
       ~preview:
         [
-          button
-            [ on Event.click (fun _ -> Signal.update not is_visible) ]
-            [ text "Toggle" ];
-          div
-            [ toggle ~on:Fun.id (style_list [ ("color", "red") ]) is_visible ]
-            [ text "HELLO" ];
+          button [ on Event.click (fun _ -> Signal.update not is_visible) ] [ text "Toggle" ];
+          div [ toggle ~on:Fun.id (style_list [ ("color", "red") ]) is_visible ] [ text "HELLO" ];
         ]
 end
 

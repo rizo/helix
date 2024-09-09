@@ -7,10 +7,11 @@ module Test_01_component = struct
     let html =
       let open Html in
       div []
-        [ span [] [ text (lbl ^ ": ") ]
-        ; button [ on_click (fun () -> Signal.update (fun n -> n - by) state) ] [ text "-" ]
-        ; span [] [ show int state ]
-        ; button [ on_click (fun () -> Signal.update (fun n -> n + by) state) ] [ text "+" ]
+        [
+          span [] [ text (lbl ^ ": ") ];
+          button [ on_click (fun () -> Signal.update (fun n -> n - by) state) ] [ text "-" ];
+          span [] [ show int state ];
+          button [ on_click (fun () -> Signal.update (fun n -> n + by) state) ] [ text "+" ];
         ]
     in
     (html, state)
@@ -26,10 +27,11 @@ module Test_02_parallel = struct
     let html =
       let open Html in
       div []
-        [ span [] [ text (lbl ^ ": ") ]
-        ; button [ on_click (fun () -> Signal.update (fun n -> n - by) state) ] [ text "-" ]
-        ; span [] [ show int state ]
-        ; button [ on_click (fun () -> Signal.update (fun n -> n + by) state) ] [ text "+" ]
+        [
+          span [] [ text (lbl ^ ": ") ];
+          button [ on_click (fun () -> Signal.update (fun n -> n - by) state) ] [ text "-" ];
+          span [] [ show int state ];
+          button [ on_click (fun () -> Signal.update (fun n -> n + by) state) ] [ text "+" ];
         ]
     in
     (html, state)
@@ -46,14 +48,15 @@ module Test_03_sequential = struct
     let html =
       let open Html in
       div []
-        [ span [] [ text (lbl ^ ": ") ]
-        ; button
+        [
+          span [] [ text (lbl ^ ": ") ];
+          button
             [ on_click (fun () -> Signal.update (fun n -> n - Signal.get by) state) ]
-            [ text "-" ]
-        ; span [] [ show int state ]
-        ; button
+            [ text "-" ];
+          span [] [ show int state ];
+          button
             [ on_click (fun () -> Signal.update (fun n -> n + Signal.get by) state) ]
-            [ text "+" ]
+            [ text "+" ];
         ]
     in
     (html, state)
@@ -70,14 +73,15 @@ module Test_04_multiplicity = struct
     let html =
       let open Html in
       div []
-        [ span [] [ text (lbl ^ ": ") ]
-        ; button
+        [
+          span [] [ text (lbl ^ ": ") ];
+          button
             [ on_click (fun () -> Signal.update (fun n -> n - Signal.get by) state) ]
-            [ text "-" ]
-        ; span [] [ show int state ]
-        ; button
+            [ text "-" ];
+          span [] [ show int state ];
+          button
             [ on_click (fun () -> Signal.update (fun n -> n + Signal.get by) state) ]
-            [ text "+" ]
+            [ text "+" ];
         ]
     in
     (html, state)
@@ -85,11 +89,12 @@ module Test_04_multiplicity = struct
   let make () =
     let counter_view, how_many = component ~label:"how many" () in
     Html.div []
-      [ Html.h2 [] [ Html.text "04 - Multiplicity" ]
-      ; counter_view
-      ; how_many
-        |> Signal.map (fun n -> List.init n (fun i -> fst (component ~label:(string_of_int i) ())))
-        |> each Fun.id
+      [
+        Html.h2 [] [ Html.text "04 - Multiplicity" ];
+        counter_view;
+        how_many
+        |> Signal.map (fun n -> List.init n (fun i -> string_of_int i))
+        |> each (fun label -> fst (component ~label ()));
       ]
 end
 
@@ -97,21 +102,23 @@ let main () =
   let open Html in
   div
     [ class_list [ "w-full" ] ]
-    [ h1 [] [ text "Composition" ]
-    ; blockquote []
-        [ text "See: "
-        ; a
+    [
+      h1 [] [ text "Composition" ];
+      blockquote []
+        [
+          text "See: ";
+          a
             [ href "https://github.com/TyOverby/composition-comparison" ]
-            [ text "https://github.com/TyOverby/composition-comparison" ]
-        ]
-    ; hr []
-    ; Test_01_component.make ()
-    ; hr []
-    ; Test_02_parallel.make ()
-    ; hr []
-    ; Test_03_sequential.make ()
-    ; hr []
-    ; Test_04_multiplicity.make ()
+            [ text "https://github.com/TyOverby/composition-comparison" ];
+        ];
+      hr [];
+      Test_01_component.make ();
+      hr [];
+      Test_02_parallel.make ();
+      hr [];
+      Test_03_sequential.make ();
+      hr [];
+      Test_04_multiplicity.make ();
     ]
 
 let () =

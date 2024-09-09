@@ -119,7 +119,7 @@ module Map : sig
   val make : unit -> 'a t
   val clear : 'a t -> unit
   val set : 'a t -> Jx.t -> 'a -> unit
-  val get : 'a t -> Jx.t -> 'a
+  val get : 'a t -> Jx.t -> 'a option
   val delete : 'a t -> Jx.t -> unit
   val keys : 'a t -> Jx.t Iterator.t
   val size : 'a t -> int
