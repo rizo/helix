@@ -1,31 +1,44 @@
-type t = { items : (string * bool) list; filter : [ `all | `completed | `remaining ] }
+module Todos = Map.Make (Int)
 
-let empty = { items = []; filter = `all }
-let add todo todos = { todos with items = todo :: todos.items }
-let length todos = List.length todos.items
-let remove title todos = { todos with items = List.remove_assq title todos.items }
+let gen_id =
+  let i = ref (-1) in
+  fun () ->
+    incr i;
+    !i
 
-let toggle target todos =
+type item = { title : string; completed : bool }
+type t = { items : item Todos.t; filter : [ `all | `completed | `remaining ] }
+
+let empty = { items = Todos.empty; filter = `all }
+
+let add title todos =
+  { todos with items = Todos.add (gen_id ()) { title; completed = false } todos.items }
+
+let length todos = Todos.cardinal todos.items
+let remove id todos = { todos with items = Todos.remove id todos.items }
+
+let toggle id todos =
   {
     todos with
     items =
-      List.map
-        (fun (title, completed) ->
-          if String.equal title target then (title, not completed) else (title, completed)
-        )
+      Todos.update id
+        (function
+          | None -> None
+          | Some item -> Some { item with completed = not item.completed }
+          )
         todos.items;
   }
 
 let clear todos =
-  { todos with items = List.filter (fun (_, completed) -> not completed) todos.items }
+  { todos with items = Todos.filter (fun _ { completed; _ } -> not completed) todos.items }
 
 let count_remaining todos =
-  List.fold_left (fun n (_, completed) -> if completed then n else n + 1) 0 todos.items
+  Todos.fold (fun _id { completed; _ } n -> if completed then n else n + 1) todos.items 0
 
-let set_filter filter todos = { todos with filter }
+let filter filter todos = { todos with filter }
 
 let filtered { items; filter } =
   match filter with
-  | `all -> items
-  | `completed -> List.filter (fun (_, completed) -> completed) items
-  | `remaining -> List.filter (fun (_, completed) -> not completed) items
+  | `all -> Todos.to_list items
+  | `completed -> Todos.to_list (Todos.filter (fun _id { completed; _ } -> completed) items)
+  | `remaining -> Todos.to_list (Todos.filter (fun _id { completed; _ } -> not completed) items)
