@@ -16,84 +16,100 @@ let main () =
   let open Html in
   section
     [ class_list [ "todoapp" ] ]
-    [ header
+    [
+      header
         [ class_list [ "header" ] ]
-        [ h1 [] [ text "todos" ]
-        ; input
-            [ class_name "new-todo"
-            ; autofocus true
-            ; placeholder "What is to be done?"
-            ; on Event.keydown on_todo_input
-            ]
+        [
+          h1 [] [ text "todos" ];
+          input
+            [
+              class_name "new-todo";
+              autofocus true;
+              placeholder "What is to be done?";
+              on Event.keydown on_todo_input;
+            ];
+        ];
+      section
+        [ class_list [ "main" ] ]
+        [
+          input [ id "toggle-all"; type' "checkbox"; class_list [ "toggle-all" ] ];
+          label [ for' "toggle-all" ] [ text "Toggle all" ];
+          ul
+            [ class_name "todo-list" ]
+            [
+              todos
+              |> Signal.map Todos.filtered
+              |> each (fun (todo_id, { Todos.title; completed }) ->
+                     li
+                       [ class_name "todo" ]
+                       [
+                         div
+                           [ class_name "view" ]
+                           [
+                             input
+                               [
+                                 class_name "toggle";
+                                 type' "checkbox";
+                                 checked completed;
+                                 on_click (fun () -> Signal.update (Todos.toggle todo_id) todos);
+                               ];
+                             label [] [ text title ];
+                             button
+                               [
+                                 class_name "destroy";
+                                 on_click (fun () -> Signal.update (Todos.remove todo_id) todos);
+                               ]
+                               [];
+                           ];
+                       ]);
+            ];
         ]
-    ; conditional
-        ~on:(Signal.map (fun todos -> Todos.length todos > 0) todos)
-        (section
-           [ class_list [ "main" ] ]
-           [ input [ id "toggle-all"; type' "checkbox"; class_list [ "toggle-all" ] ]
-           ; label [ for' "toggle-all" ] [ text "Toggle all" ]
-           ; ul
-               [ class_name "todo-list" ]
-               [ todos
-                 |> Signal.map Todos.filtered
-                 |> each (fun (todo_id, { Todos.title; completed }) ->
-                        li
-                          [ class_name "todo" ]
-                          [ div
-                              [ class_name "view" ]
-                              [ input
-                                  [ class_name "toggle"
-                                  ; type' "checkbox"
-                                  ; checked completed
-                                  ; on_click (fun () -> Signal.update (Todos.toggle todo_id) todos)
-                                  ]
-                              ; label [] [ text title ]
-                              ; button
-                                  [ class_name "destroy"
-                                  ; on_click (fun () -> Signal.update (Todos.remove todo_id) todos)
-                                  ]
-                                  []
-                              ]
-                          ])
-               ]
-           ])
-    ; footer
+      |> conditional ~on:(fun todos -> Todos.length todos > 0) todos;
+      footer
         [ class_name "footer" ]
-        [ span
+        [
+          span
             [ class_name "todo-count" ]
-            [ strong []
-                [ (let$ n = remaining in
+            [
+              strong []
+                [
+                  (let$ n = remaining in
                    [ string_of_int n; (if n = 1 then "item" else "items"); "left" ]
                    |> String.concat " "
-                   |> text)
-                ]
-            ]
-        ; ul
+                   |> text);
+                ];
+            ];
+          ul
             [ class_name "filters" ]
-            [ li []
-                [ a [ on_click (fun () -> Signal.update (Todos.filter `all) todos) ] [ text "All" ]
-                ]
-            ; li []
-                [ a
+            [
+              li []
+                [
+                  a [ on_click (fun () -> Signal.update (Todos.filter `all) todos) ] [ text "All" ];
+                ];
+              li []
+                [
+                  a
                     [ on_click (fun () -> Signal.update (Todos.filter `remaining) todos) ]
-                    [ text "Remaining" ]
-                ]
-            ; li []
-                [ a
+                    [ text "Remaining" ];
+                ];
+              li []
+                [
+                  a
                     [ on_click (fun () -> Signal.update (Todos.filter `completed) todos) ]
-                    [ text "Completed" ]
-                ]
-            ]
-        ; button
-            [ class_name "clear-completed"
-            ; on Event.click (fun _ -> Signal.update Todos.clear todos)
-            ; (let@ todos and@ remaining in
+                    [ text "Completed" ];
+                ];
+            ];
+          button
+            [
+              class_name "clear-completed";
+              on Event.click (fun _ -> Signal.update Todos.clear todos);
+              (let@ todos and@ remaining in
                let len = Todos.length todos in
                if len > 0 && len - remaining > 0 then Attr.nop
-               else style_list [ ("display", "none") ])
+               else style_list [ ("display", "none") ]);
             ]
-            [ text "Clear completed" ]
-        ]
+            [ text "Clear completed" ];
+        ];
     ]
 
 let () =

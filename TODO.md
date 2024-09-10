@@ -30,6 +30,8 @@
 - [ ] BUG? Sharing html references leads to problems (See shared_ref)
 - [ ] Consider structuring each router segment as "path?opts" to allow passing extra params to intermediate views.
 - [ ] Unmounting should NOT free. Because remounting is acceptable. Test for this.
+- [ ] Signals should have cleanup: for example, Time.timer should cleanup interval.
+- [ ] Fix rendering/remounting order. See uplot example.
 
 ## shared_ref
 

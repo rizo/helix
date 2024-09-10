@@ -19,8 +19,7 @@ open struct
     | p0 :: p' -> (
       match l with
       | l0 :: l' when equal p0 l0 -> list_starts_with ~equal ~prefix:p' l'
-      | _ -> false
-    )
+      | _ -> false)
 end
 
 type 'a var = {
@@ -44,8 +43,7 @@ let query =
     of_string = (fun str -> Some (Stdweb.Url_search_params.of_string str));
     equal =
       (fun x1 x2 ->
-        String.equal (Stdweb.Url_search_params.to_string x1) (Stdweb.Url_search_params.to_string x2)
-      );
+        String.equal (Stdweb.Url_search_params.to_string x1) (Stdweb.Url_search_params.to_string x2));
   }
 
 type t = { prefix : string list signal; rest : string list signal }
@@ -59,7 +57,7 @@ type ('view, 'link, 'a) path =
   | End : (unit -> 'a, 'a, 'a) path
 
 type route =
-  | Route : ('view, 'link, Html.t) path * 'view -> route
+  | Route : ('view, 'link, Html.html) path * 'view -> route
   | Alias : (unit -> 'a, 'a, 'a) path * string list -> route
 
 type lookup = { route : route; matched : string list; args : string list }
@@ -148,11 +146,9 @@ module Table = struct
           (* If we have a backtracking continuation, try that before failing. *)
           match bt with
           | None -> Error (Incomplete_match input0)
-          | Some bt -> bt ()
-        )
+          | Some bt -> bt ())
         | Match route -> Ok { route; matched = List.rev matched; args = List.rev args }
-        | Partial route -> Ok { route; matched = List.rev matched; args = List.rev args }
-      )
+        | Partial route -> Ok { route; matched = List.rev matched; args = List.rev args })
       | input_hd :: input' -> (
         let bt () =
           match node.capture with
@@ -160,16 +156,14 @@ module Table = struct
           | _ -> (
             match String_map.find_opt ":" node.children with
             | Some node' -> loop node' input' (input_hd :: matched) (input_hd :: args)
-            | None -> Error (No_match input0)
-          )
+            | None -> Error (No_match input0))
         in
         (* Follow Const. If not defined, check for Rest and Var.
            In addition to checking this now, we create a "backtracking"
            continuation that might attempt the Rest/Var match if Const fails. *)
         match String_map.find_opt input_hd node.children with
         | Some node' -> loop ~bt node' input' (input_hd :: matched) args
-        | None -> bt ()
-      )
+        | None -> bt ())
     in
     loop table0 input0 [] []
 
@@ -218,16 +212,14 @@ let go ?(absolute = false) ?(up = 0) (router : t) path =
   eval_path
     (fun str_path ->
       let prefix = if absolute then [] else go_up up (Signal.get router.prefix) in
-      location_set_path (prefix @ str_path)
-    )
+      location_set_path (prefix @ str_path))
     path
 
 let pick_qpath segments =
   List.map
     (function
       | Either.Left const -> const
-      | Right var_sig -> Signal.get var_sig
-      )
+      | Right var_sig -> Signal.get var_sig)
     segments
 
 let link ?(absolute = false) ?(up = 0) ?(active = Html.Attr.nop) ?(inactive = Html.Attr.nop)
@@ -256,8 +248,7 @@ let link ?(absolute = false) ?(up = 0) ?(active = Html.Attr.nop) ?(inactive = Ht
              else
                List.equal String.equal p1 p2
                && List.equal String.equal s1 s2
-               && List.equal String.equal r1 r2
-         )
+               && List.equal String.equal r1 r2)
       |> View.bind (fun ((link_prefix, link_suffix), rest) ->
              let path_str = String.concat "/" (("#" :: link_prefix) @ link_suffix) in
              let href_attr = Html.href path_str in
@@ -266,9 +257,7 @@ let link ?(absolute = false) ?(up = 0) ?(active = Html.Attr.nop) ?(inactive = Ht
                else if check_is_active link_suffix rest then active
                else inactive
              in
-             Html.Attr.combine href_attr user_attr
-         )
-    )
+             Html.Attr.combine href_attr user_attr))
     path0
 
 type emits = {
@@ -294,9 +283,9 @@ let apply emits ~prefix:absprefix0 ~matched ~args:args0 =
       string list ->
       _ list ->
       (string, string signal) Either.t list ->
-      (view, link, Html.t) path ->
+      (view, link, Html.html) path ->
       view ->
-      (Html.t * (string, string signal) Either.t list, string) result =
+      (Html.html * (string, string signal) Either.t list, string) result =
    fun args args_emits rev_qualified_path path view ->
     match (path, args) with
     | Rest, _ ->
@@ -359,7 +348,7 @@ let render_lookup_error ~prefix ?alias ~label ~default err =
 
 (* TODO: must be lazy initialized similar to View.show. *)
 (* TODO: improve exn context logging. *)
-let dispatch_table ?label ?default ({ prefix; rest } : t) table : Html.t =
+let dispatch_table ?label ?default ({ prefix; rest } : t) table : Html.html =
  fun parent insert ->
   let label =
     match label with
@@ -372,8 +361,7 @@ let dispatch_table ?label ?default ({ prefix; rest } : t) table : Html.t =
       ~equal:(fun res1 res2 ->
         match (res1, res2) with
         | Ok { route = r1; _ }, Ok { route = r2; _ } -> r1 == r2
-        | _ -> false
-      )
+        | _ -> false)
       lookup_sig
   in
   (* Do we need to clean up emits in unmount? *)
@@ -417,8 +405,7 @@ let dispatch_table ?label ?default ({ prefix; rest } : t) table : Html.t =
             html
           | Error err -> Html.text (label ^ ": " ^ err)
         end
-        | Error err -> render_lookup_error ~prefix ~label ~default err
-        )
+        | Error err -> render_lookup_error ~prefix ~label ~default err)
       lookup_route_sig
   in
   let unsub =
@@ -437,11 +424,9 @@ let dispatch_table ?label ?default ({ prefix; rest } : t) table : Html.t =
                   arg_emit ~notify arg;
                   loop arg_emits' args'
               in
-              loop emits.emit_args args0
-          )
+              loop emits.emit_args args0)
         | Ok ({ route = Alias _; _ } : lookup) -> ()
-        | Error _ -> ()
-        )
+        | Error _ -> ())
       lookup_sig
   in
   let html' = Html.Elem.on_unmount unsub html in

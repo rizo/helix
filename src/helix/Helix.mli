@@ -16,20 +16,15 @@
             div [] [ text "Compute a count." ];
             div []
               [
-                button
-                  [ on_click (fun _ -> Signal.update (fun n -> n + 1) count) ]
-                  [ text "+" ];
-                button
-                  [ on_click (fun _ -> Signal.update (fun n -> n - 1) count) ]
-                  [ text "-" ];
+                button [ on_click (fun _ -> Signal.update (fun n -> n + 1) count) ] [ text "+" ];
+                button [ on_click (fun _ -> Signal.update (fun n -> n - 1) count) ] [ text "-" ];
                 div
                   [
                     style_list [ ("font-size", "32px") ];
                     bind
                       (fun n ->
                         if n < 0 then style_list [ ("color", "red") ]
-                        else style_list [ ("color", "blue") ]
-                      )
+                        else style_list [ ("color", "blue") ])
                       count;
                   ]
                   [ show (fun n -> text (string_of_int n)) count ];
@@ -42,8 +37,8 @@
         | None -> failwith "No #root element found"
     ]}*)
 
-type html = Html.t
-(** An alias for {!type:Html.t}. *)
+type html = Html.html
+(** An alias for {!type:Html.html}. *)
 
 type attr = Html.attr
 (** An alias for {!type:Html.attr}. *)
@@ -57,18 +52,17 @@ val signal : ?equal:('a -> 'a -> bool) -> ?label:string -> 'a -> 'a signal
 (** {1 Reactive views} *)
 
 val show : ?label:string -> ('a -> html) -> 'a signal -> html
-(** [show to_html signal] is a dynamic HTML node created from [signal] values
-    using [to_html]. *)
+(** [show to_html signal] is a dynamic HTML node created from [signal] values using [to_html]. *)
 
 val show_some : ?label:string -> ('a -> html) -> 'a option signal -> html
-(** [show_some] is similar to {!val:show}, but operates on reactive option
-    values. When the signal's value is [None], {!val:Html.empty} is rendered. *)
+(** [show_some] is similar to {!val:show}, but operates on reactive option values. When the signal's
+    value is [None], {!val:Html.empty} is rendered. *)
 
 val show_ok : ?label:string -> ('a -> html) -> ('a, _) result signal -> html
-(** [show_ok] is similar to {!val:show}, but operates on reactive result values.
-    When the signal's value is [Error _], {!val:Html.empty} is rendered. *)
+(** [show_ok] is similar to {!val:show}, but operates on reactive result values. When the signal's
+    value is [Error _], {!val:Html.empty} is rendered. *)
 
-val each : ('a -> html) -> 'a list signal -> html
+val each : ?key:('a -> string) -> ('a -> html) -> 'a list signal -> html
 (** [each to_html signal] reactively renders items from [signal] with [to_html].
 
     {[
@@ -79,8 +73,7 @@ val each : ('a -> html) -> 'a list signal -> html
 (** {1 Dynamic attributes} *)
 
 val bind : ('a -> Html.attr) -> 'a Signal.t -> Html.attr
-(** [bind to_attr signal] is a dynamic HTML attribute created from [signal]
-    values using [to_attr].
+(** [bind to_attr signal] is a dynamic HTML attribute created from [signal] values using [to_attr].
 
     {[
       let style = Signal.make [ ("color", "red") ] in
@@ -88,25 +81,23 @@ val bind : ('a -> Html.attr) -> 'a Signal.t -> Html.attr
     ]} *)
 
 val bind_some : ('a -> Html.attr) -> 'a option Signal.t -> Html.attr
-(** [bind_some] is similar to {!val:bind}, but operates on reactive option
-    values. When the signal's value is [None], an empty attribute is produced. *)
+(** [bind_some] is similar to {!val:bind}, but operates on reactive option values. When the signal's
+    value is [None], an empty attribute is produced. *)
 
 val bind_ok : ('a -> Html.attr) -> ('a, _) result Signal.t -> Html.attr
-(** [bind_ok] is similar to {!val:bind}, but operates on reactive result values.
-    When the signal's value is [Error _], an empty attribute is produced. *)
+(** [bind_ok] is similar to {!val:bind}, but operates on reactive result values. When the signal's
+    value is [Error _], an empty attribute is produced. *)
 
-val toggle : on:('a -> bool) -> Html.attr -> 'a Signal.t -> Html.attr
-(** [toggle ~on:pred attr s] is [attr] if [pred x] is [true] and
-    {!val:Html.empty} otherwise, where [x] is the value of [s]. *)
+val toggle : on:('a -> bool) -> 'a Signal.t -> Html.attr -> Html.attr
+(** [toggle ~on:pred attr s] is [attr] if [pred x] is [true] and {!val:Html.empty} otherwise, where
+    [x] is the value of [s]. *)
 
-val conditional : on:bool Signal.t -> Html.t -> Html.t
-(** [conditional on:signal] an attribute that shows the element if [signal] is
-    [true]. *)
+val conditional : on:('a -> bool) -> 'a Signal.t -> Html.html -> Html.html
+(** [conditional on:signal] an attribute that shows the element if [signal] is [true]. *)
 
-val visible : on:bool Signal.t -> Html.attr
-(** [visible ~on:signal] is a reactive attribute that controls the [display]
-    style of HTML elements. When [signal] is [false] this attribute is
-    [display: none]. *)
+val visible : on:('a -> bool) -> 'a Signal.t -> Html.attr
+(** [visible ~on:signal] is a reactive attribute that controls the [display] style of HTML elements.
+    When [signal] is [false] this attribute is [display: none]. *)
 
 module Mouse : sig
   (** Mouse signals. *)
@@ -125,11 +116,9 @@ module Http : sig
 
   type error =
     | Fetch_error of Jx.t  (** An error occurred during fetch request. *)
-    | Unsuccessful of Stdweb.Fetch.Response.t
-        (** A non-200 response from the server. *)
+    | Unsuccessful of Stdweb.Fetch.Response.t  (** A non-200 response from the server. *)
     | Decoding_error of exn  (** Error when decoding payload. *)
-    | Handling_error of exn
-        (** Error when handling successful response payload. *)
+    | Handling_error of exn  (** Error when handling successful response payload. *)
 
   val string_of_error : error -> string
 
@@ -279,8 +268,8 @@ end
     - upstream variable-to-hash update *)
 module Router : sig
   type t
-  (** Represents the current routing state and can be used to create links and
-      dispatch routes to views. *)
+  (** Represents the current routing state and can be used to create links and dispatch routes to
+      views. *)
 
   val make : ?prefix:string list signal -> string list signal -> t
   (** [make path_signal] is a router scope given the current path. *)
@@ -289,8 +278,7 @@ module Router : sig
   (** Assigns a path to a view to be rendered on match. *)
 
   type 'a var
-  (** Variables found in routing paths. For exmaple, ["/users/:int"] contains a
-      int variable. *)
+  (** Variables found in routing paths. For exmaple, ["/users/:int"] contains a int variable. *)
 
   val var :
     of_string:(string -> 'a option) ->
@@ -311,16 +299,15 @@ module Router : sig
       {{:https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/URLSearchParams}
         [query parameters]} (e.g. [name=ferret&count=purple]). *)
 
-  (** Represents paths that can be used to (1) dispatch routing state to views,
-      and (2) to generate dynamic links.
+  (** Represents paths that can be used to (1) dispatch routing state to views, and (2) to generate
+      dynamic links.
 
-      A path is either a constatn segment, a variable or a special wildcard
-      "rest" segment. Constant segments are matched verbatim, variable segments
-      will capture a typed value from the path and dispatch it to the view
-      function and, finally, rest segments represent nested router scopes.
+      A path is either a constatn segment, a variable or a special wildcard "rest" segment. Constant
+      segments are matched verbatim, variable segments will capture a typed value from the path and
+      dispatch it to the view function and, finally, rest segments represent nested router scopes.
 
-      Note: path types with type [('a, 'a, 'a) path] represent static paths,
-      i.e., complete paths without variables. *)
+      Note: path types with type [('a, 'a, 'a) path] represent static paths, i.e., complete paths
+      without variables. *)
   type ('view, 'link, 'a) path =
     | Const : string * ('view, 'link, 'a) path -> ('view, 'link, 'a) path
     | Var :
@@ -339,40 +326,34 @@ module Router : sig
     t ->
     ('view, 'link, Html.attr) path ->
     'link
-  (** [link ?absolute ?up ?active ?exact ?alias router path vars...] is an HTML
-      [href] attribute that binds a link described by [path] and any [vars]
-      contained in it (or none, if it's a const only path). A link relative to
-      [router] will be created (with the level adjusted by [up]), unless
-      [absolute] is [true], in which case the [router] is ignored.
+  (** [link ?absolute ?up ?active ?exact ?alias router path vars...] is an HTML [href] attribute
+      that binds a link described by [path] and any [vars] contained in it (or none, if it's a const
+      only path). A link relative to [router] will be created (with the level adjusted by [up]),
+      unless [absolute] is [true], in which case the [router] is ignored.
 
-      If [active] attribute is provided, in addition to binding [href], [active]
-      will be bound in case the current path is active, otherwise [inactive] is
-      bound (if provided).
+      If [active] attribute is provided, in addition to binding [href], [active] will be bound in
+      case the current path is active, otherwise [inactive] is bound (if provided).
 
-      By default, a path is considered active if it is a prefix of the current
-      path. If [exact] is [true], the path is only considered active when it is
-      equal to the current path. Additionally, the path is considered active if
-      it is equal to [alias]. *)
+      By default, a path is considered active if it is a prefix of the current path. If [exact] is
+      [true], the path is only considered active when it is equal to the current path. Additionally,
+      the path is considered active if it is equal to [alias]. *)
 
   val route : ('view, 'link, html) path -> 'view -> route
   (** Create a route by assigning a path to a view. *)
 
   val alias : (unit -> 'a, 'a, 'a) path -> ('view, 'link, route) path -> 'link
-  (** [alias src dst vars...] creates a route by aliasing a static [src] path to
-      a [dst] path that may contain [vars]. The [dst] path is always interpreted
-      as a relative path.
+  (** [alias src dst vars...] creates a route by aliasing a static [src] path to a [dst] path that
+      may contain [vars]. The [dst] path is always interpreted as a relative path.
 
-      Note: an alias route does not automatically update the location in the
-      browser. *)
+      Note: an alias route does not automatically update the location in the browser. *)
 
   val go : ?absolute:bool -> ?up:int -> t -> (_, 'link, unit) path -> 'link
-  (** [go ?absolute ?up path vars...] navigates to [path] by updating browser's
-      hash, which will trigger a routing event. *)
+  (** [go ?absolute ?up path vars...] navigates to [path] by updating browser's hash, which will
+      trigger a routing event. *)
 
   val dispatch : ?label:string -> ?default:html -> t -> route list -> html
-  (** [dispatch router routes] the current routing state described by [router]
-      to [routes] rendering a view that matches the current path. If no matches
-      are found, render [default]. *)
+  (** [dispatch router routes] the current routing state described by [router] to [routes] rendering
+      a view that matches the current path. If no matches are found, render [default]. *)
 
   val prefix : t -> string list signal
   (** The prefix of this, potentially nested, router. *)
@@ -386,8 +367,7 @@ end
 
 (** {1 Syntax}
 
-    [let] operators are provided to simplify rendering signals to HTML: [(let$)]
-    and [(and$)].
+    [let] operators are provided to simplify rendering signals to HTML: [(let$)] and [(and$)].
 
     Example:
 
@@ -407,12 +387,7 @@ end
         show
           (fun (user_id, todo_title) ->
             let open Html in
-            div []
-              [
-                h2 [] [ text "User id: "; text user_id ];
-                h3 [] [ text "Todo: "; todo_title ];
-              ]
-          )
+            div [] [ h2 [] [ text "User id: "; text user_id ]; h3 [] [ text "Todo: "; todo_title ] ])
           (Signal.pair user_id todo_title)
     ]}
 
@@ -428,14 +403,12 @@ val ( and@ ) : 'a signal -> 'b signal -> ('a * 'b) signal
 val enable_debug : bool -> unit
 (** Set to [true] to activate visual debugging details.
 
-    If enabled, all reactive elements will be annoated with rendering details.
-    The following format is used:
-    [show:{elem_count}/{elem_label?}#{update_count}], where:
+    If enabled, all reactive elements will be annoated with rendering details. The following format
+    is used: [show:{elem_count}/{elem_label?}#{update_count}], where:
 
     - [{elem_count}] is the sequential count assigned to each [show] element;
     - [{elem_label}] is the optional user-provided label for the [show] element;
-    - [{update_count}] is the sequential count of re-renders of the same [show]
-      element.
+    - [{update_count}] is the sequential count of re-renders of the same [show] element.
 
     Note that the [update_count] is, in practice, the number of signal emits.
 

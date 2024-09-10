@@ -15,23 +15,21 @@ let view_function_docs ~signature ~description ~example ?preview ?console func_t
       p [] description;
       h3 [] [ text "Example" ];
       pre [] [ code [ class_name "language-ocaml" ] [ text example ] ];
-      ( match preview with
+      (match preview with
       | None -> null
       | Some preview ->
         fragment
           [
             h3 [] [ text "Preview" ];
             div [ style_list [ ("padding", "0.5em"); ("background-color", "#F0F0F0") ] ] preview;
-          ]
-      );
-      ( match console with
+          ]);
+      (match console with
       | None -> null
       | Some console ->
         fragment
           [
             h3 [] [ text "Console" ]; div [] [ pre [] [ code [ class_name "plaintext" ] console ] ];
-          ]
-      );
+          ]);
     ]
 
 module Doc = struct
@@ -66,7 +64,7 @@ div []
       ~preview:
         [
           button [ on Event.click (fun _ -> Signal.update not is_visible) ] [ text "Toggle" ];
-          div [ toggle ~on:Fun.id (style_list [ ("color", "red") ]) is_visible ] [ text "HELLO" ];
+          div [ toggle ~on:Fun.id is_visible (style_list [ ("color", "red") ]) ] [ text "HELLO" ];
         ]
 end
 

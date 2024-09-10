@@ -1,109 +1,108 @@
 module Document = Stdweb.Dom.Document
 open Helix
 
-module Test_01_component = struct
-  let component ~label:lbl ~by () =
-    let state = Signal.make 0 in
+module Counter = struct
+  let make ~label:lbl ?(init = 0) ?(by = Signal.make 1) () =
+    let state = Signal.make init in
     let html =
       let open Html in
-      div []
+      div
+        [ style_list [ ("display", "flex"); ("gap", "5px"); ("align-items", "center") ] ]
         [
-          span [] [ text (lbl ^ ": ") ];
-          button [ on_click (fun () -> Signal.update (fun n -> n - by) state) ] [ text "-" ];
+          span
+            [ style_list [ ("display", "inline-block"); ("width", "100px") ] ]
+            [ text (lbl ^ ": ") ];
+          button
+            [ on_click (fun () -> Signal.update (fun n -> n - Signal.get by) state) ]
+            [ text "-" ];
+          button
+            [ on_click (fun () -> Signal.update (fun n -> n + Signal.get by) state) ]
+            [ text "+" ];
           span [] [ show int state ];
-          button [ on_click (fun () -> Signal.update (fun n -> n + by) state) ] [ text "+" ];
         ]
     in
     (html, state)
+end
 
+module Test_01_component = struct
   let make () =
-    let html, _ = component ~label:"counter" ~by:1 () in
-    Html.div [] [ Html.h2 [] [ Html.text "01 - Components" ]; html ]
+    let html, _ = Counter.make ~label:"counter" () in
+    let open Html in
+    fieldset [] [ legend [] [ h2 [] [ text "01. Single" ] ]; html ]
 end
 
 module Test_02_parallel = struct
-  let component ~label:lbl ~by () =
-    let state = Signal.make 0 in
-    let html =
-      let open Html in
-      div []
-        [
-          span [] [ text (lbl ^ ": ") ];
-          button [ on_click (fun () -> Signal.update (fun n -> n - by) state) ] [ text "-" ];
-          span [] [ show int state ];
-          button [ on_click (fun () -> Signal.update (fun n -> n + by) state) ] [ text "+" ];
-        ]
-    in
-    (html, state)
-
   let make () =
-    let first, _ = component ~label:"first" ~by:1 () in
-    let second, _ = component ~label:"second" ~by:1 () in
-    Html.div [] [ Html.h2 [] [ Html.text "02 - Parallel Composition" ]; first; second ]
+    let first, _ = Counter.make ~label:"first" () in
+    let second, _ = Counter.make ~label:"second" () in
+    let open Html in
+    fieldset
+      [ style_list [ ("display", "flex"); ("flex-direction", "column"); ("gap", "5px") ] ]
+      [ legend [] [ h2 [] [ text "02. Parallel" ] ]; first; second ]
 end
 
 module Test_03_sequential = struct
-  let component ~label:lbl ?(by = Signal.make 1) () =
-    let state = Signal.make 0 in
-    let html =
-      let open Html in
-      div []
-        [
-          span [] [ text (lbl ^ ": ") ];
-          button
-            [ on_click (fun () -> Signal.update (fun n -> n - Signal.get by) state) ]
-            [ text "-" ];
-          span [] [ show int state ];
-          button
-            [ on_click (fun () -> Signal.update (fun n -> n + Signal.get by) state) ]
-            [ text "+" ];
-        ]
-    in
-    (html, state)
-
   let make () =
-    let first, by = component ~label:"first" () in
-    let second, _ = component ~label:"second" ~by () in
-    Html.div [] [ Html.h2 [] [ Html.text "03 - Sequential" ]; first; second ]
+    let first, by = Counter.make ~label:"first" () in
+    let second, _ = Counter.make ~label:"second" ~by () in
+    let open Html in
+    fieldset
+      [ style_list [ ("display", "flex"); ("flex-direction", "column"); ("gap", "5px") ] ]
+      [ legend [] [ h2 [] [ text "03. Sequential" ] ]; first; second ]
 end
 
 module Test_04_multiplicity = struct
-  let component ~label:lbl ?(by = Signal.make 1) () =
-    let state = Signal.make 0 in
-    let html =
-      let open Html in
-      div []
-        [
-          span [] [ text (lbl ^ ": ") ];
-          button
-            [ on_click (fun () -> Signal.update (fun n -> n - Signal.get by) state) ]
-            [ text "-" ];
-          span [] [ show int state ];
-          button
-            [ on_click (fun () -> Signal.update (fun n -> n + Signal.get by) state) ]
-            [ text "+" ];
-        ]
-    in
-    (html, state)
-
   let make () =
-    let counter_view, how_many = component ~label:"how many" () in
-    Html.div []
+    let counter_view, how_many = Counter.make ~label:"how many" () in
+    let open Html in
+    fieldset
+      [ style_list [ ("display", "flex"); ("flex-direction", "column"); ("gap", "5px") ] ]
       [
-        Html.h2 [] [ Html.text "04 - Multiplicity" ];
+        legend [] [ h2 [] [ text "04. Multiplicity" ] ];
         counter_view;
         how_many
         |> Signal.map (fun n -> List.init n (fun i -> string_of_int i))
-        |> each (fun label -> fst (component ~label ()));
+        |> each (fun label -> fst (Counter.make ~label ()));
+      ]
+end
+
+module Test_05_inception = struct
+  let make () =
+    let counter_view, how_many = Counter.make ~label:"how deep" () in
+
+    let items =
+      how_many
+      |> Signal.reduce
+           (fun (acc, n) n' ->
+             let label = string_of_int n in
+             let delta = if n' - n > 0 then `add else `del in
+             match (delta, acc) with
+             | `add, [] ->
+               let html, state = Counter.make ~label () in
+               ([ (label, html, state) ], n')
+             | `add, (_, _, prev_state) :: _ ->
+               let html, state = Counter.make ~label ~by:prev_state () in
+               ((label, html, state) :: acc, n')
+             | `del, [] -> ([], n')
+             | `del, _ -> (List.tl acc, n'))
+           ([], Signal.get how_many)
+      |> Signal.map (fun (acc, _) -> List.rev acc)
+    in
+    let open Html in
+    fieldset
+      [ style_list [ ("display", "flex"); ("flex-direction", "column"); ("gap", "5px") ] ]
+      [
+        legend [] [ h2 [] [ text "05. Inception" ] ];
+        counter_view;
+        each ~key:(fun (lbl, _, _) -> lbl) (fun (_, html, _) -> html) items;
       ]
 end
 
 let main () =
   let open Html in
-  div
-    [ class_list [ "w-full" ] ]
+  div []
     [
-      h1 [] [ text "Composition" ];
+      h1 [] [ text "Component composition" ];
       blockquote []
         [
           text "See: ";
@@ -111,14 +110,15 @@ let main () =
             [ href "https://github.com/TyOverby/composition-comparison" ]
             [ text "https://github.com/TyOverby/composition-comparison" ];
         ];
-      hr [];
-      Test_01_component.make ();
-      hr [];
-      Test_02_parallel.make ();
-      hr [];
-      Test_03_sequential.make ();
-      hr [];
-      Test_04_multiplicity.make ();
+      section
+        [ style_list [ ("display", "flex"); ("flex-direction", "column"); ("gap", "45px") ] ]
+        [
+          Test_01_component.make ();
+          Test_02_parallel.make ();
+          Test_03_sequential.make ();
+          Test_04_multiplicity.make ();
+          Test_05_inception.make ();
+        ];
     ]
 
 let () =

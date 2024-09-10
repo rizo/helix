@@ -169,18 +169,15 @@ let on ?(default = true) ?confirm (name : Dom.Event.name) f _ctx node =
 
 let on_change ?confirm handler =
   on ~default:false ?confirm Dom.Event.change (fun ev ->
-      handler (Dom.Node.get_value (Dom.Event.target ev))
-  )
+      handler (Dom.Node.get_value (Dom.Event.target ev)))
 
 let on_checked ?confirm handler =
   on ~default:false ?confirm Dom.Event.change (fun ev ->
-      handler (Dom.Node.get_checked (Dom.Event.target ev))
-  )
+      handler (Dom.Node.get_checked (Dom.Event.target ev)))
 
 let on_input ?confirm handler =
   on ~default:false ?confirm Dom.Event.input (fun ev ->
-      handler (Dom.Node.get_value (Dom.Event.target ev))
-  )
+      handler (Dom.Node.get_value (Dom.Event.target ev)))
 
 let on_click ?confirm handler = on ~default:false ?confirm Dom.Event.click (fun _ -> handler ())
 
@@ -228,24 +225,24 @@ module Elem = struct
     List.iter
       (fun (attr : Attr.t) ->
         let state = attr ctx node in
-        state.set ()
-      )
+        state.set ())
       attrs;
     let node_insert = Dom.Node.append_child ~parent:node in
     List.iter
       (fun (child : t) ->
         let child_state = child ctx node in
-        child_state.mount node_insert
-      )
+        child_state.mount node_insert)
       children;
-    { unmount = (fun () -> Dom.Node.remove_child ~parent node)
-    ; mount = (fun insert -> insert node)
+    {
+      unmount = (fun () -> Dom.Node.remove_child ~parent node);
+      mount = (fun insert -> insert node);
     }
 
   let text data _ctx parent =
     let node = Dom.Document.create_text_node data in
-    { unmount = (fun () -> Dom.Node.remove_child ~parent node)
-    ; mount = (fun insert -> insert node)
+    {
+      unmount = (fun () -> Dom.Node.remove_child ~parent node);
+      mount = (fun insert -> insert node);
     }
 
   let of_some to_html option =
@@ -268,11 +265,11 @@ module Elem = struct
     List.iter
       (fun (attr : Attr.t) ->
         let state = attr ctx node in
-        state.set ()
-      )
+        state.set ())
       attrs;
-    { unmount = (fun () -> Dom.Node.remove_child ~parent node)
-    ; mount = (fun insert -> insert node)
+    {
+      unmount = (fun () -> Dom.Node.remove_child ~parent node);
+      mount = (fun insert -> insert node);
     }
 
   let fragment children ctx parent =
@@ -283,16 +280,16 @@ module Elem = struct
         (fun (child : t) ->
           let s = child ctx parent in
           s.mount frag_insert;
-          s
-        )
+          s)
         children
     in
-    { unmount = (fun () -> List.iter (fun (s : state) -> s.unmount ()) states)
-    ; mount = (fun insert -> insert frag)
+    {
+      unmount = (fun () -> List.iter (fun (s : state) -> s.unmount ()) states);
+      mount = (fun insert -> insert frag);
     }
 end
 
-type t = Elem.t
+type html = Elem.t
 
 let elem = Elem.make
 let text = Elem.text

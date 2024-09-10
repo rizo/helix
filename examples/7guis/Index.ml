@@ -7,9 +7,9 @@ let ( >> ) g f x = f (g x)
 let view_counter () =
   let count = Signal.make 0 in
   let open Html in
-  fragment
+  fieldset []
     [
-      h2 [] [ text "Counter" ];
+      legend [] [ h2 [] [ text "Counter" ] ];
       div
         [ style_list [ "margin-bottom" => "20px" ] ]
         [ text "Increment or decrement a number by 1." ];
@@ -37,9 +37,9 @@ let view_temp_conv () =
     Signal.emit value' signal
   in
   let open Html in
-  fragment
+  fieldset []
     [
-      h2 [] [ text "Temperature Converter" ];
+      legend [] [ h2 [] [ text "Temperature Converter" ] ];
       div
         [ style_list [ "margin-bottom" => "20px" ] ]
         [ text "Bidirectional temperature converter." ];
@@ -58,21 +58,20 @@ let view_flight_booker () =
   let flight_type = Signal.make "oneway" in
   let dates = Signal.make ("2023-01-01", "2023-01-01") in
   let msg_signal = Signal.make "" in
-  let click_submit _ =
+  let click_submit () =
     let d1, d2 = Signal.get dates in
     let ft = Signal.get flight_type in
     let msg =
       String.concat " "
-        ( if String.equal ft "oneway" then [ "You have booked a one-way flight on"; d1 ]
-          else [ "You have booked a return flight on"; d1; "and"; d2 ]
-        )
+        (if String.equal ft "oneway" then [ "You have booked a one-way flight on"; d1 ]
+         else [ "You have booked a return flight on"; d1; "and"; d2 ])
     in
     Signal.emit msg msg_signal
   in
   let open Html in
-  fragment
+  fieldset []
     [
-      h2 [] [ text "Flight Booker" ];
+      legend [] [ h2 [] [ text "Flight Booker" ] ];
       div [ style_list [ "margin-bottom" => "20px" ] ] [ text "Demonstrates constraints." ];
       div
         [
@@ -85,10 +84,9 @@ let view_flight_booker () =
           select
             [
               name "flight_type";
-              on Event.change (fun ev ->
+              on_change (fun value ->
                   Signal.emit "" msg_signal;
-                  Signal.emit (Event.target ev |> Node.get_value) flight_type
-              );
+                  Signal.emit value flight_type);
             ]
             [
               option [ value "oneway" ] [ text "one-way flight" ];
@@ -101,26 +99,26 @@ let view_flight_booker () =
               on_input (fun value -> Signal.update (fun (_, d2) -> (value, d2)) dates);
               toggle
                 ~on:(fun (d1, _) -> not (is_valid_date d1))
-                (style_list [ "outline" => "1px solid red" ])
-                dates;
+                dates
+                (style_list [ "outline" => "1px solid red" ]);
             ];
           input
             [
               placeholder "YYYY-MM-DD";
               value (snd (Signal.get dates));
               on_input (fun value -> Signal.update (fun (d1, _) -> (d1, value)) dates);
-              toggle ~on:(String.equal "oneway") (disabled true) flight_type;
+              toggle ~on:(String.equal "oneway") flight_type (disabled true);
               toggle
                 ~on:(fun ((_, d2), ft) -> String.equal "return" ft && not (is_valid_date d2))
-                (style_list [ "outline" => "1px solid red" ])
-                (Signal.pair dates flight_type);
+                (Signal.pair dates flight_type)
+                (style_list [ "outline" => "1px solid red" ]);
             ];
           button
             [
-              on Event.click click_submit;
+              on_click click_submit;
               toggle
                 ~on:(fun (dates, ft) -> not (is_valid_book dates ft))
-                (disabled true) (Signal.pair dates flight_type);
+                (Signal.pair dates flight_type) (disabled true);
             ]
             [ text "Book" ];
           show text msg_signal;
@@ -130,9 +128,9 @@ let view_flight_booker () =
 (* [TODO] Incomplete impl. *)
 let view_timer () =
   let open Html in
-  fragment
+  fieldset []
     [
-      h2 [] [ text "Timer" ];
+      legend [] [ h2 [] [ text "Timer" ] ];
       div [ style_list [ "margin-bottom" => "20px" ] ] [ text "Concurrency." ];
       div
         [
@@ -169,16 +167,19 @@ let view_timer () =
 
 let main () =
   let open Html in
-  div
-    [ class_list [ "w-full" ] ]
+  div []
     [
       h1 [] [ text "Helix 7 GUIs" ];
+      blockquote []
+        [
+          text "See: ";
+          a
+            [ href "https://eugenkiss.github.io/7guis/tasks" ]
+            [ text "https://eugenkiss.github.io/7guis/tasks" ];
+        ];
       view_counter ();
-      (* hr []; *)
       view_temp_conv ();
-      (* hr []; *)
       view_flight_booker ();
-      (* hr []; *)
       view_timer ();
     ]
 
