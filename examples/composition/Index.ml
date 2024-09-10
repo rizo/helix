@@ -70,24 +70,29 @@ module Test_05_inception = struct
   let make () =
     let counter_view, how_many = Counter.make ~label:"how deep" () in
 
-    let items =
-      how_many
-      |> Signal.reduce
-           (fun (acc, n) n' ->
-             let label = string_of_int n in
-             let delta = if n' - n > 0 then `add else `del in
-             match (delta, acc) with
-             | `add, [] ->
-               let html, state = Counter.make ~label () in
-               ([ (label, html, state) ], n')
-             | `add, (_, _, prev_state) :: _ ->
-               let html, state = Counter.make ~label ~by:prev_state () in
-               ((label, html, state) :: acc, n')
-             | `del, [] -> ([], n')
-             | `del, _ -> (List.tl acc, n'))
-           ([], Signal.get how_many)
-      |> Signal.map (fun (acc, _) -> List.rev acc)
+    (* Compute add/delete deltas from the counter signal *)
+    let deltas =
+      Signal.reduce (fun (n, _) n' -> (n', n' - n > 0)) (Signal.get how_many, false) how_many
     in
+
+    let items =
+      deltas
+      |> Signal.reduce
+           (fun acc (n, delta) ->
+             let label = string_of_int n in
+             match (delta, acc) with
+             | true, [] ->
+               let html, state = Counter.make ~label () in
+               [ (label, html, state) ]
+             | true, (_, _, prev_state) :: _ ->
+               let html, state = Counter.make ~label ~by:prev_state () in
+               (label, html, state) :: acc
+             | false, [] -> []
+             | false, _ -> List.tl acc)
+           []
+      |> Signal.map (fun acc -> List.rev acc)
+    in
+
     let open Html in
     fieldset
       [ style_list [ ("display", "flex"); ("flex-direction", "column"); ("gap", "5px") ] ]
