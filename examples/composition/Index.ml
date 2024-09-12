@@ -1,24 +1,21 @@
-module Document = Stdweb.Dom.Document
 open Helix
 
 module Counter = struct
-  let make ~label:lbl ?(init = 0) ?(by = Signal.make 1) () =
-    let state = Signal.make init in
+  let make ~label:lbl ?(by = Signal.make 1) () =
+    let state = Signal.make 0 in
     let html =
       let open Html in
       div
-        [ style_list [ ("display", "flex"); ("gap", "5px"); ("align-items", "center") ] ]
+        [ style "display: flex; gap: 5px; align-items: center" ]
         [
-          span
-            [ style_list [ ("display", "inline-block"); ("width", "100px") ] ]
-            [ text (lbl ^ ": ") ];
+          span [ style "display: inline-block; width: 10ex" ] [ text lbl ];
           button
             [ on_click (fun () -> Signal.update (fun n -> n - Signal.get by) state) ]
             [ text "-" ];
           button
             [ on_click (fun () -> Signal.update (fun n -> n + Signal.get by) state) ]
             [ text "+" ];
-          span [] [ show int state ];
+          span [ toggle ~on:(fun n -> n < 0) state (style "color: magenta") ] [ show int state ];
         ]
     in
     (html, state)
@@ -37,7 +34,7 @@ module Test_02_parallel = struct
     let second, _ = Counter.make ~label:"second" () in
     let open Html in
     fieldset
-      [ style_list [ ("display", "flex"); ("flex-direction", "column"); ("gap", "5px") ] ]
+      [ style "display: flex; flex-direction: column; gap: 5px" ]
       [ legend [] [ h2 [] [ text "02. Parallel" ] ]; first; second ]
 end
 
@@ -53,15 +50,17 @@ end
 
 module Test_04_multiplicity = struct
   let make () =
-    let counter_view, how_many = Counter.make ~label:"how many" () in
+    let count_html, how_many = Counter.make ~label:"how many" () in
     let open Html in
     fieldset
       [ style_list [ ("display", "flex"); ("flex-direction", "column"); ("gap", "5px") ] ]
       [
         legend [] [ h2 [] [ text "04. Multiplicity" ] ];
-        counter_view;
+        count_html;
         how_many
+        |> Signal.map (fun n -> if n < 0 then 0 else n)
         |> Signal.map (fun n -> List.init n (fun i -> string_of_int i))
+        |> Signal.tap (fun xs -> Jx.log (String.concat ", " xs))
         |> each (fun label -> fst (Counter.make ~label ()));
       ]
 end
@@ -74,6 +73,7 @@ module Test_05_inception = struct
     let deltas =
       Signal.reduce (fun (n, _) n' -> (n', n' - n > 0)) (Signal.get how_many, false) how_many
     in
+    Signal.sub Jx.log deltas;
 
     let items =
       deltas
@@ -105,7 +105,8 @@ end
 
 let main () =
   let open Html in
-  div []
+  div
+    [ style "min-height: 1000px" ]
     [
       h1 [] [ text "Component composition" ];
       blockquote []
@@ -118,15 +119,15 @@ let main () =
       section
         [ style_list [ ("display", "flex"); ("flex-direction", "column"); ("gap", "45px") ] ]
         [
-          Test_01_component.make ();
-          Test_02_parallel.make ();
-          Test_03_sequential.make ();
-          Test_04_multiplicity.make ();
+          (* Test_01_component.make (); *)
+          (* Test_02_parallel.make (); *)
+          (* Test_03_sequential.make (); *)
+          (* Test_04_multiplicity.make (); *)
           Test_05_inception.make ();
         ];
     ]
 
 let () =
-  match Document.get_element_by_id "root" with
+  match Stdweb.Dom.Document.get_element_by_id "root" with
   | Some root -> Html.mount root (main ())
   | None -> failwith "No #root element found"

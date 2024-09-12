@@ -479,7 +479,7 @@ module Dom : sig
 
     val this : t
     val location : Location.t
-    val set_interval : (unit -> unit) -> int -> unit
+    val set_interval : (unit -> unit) -> int -> int
     val set_timeout : (unit -> unit) -> int -> int
     val clear_timeout : int -> unit
     val confirm : string -> bool

@@ -57,7 +57,7 @@ let view_visibility_simple () =
       span [ visible ~on:Fun.id is_visible ] [ text "HELLO" ];
     ]
 
-let view_timer () =
+let view_timer_ () =
   let active = Signal.make true in
   let timer = Time.tick ~ms:333 |> Signal.reduce (fun t () -> t + 1) 0 in
   let timer =
@@ -72,6 +72,12 @@ let view_timer () =
       button [ on_click (fun () -> Signal.update not active) ] [ text "Toggle" ];
       show int timer;
     ]
+
+let view_timer () =
+  let count = Signal.make 0 in
+  let init () = Window.set_interval (fun () -> Signal.update (( + ) 1) count) 1000 in
+  let free = Window.clear_timeout in
+  Html.resource ~init ~free (fun _ -> Html.h1 [] [ show Html.int count ])
 
 let view_input_bind () =
   let input_signal = Signal.make "--" in
