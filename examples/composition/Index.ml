@@ -1,51 +1,51 @@
 open Helix
 
 module Counter = struct
-  let make ~label:lbl ?(by = Signal.make 1) () =
-    let state = Signal.make 0 in
+  let make ?(by = Signal.make 1) lbl =
+    let count = Signal.make 0 in
     let html =
       let open Html in
       div []
         [
           span [] [ text lbl ];
           button
-            [ on_click (fun () -> Signal.update (fun n -> n - Signal.get by) state) ]
+            [ on_click (fun () -> Signal.update (fun n -> n - Signal.get by) count) ]
             [ text "-" ];
           button
-            [ on_click (fun () -> Signal.update (fun n -> n + Signal.get by) state) ]
+            [ on_click (fun () -> Signal.update (fun n -> n + Signal.get by) count) ]
             [ text "+" ];
-          span [] [ show int state ];
+          span [] [ show int count ];
         ]
     in
-    (html, state)
+    (html, count)
 end
 
 module Test_01_component = struct
   let make () =
-    let html, _ = Counter.make ~label:"counter" () in
+    let html, _ = Counter.make "counter" in
     let open Html in
     fieldset [] [ legend [] [ h2 [] [ text "01. Single" ] ]; html ]
 end
 
 module Test_02_parallel = struct
   let make () =
-    let first, _ = Counter.make ~label:"first" () in
-    let second, _ = Counter.make ~label:"second" () in
+    let first, _ = Counter.make "first" in
+    let second, _ = Counter.make "second" in
     let open Html in
     fieldset [] [ legend [] [ h2 [] [ text "02. Parallel" ] ]; first; second ]
 end
 
 module Test_03_sequential = struct
   let make () =
-    let first, by = Counter.make ~label:"first" () in
-    let second, _ = Counter.make ~label:"second" ~by () in
+    let first, by = Counter.make "first" in
+    let second, _ = Counter.make ~by "second" in
     let open Html in
     fieldset [] [ legend [] [ h2 [] [ text "03. Sequential" ] ]; first; second ]
 end
 
 module Test_04_multiplicity = struct
   let make () =
-    let count_html, how_many = Counter.make ~label:"how many" () in
+    let count_html, how_many = Counter.make "how many" in
     let open Html in
     fieldset []
       [
@@ -53,13 +53,13 @@ module Test_04_multiplicity = struct
         count_html;
         how_many
         |> Signal.map (fun n -> List.init n (fun i -> string_of_int i))
-        |> each (fun label -> fst (Counter.make ~label ()));
+        |> each (fun label -> fst (Counter.make label));
       ]
 end
 
 module Test_05_inception = struct
   let make () =
-    let counter_view, how_many = Counter.make ~label:"how deep" () in
+    let counter_view, how_many = Counter.make "how deep" in
 
     (* Compute add/delete deltas from the counter signal *)
     let deltas =
@@ -73,10 +73,10 @@ module Test_05_inception = struct
              let label = string_of_int n in
              match (delta, acc) with
              | true, [] ->
-               let html, state = Counter.make ~label () in
+               let html, state = Counter.make label in
                [ (label, html, state) ]
              | true, (_, _, prev_state) :: _ ->
-               let html, state = Counter.make ~label ~by:prev_state () in
+               let html, state = Counter.make ~by:prev_state label in
                (label, html, state) :: acc
              | false, [] -> []
              | false, _ -> List.tl acc)
@@ -97,7 +97,7 @@ let main () =
   let open Html in
   div []
     [
-      h1 [] [ text "Component composition" ];
+      h1 [] [ text "Composition demo" ];
       blockquote []
         [
           text "See: ";
@@ -109,10 +109,10 @@ let main () =
         [ id "main" ]
         [
           Test_01_component.make ();
-          Test_02_parallel.make ();
-          Test_03_sequential.make ();
-          Test_04_multiplicity.make ();
-          Test_05_inception.make ();
+          (* Test_02_parallel.make (); *)
+          (* Test_03_sequential.make (); *)
+          (* Test_04_multiplicity.make (); *)
+          (* Test_05_inception.make (); *)
         ];
     ]
 
