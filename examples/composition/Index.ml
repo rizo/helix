@@ -5,17 +5,16 @@ module Counter = struct
     let state = Signal.make 0 in
     let html =
       let open Html in
-      div
-        [ style "display: flex; gap: 5px; align-items: center" ]
+      div []
         [
-          span [ style "display: inline-block; width: 10ex" ] [ text lbl ];
+          span [] [ text lbl ];
           button
             [ on_click (fun () -> Signal.update (fun n -> n - Signal.get by) state) ]
             [ text "-" ];
           button
             [ on_click (fun () -> Signal.update (fun n -> n + Signal.get by) state) ]
             [ text "+" ];
-          span [ toggle ~on:(fun n -> n < 0) state (style "color: magenta") ] [ show int state ];
+          span [] [ show int state ];
         ]
     in
     (html, state)
@@ -33,9 +32,7 @@ module Test_02_parallel = struct
     let first, _ = Counter.make ~label:"first" () in
     let second, _ = Counter.make ~label:"second" () in
     let open Html in
-    fieldset
-      [ style "display: flex; flex-direction: column; gap: 5px" ]
-      [ legend [] [ h2 [] [ text "02. Parallel" ] ]; first; second ]
+    fieldset [] [ legend [] [ h2 [] [ text "02. Parallel" ] ]; first; second ]
 end
 
 module Test_03_sequential = struct
@@ -43,24 +40,19 @@ module Test_03_sequential = struct
     let first, by = Counter.make ~label:"first" () in
     let second, _ = Counter.make ~label:"second" ~by () in
     let open Html in
-    fieldset
-      [ style_list [ ("display", "flex"); ("flex-direction", "column"); ("gap", "5px") ] ]
-      [ legend [] [ h2 [] [ text "03. Sequential" ] ]; first; second ]
+    fieldset [] [ legend [] [ h2 [] [ text "03. Sequential" ] ]; first; second ]
 end
 
 module Test_04_multiplicity = struct
   let make () =
     let count_html, how_many = Counter.make ~label:"how many" () in
     let open Html in
-    fieldset
-      [ style_list [ ("display", "flex"); ("flex-direction", "column"); ("gap", "5px") ] ]
+    fieldset []
       [
         legend [] [ h2 [] [ text "04. Multiplicity" ] ];
         count_html;
         how_many
-        |> Signal.map (fun n -> if n < 0 then 0 else n)
         |> Signal.map (fun n -> List.init n (fun i -> string_of_int i))
-        |> Signal.tap (fun xs -> Jx.log (String.concat ", " xs))
         |> each (fun label -> fst (Counter.make ~label ()));
       ]
 end
@@ -73,7 +65,6 @@ module Test_05_inception = struct
     let deltas =
       Signal.reduce (fun (n, _) n' -> (n', n' - n > 0)) (Signal.get how_many, false) how_many
     in
-    Signal.sub Jx.log deltas;
 
     let items =
       deltas
@@ -94,8 +85,7 @@ module Test_05_inception = struct
     in
 
     let open Html in
-    fieldset
-      [ style_list [ ("display", "flex"); ("flex-direction", "column"); ("gap", "5px") ] ]
+    fieldset []
       [
         legend [] [ h2 [] [ text "05. Inception" ] ];
         counter_view;
@@ -105,8 +95,7 @@ end
 
 let main () =
   let open Html in
-  div
-    [ style "min-height: 1000px" ]
+  div []
     [
       h1 [] [ text "Component composition" ];
       blockquote []
@@ -117,12 +106,12 @@ let main () =
             [ text "https://github.com/TyOverby/composition-comparison" ];
         ];
       section
-        [ style_list [ ("display", "flex"); ("flex-direction", "column"); ("gap", "45px") ] ]
+        [ id "main" ]
         [
-          (* Test_01_component.make (); *)
-          (* Test_02_parallel.make (); *)
-          (* Test_03_sequential.make (); *)
-          (* Test_04_multiplicity.make (); *)
+          Test_01_component.make ();
+          Test_02_parallel.make ();
+          Test_03_sequential.make ();
+          Test_04_multiplicity.make ();
           Test_05_inception.make ();
         ];
     ]
