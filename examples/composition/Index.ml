@@ -1,25 +1,5 @@
 open Helix
 
-module Counter = struct
-  let make ?(by = Signal.make 1) lbl =
-    let count = Signal.make 0 in
-    let html =
-      let open Html in
-      div []
-        [
-          span [] [ text lbl ];
-          button
-            [ on_click (fun () -> Signal.update (fun n -> n - Signal.get by) count) ]
-            [ text "-" ];
-          button
-            [ on_click (fun () -> Signal.update (fun n -> n + Signal.get by) count) ]
-            [ text "+" ];
-          span [] [ show int count ];
-        ]
-    in
-    (html, count)
-end
-
 module Test_01_component = struct
   let make () =
     let html, _ = Counter.make "counter" in
@@ -37,8 +17,8 @@ end
 
 module Test_03_sequential = struct
   let make () =
-    let first, by = Counter.make "first" in
-    let second, _ = Counter.make ~by "second" in
+    let first, count = Counter.make "first" in
+    let second, _ = Counter.make ~by:count "second" in
     let open Html in
     fieldset [] [ legend [] [ h2 [] [ text "03. Sequential" ] ]; first; second ]
 end
@@ -98,9 +78,8 @@ let main () =
   div []
     [
       h1 [] [ text "Composition demo" ];
-      blockquote []
+      p []
         [
-          text "See: ";
           a
             [ href "https://github.com/TyOverby/composition-comparison" ]
             [ text "https://github.com/TyOverby/composition-comparison" ];
@@ -108,11 +87,11 @@ let main () =
       section
         [ id "main" ]
         [
-          Test_01_component.make ();
+          (* Test_01_component.make (); *)
           (* Test_02_parallel.make (); *)
           (* Test_03_sequential.make (); *)
           (* Test_04_multiplicity.make (); *)
-          (* Test_05_inception.make (); *)
+          Test_05_inception.make ();
         ];
     ]
 
