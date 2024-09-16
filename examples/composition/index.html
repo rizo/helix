@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Helix - Composition</title>
+  <style>
+    body {
+        font-family: sans-serif;
+    }
+    p {
+      font-size: 8pt;
+    }
+    button {
+      min-width: 3ex;
+    }
+    #main {
+      display: flex;
+      flex-direction: column;
+      gap: 45px;
+      padding-bottom: 200px;
+    }
+    #main fieldset {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    #main fieldset > div {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+    #main fieldset div > span {
+      display: inline-block;
+      width: 14ex;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <script src="./index.bc.js" type="text/javascript"></script>
+</body>
+</html>

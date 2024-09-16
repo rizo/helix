@@ -79,6 +79,7 @@ val instance_of : js -> constr:js -> bool
 (** {1 Equality} *)
 
 val equal : js -> js -> bool
+val strict_equal : js -> js -> bool
 
 (** {1 Global values} *)
 

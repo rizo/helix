@@ -361,8 +361,8 @@ module Window = struct
   let location = Jx.Obj.get this "location" Jx.Decoder.js
 
   let set_interval f ms =
-    Jx.Obj.call_js_unit Global.window "setInterval"
-      [| Jx.Encoder.fun1 f; Jx.Encoder.int ms |]
+    Jx.Obj.call2 Global.window "setInterval" ~return:Jx.Decoder.int
+      Jx.Encoder.fun1 Jx.Encoder.int f ms
 
   let set_timeout f ms =
     Jx.Obj.call2 Global.window "setTimeout" ~return:Jx.Decoder.int

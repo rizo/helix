@@ -1,5 +1,21 @@
 open Stdweb
 
+module Ctx = struct
+  let gen_id =
+    let i = ref (-1) in
+    fun () ->
+      incr i;
+      (Obj.magic !i : string)
+
+  type t = { id : string; mutable cleanup : (unit -> unit) list; tree : t Stdweb.Dict.t }
+
+  let make () = { id = gen_id (); cleanup = []; tree = Stdweb.Dict.empty () }
+  let on_cleanup t f = t.cleanup <- f :: t.cleanup
+  let cleanup t = List.iter (fun c -> c ()) t.cleanup
+  let link t t2 = Stdweb.Dict.set t.tree t2.id t2
+  let unlink t subctx = Stdweb.Dict.del t.tree subctx.id
+end
+
 (* Attributes are functions that set "attributes" on elements.
    Html values are functions that mount and unmount children.
 
@@ -10,44 +26,38 @@ open Stdweb
 *)
 
 module Attr = struct
-  type state = {
-    set : unit -> unit;
-    unset : unit -> unit;
-    free : (unit -> unit) option;
-  }
+  type state = { set : unit -> unit; unset : unit -> unit }
+  type t = Ctx.t -> Dom.Node.t -> state
 
-  type t = Dom.Node.t -> state
-
-  let empty _node = { set = ignore; unset = ignore; free = None }
-  let on bool attr = if bool then attr else empty
+  let nop _ctx _node = { set = ignore; unset = ignore }
+  let on bool attr = if bool then attr else nop
 
   let on_some = function
-    | None -> empty
+    | None -> nop
     | Some at -> at
 
   let on_ok = function
-    | Error _ -> empty
+    | Error _ -> nop
     | Ok attr -> attr
 
-  let string name value node =
+  let string name value _ctx node =
     let set () = Dom.Node.set_attr node name value in
     let unset () = Dom.Node.unset_attr node name in
-    { set; unset; free = None }
+    { set; unset }
 
-  let bool name bool = if bool then string name "" else empty
+  let bool name bool = if bool then string name "" else nop
   let int name i = string name (string_of_int i)
 
-  let on_mount f node =
+  let on_mount f _ctx node =
     let set () = f node in
-    { set; unset = ignore; free = None }
+    { set; unset = ignore }
 
   let set attr node = attr node
   let unset state = state.unset ()
-  let make f = f
 
-  let combine a1 a2 node =
-    let a1_state = a1 node in
-    let a2_state = a2 node in
+  let combine a1 a2 ctx node =
+    let a1_state = a1 ctx node in
+    let a2_state = a2 ctx node in
     let set () =
       a1_state.set ();
       a2_state.set ()
@@ -56,23 +66,9 @@ module Attr = struct
       a1_state.unset ();
       a2_state.unset ()
     in
-    let free =
-      match a1_state.free with
-      | None -> a2_state.free
-      | Some a1_free_f -> (
-        match a2_state.free with
-        | None -> a1_state.free
-        | Some a2_free_f ->
-          Some
-            (fun () ->
-              a1_free_f ();
-              a2_free_f ()
-            )
-      )
-    in
-    { set; unset; free }
+    { set; unset }
 
-  let list attrs = List.fold_left combine empty attrs
+  let list attrs = List.fold_left combine nop attrs
   let label = string "label"
 end
 
@@ -119,10 +115,10 @@ let tabindex value = Attr.int "tabindex" value
 let title value = Attr.string "title" value
 let type' value = Attr.string "type" value
 
-let value x node =
+let value x _ctx node =
   let set () = Dom.Node.set_value node x in
   let unset () = Dom.Node.reset_value node in
-  { Attr.set; unset; free = None }
+  { Attr.set; unset }
 
 let value_or default opt =
   match opt with
@@ -134,29 +130,25 @@ let width value = Attr.int "width" value
 let style x = Attr.string "style" x
 let role x = Attr.string "role" x
 
-let style_list items node =
+let style_list items _ctx node =
   let style = Dom.Node.get_style node in
-  let set () =
-    List.iter (fun (name, value) -> Dom.Style.set style name value) items
-  in
-  let unset () =
-    List.iter (fun (name, _value) -> Dom.Style.unset style name) items
-  in
-  { Attr.set; unset; free = None }
+  let set () = List.iter (fun (name, value) -> Dom.Style.set style name value) items in
+  let unset () = List.iter (fun (name, _value) -> Dom.Style.unset style name) items in
+  { Attr.set; unset }
 
-let class_list items node =
+let class_list items _ctx node =
   let cl = Dom.Node.get_class_list node in
   let set () = List.iter (fun name -> Dom.Token_list.add cl name) items in
   let unset () = List.iter (fun name -> Dom.Token_list.remove cl name) items in
-  { Attr.set; unset; free = None }
+  { Attr.set; unset }
 
 let class_flags options =
-  let list =
-    List.fold_left (fun acc (c, b) -> if b then c :: acc else acc) [] options
-  in
+  let list = List.fold_left (fun acc (c, b) -> if b then c :: acc else acc) [] options in
   class_list list
 
-let on ?(default = true) ?confirm (name : Dom.Event.name) f node =
+(* Do we need to unbind the event explicitly? In theory, the browser should
+   remove the listeners when the node is gc'ed. *)
+let on ?(default = true) ?confirm (name : Dom.Event.name) f _ctx node =
   let f' =
     match confirm with
     | None when not default ->
@@ -173,27 +165,21 @@ let on ?(default = true) ?confirm (name : Dom.Event.name) f node =
   in
   let set () = Dom.Node.bind node name f' in
   let unset () = Dom.Node.unbind node name f' in
-  (* Do we need to unbind the event in free? In theory, the browser should
-     remove the listeners when the node is gc'ed. *)
-  { Attr.set; unset; free = None }
+  { Attr.set; unset }
 
 let on_change ?confirm handler =
   on ~default:false ?confirm Dom.Event.change (fun ev ->
-      handler (Dom.Node.get_value (Dom.Event.target ev))
-  )
+      handler (Dom.Node.get_value (Dom.Event.target ev)))
 
 let on_checked ?confirm handler =
   on ~default:false ?confirm Dom.Event.change (fun ev ->
-      handler (Dom.Node.get_checked (Dom.Event.target ev))
-  )
+      handler (Dom.Node.get_checked (Dom.Event.target ev)))
 
 let on_input ?confirm handler =
   on ~default:false ?confirm Dom.Event.input (fun ev ->
-      handler (Dom.Node.get_value (Dom.Event.target ev))
-  )
+      handler (Dom.Node.get_value (Dom.Event.target ev)))
 
-let on_click ?confirm handler =
-  on ~default:false ?confirm Dom.Event.click (fun _ -> handler ())
+let on_click ?confirm handler = on ~default:false ?confirm Dom.Event.click (fun _ -> handler ())
 
 let on_double_click ?confirm handler =
   on ~default:false ?confirm Dom.Event.dblclick (fun _ -> handler ())
@@ -211,10 +197,11 @@ let on_double_click ?confirm handler =
 
 (* Extra constructors. *)
 module Elem = struct
-  type state = { free : (unit -> unit) option; remove : unit -> unit }
-  type t = Dom.node -> (Dom.node -> unit) -> state
+  type state = { unmount : unit -> unit; mount : (Dom.node -> unit) -> unit }
+  type t = Ctx.t -> Dom.node -> state
 
-  let empty _parent _insert = { free = None; remove = (fun () -> ()) }
+  let null_state = { unmount = ignore; mount = (fun _insert -> ()) }
+  let null _ctx _parent = null_state
 
   (*
     [NOTE] Invariant
@@ -233,125 +220,81 @@ module Elem = struct
     The `conditional` attribute requires that the node is mounted on a parent.
   *)
 
-  let make name attrs children parent insert =
-    (* Create elem *)
+  let make name attrs children ctx parent =
     let node = Dom.Document.create_element name in
-    (* Add to parent *)
-    insert node;
-    (* Set attrs and collect cleanup actions. *)
-    let free_attrs =
-      List.fold_left
-        (fun acc (attr : Attr.t) ->
-          let state = attr node in
-          state.set ();
-          match state.free with
-          | None -> acc
-          | Some f -> f :: acc
-        )
-        [] attrs
-    in
-    (* Append childrend and collect cleanup actions. *)
-    let free =
-      match
-        List.fold_left
-          (fun acc (child : t) ->
-            let state = child node (Dom.Node.append_child ~parent:node) in
-            match state.free with
-            | None -> acc
-            | Some f -> f :: acc
-          )
-          free_attrs children
-      with
-      | [] -> None
-      | fs -> Some (fun () -> List.iter (fun f -> f ()) fs)
-    in
-    let remove () = Dom.Node.remove_child ~parent node in
-    { free; remove }
+    List.iter
+      (fun (attr : Attr.t) ->
+        let state = attr ctx node in
+        state.set ())
+      attrs;
+    let node_insert = Dom.Node.append_child ~parent:node in
+    List.iter
+      (fun (child : t) ->
+        let child_state = child ctx node in
+        child_state.mount node_insert)
+      children;
+    {
+      unmount = (fun () -> Dom.Node.remove_child ~parent node);
+      mount = (fun insert -> insert node);
+    }
 
-  let fragment children parent insert =
-    let children_states_rev =
-      List.rev_map (fun (child : t) -> child parent insert) children
-    in
-    let free =
-      match List.filter_map (fun (s : state) -> s.free) children_states_rev with
-      | [] -> None
-      | fs -> Some (fun () -> List.iter (fun f -> f ()) fs)
-    in
-    let remove () =
-      List.iter
-        (fun (child_state : state) -> child_state.remove ())
-        children_states_rev
-    in
-    { free; remove }
-
-  let text data parent insert =
+  let text data _ctx parent =
     let node = Dom.Document.create_text_node data in
-    insert node;
-    let remove () = Dom.Node.remove_child ~parent node in
-    { free = None; remove }
+    {
+      unmount = (fun () -> Dom.Node.remove_child ~parent node);
+      mount = (fun insert -> insert node);
+    }
 
   let of_some to_html option =
     match option with
     | Some x -> to_html x
-    | None -> empty
+    | None -> null
 
   let of_ok to_html result =
     match result with
     | Ok x -> to_html x
-    | Error _ -> empty
+    | Error _ -> null
 
-  let list f list = fragment (List.map f list)
-  let list_indexed f list = fragment (List.mapi f list)
+  let on_unmount f elem ctx =
+    Ctx.on_cleanup ctx f;
+    elem ctx
 
-  let on_unmount f t parent insert =
-    let s = t parent insert in
-    {
-      s with
-      free =
-        ( match s.free with
-        | None -> Some f
-        | Some s_free ->
-          Some
-            (fun () ->
-              s_free ();
-              f ()
-            )
-        );
-    }
-
-  let unsafe name attrs content parent insert =
+  let unsafe name attrs content ctx parent =
     let node = Dom.Document.create_element name in
     Dom.Node.set_inner_html node content;
-    insert node;
-    let free =
-      match
-        List.fold_left
-          (fun acc (attr : Attr.t) ->
-            let state = attr node in
-            state.set ();
-            match state.free with
-            | None -> acc
-            | Some f -> f :: acc
-          )
-          [] attrs
-      with
-      | [] -> None
-      | fs -> Some (fun () -> List.iter (fun f -> f ()) fs)
-    in
-    let remove () = Dom.Node.remove_child ~parent node in
-    { free; remove }
+    List.iter
+      (fun (attr : Attr.t) ->
+        let state = attr ctx node in
+        state.set ())
+      attrs;
+    {
+      unmount = (fun () -> Dom.Node.remove_child ~parent node);
+      mount = (fun insert -> insert node);
+    }
 
-  let unmount (state : state) =
-    Option.iter (fun f -> f ()) state.free;
-    state.remove ()
+  let fragment children ctx parent =
+    let frag = Dom.Fragment.make () in
+    let frag_insert = Dom.Node.append_child ~parent:frag in
+    let states =
+      List.map
+        (fun (child : t) ->
+          let s = child ctx parent in
+          s.mount frag_insert;
+          s)
+        children
+    in
+    {
+      unmount = (fun () -> List.iter (fun (s : state) -> s.unmount ()) states);
+      mount = (fun insert -> insert frag);
+    }
 end
 
-type elem = Elem.t
+type html = Elem.t
 
 let elem = Elem.make
-let fragment = Elem.fragment
 let text = Elem.text
-let empty = Elem.empty
+let null = Elem.null
+let fragment = Elem.fragment
 let int n = text (string_of_int n)
 let nbsp = text "\u{00A0}"
 let a attrs children = elem "a" attrs children
@@ -458,38 +401,18 @@ let ul attrs children = elem "ul" attrs children
 let var attrs children = elem "var" attrs children
 let video attrs children = elem "video" attrs children
 let wbr attrs = elem "wbr" attrs []
-let text_list l = fragment (List.map text l)
 
-let resource ~init ~free (use : 'a -> Elem.t) parent insert : Elem.state =
+let resource ~init ~free (use : 'a -> Elem.t) ctx parent =
   let r = init () in
   let html = use r in
-  let html_state = html parent insert in
-  let free =
-    match html_state.free with
-    | None -> Some (fun () -> free r)
-    | Some html_free ->
-      Some
-        (fun () ->
-          html_free ();
-          free r
-        )
-  in
-  { html_state with free }
-
-(*
-module Head = struct
-  let title attrs children = elem "title" attrs children
-  let style attrs children = elem "style" attrs children
-  let body attrs children = elem "body" attrs children
-  let link attrs = elem "link" attrs []
-  let noscript attrs children = elem "noscript" attrs children
-  let script attrs children = elem "script" attrs children
-  let template attrs children = elem "template" attrs children
-end 
-*)
+  let state = html ctx parent in
+  Ctx.on_cleanup ctx (fun () -> free r);
+  state
 
 (* DOM helpers *)
 
 let mount parent html =
-  let _html_state = html parent (Dom.Node.append_child ~parent) in
-  ()
+  let ctx = Ctx.make () in
+  let state : Elem.state = html ctx parent in
+  let insert = Dom.Node.append_child ~parent in
+  state.mount insert

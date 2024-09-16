@@ -1,4 +1,4 @@
-type elem = Html.elem
+type html = Html.html
 type attr = Html.attr
 type 'a signal = 'a Signal.t
 

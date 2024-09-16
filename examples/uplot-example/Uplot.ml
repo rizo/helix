@@ -19,4 +19,4 @@ let set_size ~w ~h uplot =
     [ ("width", Jx.Encoder.int w); ("height", Jx.Encoder.int h) ]
 
 let mount ~options ~data uplot_ref =
-  Html.Attr.on_mount (fun el -> uplot_ref := Some (make ~options ~data el))
+  Html.Attr.on_mount (fun node -> uplot_ref := Some (make ~options ~data node))

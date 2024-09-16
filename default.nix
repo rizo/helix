@@ -1,19 +1,18 @@
 { pkgs ? import <nixpkgs> { } }:
 
 let
-  ocamlPackages = pkgs.ocaml-ng.ocamlPackages_5_1;
   onix = import (builtins.fetchGit {
     url = "https://github.com/rizo/onix.git";
-    rev = "41bf9e887fa8f1399ac328f1868d6d2ba27aab9f";
+    rev = "00720d8a87daef3bbf66eb89e2b7d8efcaf577aa";
   }) {
-    inherit pkgs ocamlPackages;
+    inherit pkgs;
     verbosity = "info";
   };
 
 in onix.env {
   path = ./.;
   deps = {
-    "ocaml-system" = "5.1.1";
+    "ocaml-base-compiler" = "5.2.0";
   };
   roots = [ ./helix.opam ];
   vars = {
