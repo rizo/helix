@@ -7,6 +7,8 @@ module Test_01_component = struct
     fieldset [] [ legend [] [ h2 [] [ text "01. Single" ] ]; html ]
 end
 
+(* Parallel *)
+
 module Test_02_parallel = struct
   let make () =
     let first, _ = Counter.make "first" in
@@ -15,6 +17,8 @@ module Test_02_parallel = struct
     fieldset [] [ legend [] [ h2 [] [ text "02. Parallel" ] ]; first; second ]
 end
 
+(* Sequential *)
+
 module Test_03_sequential = struct
   let make () =
     let first, count = Counter.make "first" in
@@ -22,6 +26,8 @@ module Test_03_sequential = struct
     let open Html in
     fieldset [] [ legend [] [ h2 [] [ text "03. Sequential" ] ]; first; second ]
 end
+
+(* Multiplicity *)
 
 module Test_04_multiplicity = struct
   let make () =
@@ -36,6 +42,8 @@ module Test_04_multiplicity = struct
         |> each (fun label -> fst (Counter.make label));
       ]
 end
+
+(* Inception *)
 
 module Test_05_inception = struct
   let make () =
@@ -87,11 +95,11 @@ let main () =
       section
         [ id "main" ]
         [
-          (* Test_01_component.make (); *)
+          Test_01_component.make ();
           (* Test_02_parallel.make (); *)
           (* Test_03_sequential.make (); *)
           (* Test_04_multiplicity.make (); *)
-          Test_05_inception.make ();
+          (* Test_05_inception.make (); *)
         ];
     ]
 
