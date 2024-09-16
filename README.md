@@ -57,15 +57,6 @@ let () =
 ```
 
 
-## Roadmap
-
-- Add support for [Melange](https://github.com/melange-re/melange).
-- Implement a JSX PPX for [Reason](https://reasonml.github.io).
-  - WIP implementation: https://github.com/rizo/helix/tree/master/experiments/helix-ppx.
-- Server-side rendering.
-- Support for scoped CSS styling using web-components.
-
-
 ## Acknowledgements
 
 This library is based on ideas found in other libraries and projects such as:
