@@ -23,12 +23,6 @@ depends: [
   "ocaml"
   "dune" {build}
   "signal"
-  "js_of_ocaml-compiler" {build & >= "4.1.0"} # jx.jsoo
+  "js_of_ocaml-compiler" {build & >= "4.1.0"}
   "odoc" {with-doc}
-  "ocaml-lsp-server" {with-dev-setup}
-  "ocamlformat" {with-dev-setup}
-]
-
-pin-depends: [
-  ["signal.dev" "git+https://github.com/rizo/signal#8c27848ecef0b4763573f9108b4857799fc03b9a"]
 ]
