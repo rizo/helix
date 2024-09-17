@@ -308,6 +308,35 @@ let test_interleave () =
         ];
     ]
 
+let test_each_signal_list_1 () =
+  let l = List.init 5 (fun i -> Signal.make i) in
+  let ls = Signal.make l in
+  let open Html in
+  ul [] [ each (fun s -> show (fun i -> li [] [ int i ]) s) ls ]
+
+let test_each_signal_list_2 () =
+  let ls = Signal.make (List.init 5 (fun i -> Signal.make i)) in
+  let open Html in
+  div []
+    [
+      button
+        [
+          on_click (fun () -> Signal.update (fun l -> Signal.make (1000 + Random.int 100) :: l) ls);
+        ]
+        [ text "Add" ];
+      button
+        [ on_click (fun () -> Signal.update (fun l -> try List.tl l with _ -> []) ls) ]
+        [ text "Remove" ];
+      ul []
+        [
+          each
+            (fun s ->
+              let incr = button [ on_click (fun () -> Signal.update (( + ) 1) s) ] [ text "+" ] in
+              show (fun i -> li [] [ incr; nbsp; int i ]) s)
+            ls;
+        ];
+    ]
+
 let main () =
   let open Html in
   div []
@@ -364,6 +393,10 @@ let main () =
       hr [];
       h2 [] [ text "interleave" ];
       test_interleave ();
+      h2 [] [ text "each_signal_list_1" ];
+      test_each_signal_list_1 ();
+      h2 [] [ text "each_signal_list_2" ];
+      test_each_signal_list_2 ();
     ]
 
 let () =
