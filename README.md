@@ -5,7 +5,7 @@
 > Note: this project is experimental. The core functionality is stable but the
 > API may break before the official release.
 
-[**API Docs**](https://rizo.github.io/helix/helix/Helix/index.html) • [**Examples**](https://github.com/rizo/helix/tree/master/examples)
+[**API Docs**](https://rizo.github.io/helix/helix/Helix/index.html) • [**Examples**](https://github.com/rizo/helix/tree/master/examples) • [**Starter Project**](https://github.com/rizo/helix-starter)
 
 ## Features
 
