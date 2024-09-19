@@ -32,6 +32,7 @@
 - [ ] Unmounting should NOT free. Because remounting is acceptable. Test for this.
 - [ ] Signals should have cleanup: for example, Time.timer should cleanup interval.
 - [ ] Fix rendering/remounting order. See uplot example.
+- [ ] Cache class_list update when the class set is the same.
 
 ## shared_ref
 
