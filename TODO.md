@@ -79,6 +79,11 @@ Node mounting order is extremely important for the correct rendering of the UIs.
 
 For example, with uplot, not having all the siblings mounted, results in incorrect width assignment. When all the child nodes are set to auto layout with flex, uplot should get access to the node reference only after all nodes have been mounted. That is, when the parent is mounted itself, for example.
 
+### Notes
+
+- `Html.on_mount` can be currently used to run callbacks once the html component is fully mounted. Where "mounted" means: elem initialized, inserted into parent, attributes are set, children are mounted.
+- An alternative approach is to differentiate Html.attr values between: early and late. Late attributes must be called at the same moment as described in the previous point.
+
 ### Invariants
 
 - The node MUST be mounted when the attributes are set.
