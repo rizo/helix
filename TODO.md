@@ -78,3 +78,7 @@ Fatal error: exception Failure("bug: attempting to remove a text node without a 
 Node mounting order is extremely important for the correct rendering of the UIs. Certain libraries, such as uplot, require a reference to a node to be rendered. If this node is not mounted or if the sibling nodes are not fully mounted, this can lead to issues.
 
 For example, with uplot, not having all the siblings mounted, results in incorrect width assignment. When all the child nodes are set to auto layout with flex, uplot should get access to the node reference only after all nodes have been mounted. That is, when the parent is mounted itself, for example.
+
+### Invariants
+
+- The node MUST be mounted when the attributes are set.
