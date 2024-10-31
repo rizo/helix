@@ -603,4 +603,5 @@ val resource : init:(unit -> 'a) -> free:('a -> unit) -> ('a -> html) -> html
 
 (** {2 DOM helpers} *)
 
+val on_mount : (unit -> unit) -> html -> html
 val mount : Dom.node -> html -> unit

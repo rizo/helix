@@ -221,21 +221,31 @@ module Elem = struct
   *)
 
   let make name attrs children ctx parent =
+    let mounted = ref false in
+    (* Create node *)
     let node = Dom.Document.create_element name in
-    List.iter
-      (fun (attr : Attr.t) ->
-        let state = attr ctx node in
-        state.set ())
-      attrs;
-    let node_insert = Dom.Node.append_child ~parent:node in
-    List.iter
-      (fun (child : t) ->
-        let child_state = child ctx node in
-        child_state.mount node_insert)
-      children;
+    let mount insert =
+      insert node;
+      if not !mounted then (
+        (* Set node's attributes *)
+        List.iter
+          (fun (attr : Attr.t) ->
+            let state = attr ctx node in
+            state.set ())
+          attrs;
+        (* Create and mount children *)
+        let node_insert = Dom.Node.append_child ~parent:node in
+        List.iter
+          (fun (child : t) ->
+            let child_state = child ctx node in
+            child_state.mount node_insert)
+          children;
+        mounted := true)
+    in
     {
       unmount = (fun () -> Dom.Node.remove_child ~parent node);
-      mount = (fun insert -> insert node);
+      (* Allow mounting node on parent *)
+      mount;
     }
 
   let text data _ctx parent =
@@ -401,6 +411,16 @@ let ul attrs children = elem "ul" attrs children
 let var attrs children = elem "var" attrs children
 let video attrs children = elem "video" attrs children
 let wbr attrs = elem "wbr" attrs []
+
+let on_mount f html ctx parent =
+  let state : Elem.state = html ctx parent in
+  {
+    state with
+    mount =
+      (fun insert ->
+        state.mount insert;
+        f ());
+  }
 
 let resource ~init ~free (use : 'a -> Elem.t) ctx parent =
   let r = init () in
