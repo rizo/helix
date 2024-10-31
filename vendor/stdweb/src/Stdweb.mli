@@ -441,6 +441,7 @@ module Dom : sig
     val set_autofocus : t -> bool -> unit
     val get_offset_width : t -> int
     val get_client_width : t -> int
+    val get_scroll_width : t -> int
     val get_checked : t -> bool
     val set_checked : t -> bool -> unit
     val get_files : t -> File.t array

@@ -272,6 +272,7 @@ module Node = struct
   let set_autofocus this x = Jx.Obj.set this "autofocus" Jx.Encoder.bool x
   let get_offset_width this = Jx.Obj.get this "offsetWidth" Jx.Decoder.int
   let get_client_width this = Jx.Obj.get this "clientWidth" Jx.Decoder.int
+  let get_scroll_width this = Jx.Obj.get this "scrollWidth" Jx.Decoder.int
   let get_checked this = Jx.Obj.get this "checked" Jx.Decoder.bool
   let set_checked this x = Jx.Obj.set this "checked" Jx.Encoder.bool x
   let get_files this = Jx.Obj.get this "files" Jx.Decoder.array_js
