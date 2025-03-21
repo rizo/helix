@@ -77,7 +77,7 @@ val bind : ('a -> Html.attr) -> 'a Signal.t -> Html.attr
 
     {[
       let style = Signal.make [ ("color", "red") ] in
-      div [ Html.bind Html.style style ] [ text "Hello!" ]
+      div [ bind Html.style style ] [ text "Hello!" ]
     ]} *)
 
 val bind_some : ('a -> Html.attr) -> 'a option Signal.t -> Html.attr
