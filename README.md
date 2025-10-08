@@ -76,4 +76,4 @@ Warning 58 [no-cmx-file]: no cmx file was found in path for module Helix, and it
     ace was not compiled with -opaque
 ```
 
-Helix is built to be used with js_of_ocaml, which itself works with OCaml's bytecode. The above warning suggests that Helix does not provide a native "cmx" file. This is expected, since Helix is built with dune's `byte` mode. To resolve this issue, build your executables with `(modes js)` and your libraries with `(modes byte)`. See https://dune.readthedocs.io/en/stable/reference/dune/executable.html#linking-modes.
+Helix is built to be used with js_of_ocaml, which itself works with OCaml's bytecode. The above warning suggests that Helix does not provide a native "cmx" file. This is expected since Helix is built with dune's `byte` mode. To resolve this issue, build your executables with `(modes js)` and your libraries with `(modes byte)`. See https://dune.readthedocs.io/en/stable/reference/dune/executable.html#linking-modes.
