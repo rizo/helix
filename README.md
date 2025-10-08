@@ -65,3 +65,15 @@ This library is based on ideas found in other libraries and projects such as:
 [petite-vue](https://github.com/vuejs/petite-vue),
 [Surplus](https://github.com/adamhaile/surplus),
 [Brr](https://erratique.ch/software/brr) and [ReactJS](https://reactjs.org/).
+
+
+## Troubleshooting
+
+### Build fails with "no cmx file was found"
+
+```
+Warning 58 [no-cmx-file]: no cmx file was found in path for module Helix, and its interf
+    ace was not compiled with -opaque
+```
+
+Helix is built to used with js_of_ocaml, which itself works with OCaml's bytecode. The above warning suggests that Helix does not provide a native "cmx" file. This is expected, since Helix is built with dune's `byte` mode. To resolve this issue, build your executables with `(modes js)` and your libraries with `(modes byte)`. See https://dune.readthedocs.io/en/stable/reference/dune/executable.html#linking-modes.
