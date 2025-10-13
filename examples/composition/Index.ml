@@ -98,10 +98,10 @@ let main () =
         [ id "main" ]
         [
           Test_01_component.make ();
-          (* Test_02_parallel.make (); *)
-          (* Test_03_sequential.make (); *)
-          (* Test_04_multiplicity.make (); *)
-          (* Test_05_inception.make (); *)
+          Test_02_parallel.make ();
+          Test_03_sequential.make ();
+          Test_04_multiplicity.make ();
+          Test_05_inception.make ();
         ];
     ]
 

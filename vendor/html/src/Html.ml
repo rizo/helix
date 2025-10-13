@@ -207,7 +207,7 @@ module Elem = struct
     [NOTE] Invariant
     The parent MUST NOT change.
 
-    [NOTE] Oredr
+    [NOTE] Order
     The initialization order MUST be:
     1. create elem
     2. insert elem
@@ -218,6 +218,8 @@ module Elem = struct
     `select` requires that children are present for the `value` attr to work.
 
     The `conditional` attribute requires that the node is mounted on a parent.
+
+    Attr.on_mount attr should pass a mounted node.
   *)
 
   let make name attrs children ctx parent =
