@@ -159,6 +159,21 @@ let view_each () =
         ];
     ]
 
+let view_loop () =
+  let sums, emit_num = Signal.reducer ( + ) 1 in
+  let sums_sampled = Signal.sample ~on:(Time.tick ~ms:100) sums in
+  Signal.use (fun x -> emit_num (if x = 0 then 1 else x)) sums_sampled;
+
+  let open Html in
+  fieldset []
+    [
+      legend [] [ h2 [ style_list [ "font-family" => "monospace" ] ] [ text "loop" ] ];
+      div
+        [ style_list [ "margin-bottom" => "20px" ] ]
+        [ text "show a signal that updates itself in a loop." ];
+      div [] [ show int sums ];
+    ]
+
 let main () =
   let open Html in
   div
@@ -174,6 +189,7 @@ let main () =
       view_show ();
       view_toggle ();
       view_each ();
+      view_loop ();
     ]
 
 let () =
