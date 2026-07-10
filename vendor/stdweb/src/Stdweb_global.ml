@@ -1,8 +1,12 @@
-let window = Jx.global "window"
-let document = Jx.global "document"
-let console = Jx.global "console"
-let navigator = Jx.global "navigator"
+open struct
+  module E = Jx.Encode
+end
+
+let window = Jx.expr "window"
+let document = Jx.expr "document"
+let console = Jx.expr "console"
+let navigator = Jx.expr "navigator"
 
 let encode_uri_component =
-  let f = Jx.global "encodeURIComponent" in
-  Jx.Fun.call1 f ~return:Jx.Decoder.string Jx.Encoder.string
+  let f = Jx.expr "encodeURIComponent" in
+  fun x -> Jx.call f [| E.string x |]

@@ -1,11 +1,16 @@
+open struct
+  module E = Jx.Encode
+  module D = Jx.Decode
+end
+
 type 'a t = Jx.t
 
 let t = Jx.global "Array"
 let to_js p = p
 let of_js js = js
-let make n = Jx.Obj.new1 t Jx.Encoder.int n
+let make n = Jx.obj_new t [| E.int n |]
 let empty () = make 0
-let set arr (i : int) x = Jx.Obj.set_js arr (Jx.Encoder.int i) (Jx.Encoder.any x)
+let set arr (i : int) x = Jx.arr_set arr i (E.any x)
 
 let init n f =
   let out = make n in
@@ -14,26 +19,23 @@ let init n f =
   done;
   out
 
-let get arr i = Jx.Decoder.any (Jx.Obj.get_js arr (Jx.Encoder.int i))
+let get arr i = D.any (Jx.arr_get arr i)
 
 let get_opt arr i =
-  let x = get arr i in
-  let x_js = Jx.Encoder.any x in
-  if Jx.is_undefined x_js then raise Not_found else x
+  let x = Jx.arr_get arr i in
+  if Jx.strict_equal x Jx.undefined then raise Not_found else D.any x
 
-let push arr x = Jx.Obj.call1_unit arr "push" Jx.Encoder.any x
-let pop arr = Jx.Obj.call0 arr "pop" ~return:Jx.Decoder.any ()
-let pop_opt arr = Jx.Obj.call0 arr "pop" ~return:Jx.Decoder.(optional any) ()
-let length arr = Jx.Obj.get arr "length" Jx.Decoder.int
+let push arr x = ignore (Jx.obj_call arr "push" [| E.any x |])
+let pop arr = D.any (Jx.obj_call arr "pop" [||])
 
-let concat arr1 arr2 =
-  Jx.Obj.call1 ~return:Jx.Decoder.js arr1 "concat" Jx.Encoder.js arr2
+let pop_opt arr =
+  let x = Jx.obj_call arr "pop" [||] in
+  if Jx.strict_equal x Jx.undefined then None else Some (D.any x)
 
-let slice arr i j =
-  Jx.Obj.call2 ~return:Jx.Decoder.js arr "slice" Jx.Encoder.int Jx.Encoder.int i
-    j
-
-let iter arr f = Jx.Obj.call1_unit arr "forEach" Jx.Encoder.fun1 f
+let length arr = D.int (Jx.obj_get arr "length")
+let concat arr1 arr2 = ignore (Jx.obj_call arr1 "concat" [| arr2 |])
+let slice arr i j = Jx.obj_call arr "slice" [| E.int i; E.int j |]
+let iter arr f = ignore (Jx.obj_call arr "forEach" [| E.func 1 f |])
 
 let of_list l =
   match l with
