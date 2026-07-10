@@ -58,8 +58,8 @@ module Dict : sig
 
   val of_js : Jx.t -> 'a t
   val to_js : 'a t -> Jx.t
-  val of_obj : Jx.Obj.t -> 'a t
-  val to_obj : 'a t -> Jx.Obj.t
+  val of_obj : Jx.t -> 'a t
+  val to_obj : 'a t -> Jx.t
   val empty : unit -> 'a t
   val of_list : (string * 'a) list -> 'a t
   val of_array : (string * 'a) array -> 'a t

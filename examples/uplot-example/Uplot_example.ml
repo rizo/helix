@@ -1,28 +1,25 @@
+module E = Jx.Encode
 open Stdweb
 
 let ( => ) a b = (a, b)
 
 let make_options ~w () =
-  let open Jx.Encoder in
-  obj
-    [
-      "title" => string "Helix - uPlot";
-      "width" => int w;
-      "height" => int 400;
-      "scales" => obj [ "x" => obj [ "time" => bool false ] ];
+  let module E = Jx.Encode in
+  E.obj
+    [|
+      "title" => E.string "Helix - uPlot";
+      "width" => E.int w;
+      "height" => E.int 400;
+      "scales" => E.obj [| "x" => E.obj [| "time" => E.bool false |] |];
       "series"
-      => array js
+      => E.array
            [|
-             obj [];
-             obj [ "label" => string "One"; "stroke" => string "red" ];
-             obj
-               [
-                 "label" => string "Two";
-                 "stroke" => string "blue";
-                 "show" => bool false;
-               ];
+             E.obj [||];
+             E.obj [| "label" => E.string "One"; "stroke" => E.string "red" |];
+             E.obj
+               [| "label" => E.string "Two"; "stroke" => E.string "blue"; "show" => E.bool false |];
            |];
-    ]
+    |]
 
 let data1 =
   [|
@@ -54,16 +51,13 @@ let main () =
       | None -> ()
       | Some node ->
         let w = Dom.Node.get_client_width node in
-        Uplot.set_size ~w ~h:400 (Option.get !uplot)
-  );
+        Uplot.set_size ~w ~h:400 (Option.get !uplot));
 
   let open Html in
   div
     [ id "parent" ]
     [
-      button
-        [ on Dom.Event.click (fun _ -> Signal.update not flag) ]
-        [ text "Toggle data" ];
+      button [ on Dom.Event.click (fun _ -> Signal.update not flag) ] [ text "Toggle data" ];
       div
         [
           id "uplot-container";
@@ -72,8 +66,7 @@ let main () =
               let w = Dom.Node.get_client_width node in
               let options = make_options ~w () in
               uplot := Some (Uplot.make ~options ~data:data1 node);
-              uplot_node := Some node
-          );
+              uplot_node := Some node);
         ]
         [];
     ]

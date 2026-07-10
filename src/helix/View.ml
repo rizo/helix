@@ -1,8 +1,12 @@
-module Comment = Stdweb.Dom.Comment
-module Fragment = Stdweb.Dom.Fragment
-module Document = Stdweb.Dom.Document
-module Node = Stdweb.Dom.Node
-module Event = Stdweb.Dom.Event
+open struct
+  module Comment = Stdweb.Dom.Comment
+  module Fragment = Stdweb.Dom.Fragment
+  module Document = Stdweb.Dom.Document
+  module Node = Stdweb.Dom.Node
+  module Event = Stdweb.Dom.Event
+  module E = Jx.Encode
+  module D = Jx.Decode
+end
 
 module List_ext = struct
   let rev_mapi f l0 =
@@ -166,7 +170,7 @@ end = struct
   type slots = Html.Elem.state Map.t
   type t = slots Map.t
 
-  let key x = Jx.Encoder.any x
+  let key x = E.any x
   let make = Map.make
   let make_slots = Map.make
 
@@ -174,7 +178,7 @@ end = struct
     match Map.first_key slots with
     | None -> failwith "BUG: get_slot: slots must not be empty"
     | Some idx_js ->
-      let idx = Jx.Decoder.int idx_js in
+      let idx = D.int idx_js in
       let html = Map.get slots idx_js |> Option.get in
       (idx, html)
 
@@ -187,19 +191,20 @@ end = struct
       | None -> make_slots ()
       | Some slots -> slots
     in
-    Map.set slots (Jx.Encoder.int idx) html;
+    Map.set slots (E.int idx) html;
     set cache ~key slots
 
   let del_slot cache ~key slots idx =
-    Map.delete slots (Jx.Encoder.int idx);
+    Map.delete slots (E.int idx);
     if Map.size slots = 0 then Map.delete cache key
 
   let clear cache =
-    Map.values cache
-    |> Iterator.iter (fun (slots : slots) ->
-           let states = Map.values slots in
-           Iterator.iter (fun (s : Html.Elem.state) -> s.unmount ()) states;
-           Map.clear slots)
+    Iterator.iter
+      (fun (slots : slots) ->
+        let states = Map.values slots in
+        Iterator.iter (fun (s : Html.Elem.state) -> s.unmount ()) states;
+        Map.clear slots)
+      (Map.values cache)
 end
 
 let gen_each_id =

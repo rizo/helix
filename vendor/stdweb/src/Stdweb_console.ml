@@ -3,8 +3,10 @@ module Global = Stdweb_global
 type t = Jx.t
 
 let t = Global.console
-let log x = Jx.Obj.call1_unit t "log" Jx.Encoder.any x
-let error x = Jx.Obj.call1_unit t "error" Jx.Encoder.any x
-let info x = Jx.Obj.call1_unit t "info" Jx.Encoder.any x
-let warn x = Jx.Obj.call1_unit t "warn" Jx.Encoder.any x
-let ensure b x = Jx.Obj.call2_unit t "assert" Jx.Encoder.bool Jx.Encoder.any b x
+let log x = ignore (Jx.obj_call t "log" [| Jx.Encode.any x |])
+let error x = ignore (Jx.obj_call t "error" [| Jx.Encode.any x |])
+let info x = ignore (Jx.obj_call t "info" [| Jx.Encode.any x |])
+let warn x = ignore (Jx.obj_call t "warn" [| Jx.Encode.any x |])
+
+let ensure b x =
+  ignore (Jx.obj_call t "assert" [| Jx.Encode.bool b; Jx.Encode.any x |])

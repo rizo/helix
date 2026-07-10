@@ -1,9 +1,9 @@
 type 'a t = Jx.t
 type 'a next = Jx.t
 
-let next t = Jx.Obj.call_js t "next" [||]
-let next_is_done next = Jx.Obj.get next "done" Jx.Decoder.bool
-let next_value next = Jx.Obj.get next "value" Jx.Decoder.any
+let next t = Jx.obj_call t "next" [||]
+let next_is_done next = Jx.Decode.bool (Jx.obj_get next "done")
+let next_value next = Jx.Decode.any (Jx.obj_get next "value")
 
 let iter f t =
   let is_done = ref false in

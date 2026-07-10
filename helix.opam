@@ -31,5 +31,5 @@ depends: [
 ]
 
 pin-depends: [
-  ["jx.dev" "git+https://github.com/rizo/jx#d78496d55cba9ab8d8643249df4917277622c21a"]
+  ["jx.dev" "git+https://github.com/rizo/jx#7d16531369ce290fea9597b1332951bfede17c52"]
 ]

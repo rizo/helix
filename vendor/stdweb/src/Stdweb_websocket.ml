@@ -1,12 +1,14 @@
 open struct
   module Global = Stdweb_global
   module Event = Stdweb_dom.Event
+  module E = Jx.Encode
+  module D = Jx.Decode
 end
 
 type t = Jx.t
 
 module Event = struct
-  let data t = Jx.Obj.get t "data" Jx.Decoder.string
+  let data t = D.string (Jx.obj_get t "data")
 
   (* Generic events *)
 
@@ -17,20 +19,22 @@ module Event = struct
 end
 
 let t = Jx.global "WebSocket"
-let make url = Jx.Obj.new1 t Jx.Encoder.string url
+let make url = Jx.obj_new t [| E.string url |]
 
 let bind this event_type f =
-  Jx.Obj.call2_unit this "addEventListener" Jx.Encoder.js Jx.Encoder.fun1
-    event_type f
+  ignore (Jx.obj_call this "addEventListener" [| event_type; E.func 1 f |])
 
 let unbind this event_type =
-  Jx.Obj.call_js_unit this "removeEventLister" [| Jx.Encoder.js event_type |]
+  ignore (Jx.obj_call this "removeEventLister" [| event_type |])
 
 (* TODO: parameters `code` and `reason` not implemented yet *)
 let close ?code ?reason t =
-  Jx.Obj.call2_unit t "close"
-    (Jx.Encoder.optional Jx.Encoder.int)
-    (Jx.Encoder.optional Jx.Encoder.string)
-    code reason
+  ignore
+    (Jx.obj_call t "close"
+       [|
+         Stdweb_jx.encode_optional E.int code;
+         Stdweb_jx.encode_optional E.string reason;
+       |]
+    )
 
-let send t data = Jx.Obj.call1_unit t "send" Jx.Encoder.string data
+let send t data = ignore (Jx.obj_call t "send" [| E.string data |])

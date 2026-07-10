@@ -33,7 +33,7 @@ let pop_opt arr =
   if Jx.strict_equal x Jx.undefined then None else Some (D.any x)
 
 let length arr = D.int (Jx.obj_get arr "length")
-let concat arr1 arr2 = ignore (Jx.obj_call arr1 "concat" [| arr2 |])
+let concat arr1 arr2 = Jx.obj_call arr1 "concat" [| arr2 |]
 let slice arr i j = Jx.obj_call arr "slice" [| E.int i; E.int j |]
 let iter arr f = ignore (Jx.obj_call arr "forEach" [| E.func 1 f |])
 

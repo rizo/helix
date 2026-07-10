@@ -1,45 +1,42 @@
-module Stdlib_obj = Obj
 module Stdlib_array = Array
 
-type 'a t = Jx.Obj.t
+open struct
+  module E = Jx.Encode
+  module D = Jx.Decode
+end
+
+type 'a t = Jx.t
 
 let to_js p = p
 let of_js js = js
 let to_obj p = p
 let of_obj obj = obj
-let empty = Jx.Obj.empty
+let object_constructor = Jx.global "Object"
+let empty () = E.obj [||]
 
 let of_array arr =
-  let arr =
-    (Stdlib_obj.magic : (string * 'a) array -> (string * Jx.t) array) arr
-  in
-  Jx.Obj.of_array arr
+  Stdlib_array.map (fun (key, value) -> (key, E.any value)) arr |> E.obj
 
 let of_list l = of_array (Stdlib_array.of_list l)
-let get dict key = Jx.Obj.get dict key Jx.Decoder.any
-let get_opt dict key = Jx.Obj.get_opt dict key Jx.Decoder.any
-let set dict key x = Jx.Obj.set dict key Jx.Encoder.any x
-let del = Jx.Obj.del
+let get dict key = D.any (Jx.obj_get dict key)
+let get_opt dict key = Stdweb_jx.optional D.any (Jx.obj_get dict key)
+let set dict key x = Jx.obj_set dict key (E.any x)
+let del = Jx.obj_delete
 
 let entry_of_js entry_js =
-  match Jx.Decoder.array_js entry_js with
-  | [| key; v |] -> (Jx.Decoder.string key, Jx.Decoder.any v)
+  match (D.array entry_js : Jx.t array) with
+  | [| key; v |] -> (D.string key, D.any v)
   | _ -> invalid_arg "Object entries is not a pair"
 
 let entries dict =
-  Jx.Obj.call1 Jx.Obj.t "entries"
-    ~return:(Jx.Decoder.array entry_of_js)
-    Jx.Encoder.js dict
+  let entries = Jx.obj_call object_constructor "entries" [| dict |] in
+  Stdlib_array.map entry_of_js (D.array entries : Jx.t array)
 
-let keys dict =
-  Jx.Obj.call1 Jx.Obj.t "keys"
-    ~return:Jx.Decoder.(array string)
-    Jx.Encoder.js dict
+let keys dict = Jx.obj_call object_constructor "keys" [| dict |] |> D.array
 
 let values dict =
-  Jx.Obj.call1 Jx.Obj.t "values"
-    ~return:Jx.Decoder.(array any)
-    Jx.Encoder.js dict
+  let values = Jx.obj_call object_constructor "values" [| dict |] in
+  Stdlib_array.map D.any (D.array values : Jx.t array)
 
 let map dict f =
   let out = empty () in

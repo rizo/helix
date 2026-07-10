@@ -1,37 +1,30 @@
 open struct
   module Global = Stdweb_global
+  module E = Jx.Encode
+  module D = Jx.Decode
 end
 
 type t = Jx.t
 
 let t = Jx.global "URLSearchParams"
-let of_string s = Jx.Obj.new1 t Jx.Encoder.string s
-let empty () = Jx.Obj.new0 t
+let of_string s = Jx.obj_new t [| E.string s |]
+let empty () = Jx.obj_new t [||]
 
 let make items =
-  Jx.Obj.new1 t Jx.Encoder.obj
-    (List.map (fun (k, v) -> (k, Jx.Encoder.string v)) items)
+  let js_items =
+    List.map (fun (k, v) -> (k, E.string v)) items |> Array.of_list
+  in
+  Jx.obj_new t [| E.obj js_items |]
 
 let get t param =
-  Jx.Obj.call1 t "get"
-    ~return:Jx.Decoder.(nullable string)
-    Jx.Encoder.string param
+  Stdweb_jx.nullable D.string (Jx.obj_call t "get" [| E.string param |])
 
 let delete t ?value param =
-  let value =
-    match value with
-    | None -> Jx.undefined
-    | Some value -> Jx.encode Jx.Encoder.string value
-  in
-  Jx.Obj.call2_unit t "delete" Jx.Encoder.string Jx.Encoder.any param value
+  let value = Stdweb_jx.encode_optional E.string value in
+  ignore (Jx.obj_call t "delete" [| E.string param; value |])
 
 let has t ?value text =
-  let value =
-    match value with
-    | None -> Jx.undefined
-    | Some value -> Jx.encode Jx.Encoder.string value
-  in
-  Jx.Obj.call2 t "has" ~return:Jx.Decoder.bool Jx.Encoder.string Jx.Encoder.any
-    text value
+  let value = Stdweb_jx.encode_optional E.string value in
+  D.bool (Jx.obj_call t "has" [| E.string text; value |])
 
-let to_string t = Jx.Obj.call0 t "toString" ~return:Jx.Decoder.string ()
+let to_string t = D.string (Jx.obj_call t "toString" [||])

@@ -1,6 +1,4 @@
 type t = Jx.t
 
 let t = Jx.global "Object"
-
-let from_entries =
-  Jx.Obj.call1 t "fromEntries" ~return:Jx.Decoder.js Jx.Encoder.js
+let from_entries entries = Jx.obj_call t "fromEntries" [| entries |]

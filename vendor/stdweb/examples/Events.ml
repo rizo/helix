@@ -33,10 +33,7 @@ let () =
     (* HTMLElement listener *)
     Dom.Node.bind inp Dom.Event.change (fun ev ->
         let target = Dom.Event.target ev in
-        Console.log
-          (Jx.Obj.get_path (Dom.Node.to_js target) [ "constructor" ]
-             Jx.Decoder.any
-          );
+        Console.log (Jx.obj_get (Dom.Node.to_js target) "constructor");
         Console.log target;
         Console.log "change"
     );

@@ -1,6 +1,8 @@
 open struct
   module Promise = Stdweb_promise
   module Form_data = Stdweb_form_data
+  module E = Jx.Encode
+  module D = Jx.Decode
 end
 
 (* Request *)
@@ -14,17 +16,17 @@ module Request = struct
 
   let make ?options url =
     match options with
-    | Some options -> Jx.Obj.new2 t Jx.Encoder.string Jx.Encoder.js url options
-    | None -> Jx.Obj.new1 t Jx.Encoder.string url
+    | Some options -> Jx.obj_new t [| E.string url; options |]
+    | None -> Jx.obj_new t [| E.string url |]
 
-  let of_js = Jx.Decoder.js
-  let to_js = Jx.Encoder.js
+  let of_js x = x
+  let to_js x = x
 end
 
 module Body = struct
   type t = Jx.t
 
-  let of_string = Jx.Encoder.string
+  let of_string = E.string
   let of_form_data = Form_data.to_js
   let to_js t = t
   let unsafe_of_js t = t
@@ -44,19 +46,18 @@ module Headers = struct
   type t = headers
 
   let t = Jx.global "Headers"
-  let make () = Jx.Obj.new0 t
+  let make () = Jx.obj_new t [||]
 
   let append t name value =
-    Jx.Obj.call2_unit t "append" Jx.Encoder.string Jx.Encoder.string name value
+    ignore (Jx.obj_call t "append" [| E.string name; E.string value |])
 
-  let entries t = Jx.Obj.call0 t "entries" ~return:Jx.Decoder.js ()
+  let entries t = Jx.obj_call t "entries" [||]
 end
 
 module Options = struct
   type t = options
 
   let make ?body ?meth ?(headers = []) ?mode ?credentials () =
-    let open Jx.Encoder in
     let fields = [] in
     let fields =
       match headers with
@@ -68,15 +69,15 @@ module Options = struct
     in
     let fields =
       match mode with
-      | Some `Cors -> ("mode", string "cors") :: fields
-      | Some `No_cors -> ("mode", string "no-cors") :: fields
+      | Some `Cors -> ("mode", E.string "cors") :: fields
+      | Some `No_cors -> ("mode", E.string "no-cors") :: fields
       | None -> fields
     in
     let fields =
       match credentials with
-      | Some `Omit -> ("credentials", string "omit") :: fields
-      | Some `Same_origin -> ("credentials", string "same-origin") :: fields
-      | Some `Include -> ("credentials", string "include") :: fields
+      | Some `Omit -> ("credentials", E.string "omit") :: fields
+      | Some `Same_origin -> ("credentials", E.string "same-origin") :: fields
+      | Some `Include -> ("credentials", E.string "include") :: fields
       | None -> fields
     in
     let fields =
@@ -86,45 +87,39 @@ module Options = struct
     in
     let fields =
       match meth with
-      | Some `Get -> ("method", string "GET") :: fields
-      | Some `Put -> ("method", string "PUT") :: fields
-      | Some `Post -> ("method", string "POST") :: fields
-      | Some `Delete -> ("method", string "DELETE") :: fields
-      | Some `Head -> ("method", string "HEAD") :: fields
-      | Some `Connect -> ("method", string "CONNECT") :: fields
-      | Some `Options -> ("method", string "OPTIONS") :: fields
-      | Some `Trace -> ("method", string "TRACE") :: fields
+      | Some `Get -> ("method", E.string "GET") :: fields
+      | Some `Put -> ("method", E.string "PUT") :: fields
+      | Some `Post -> ("method", E.string "POST") :: fields
+      | Some `Delete -> ("method", E.string "DELETE") :: fields
+      | Some `Head -> ("method", E.string "HEAD") :: fields
+      | Some `Connect -> ("method", E.string "CONNECT") :: fields
+      | Some `Options -> ("method", E.string "OPTIONS") :: fields
+      | Some `Trace -> ("method", E.string "TRACE") :: fields
       | None -> fields
     in
-    Jx.Obj.of_list fields
+    E.obj (Array.of_list fields)
 
-  let of_js = Jx.Decoder.js
-  let to_js = Jx.Encoder.js
+  let of_js x = x
+  let to_js x = x
 end
 
 (* Response *)
 
-type response = Jx.js
+type response = Jx.t
 
 module Response = struct
   type t = response
 
-  let ok t = Jx.Obj.get t "ok" Jx.Decoder.bool
-  let status t = Jx.Obj.get t "status" Jx.Decoder.int
-
-  let text t =
-    Jx.Obj.call0 t "text" ~return:Promise.of_js ()
-    |> Promise.map Jx.Decoder.string
-
-  let json t =
-    Jx.Obj.call0 t "json" ~return:Promise.of_js () |> Promise.map Jx.Decoder.js
-
-  let headers t = Jx.Obj.get t "headers" Jx.Decoder.js
-  let of_js = Jx.Decoder.js
-  let to_js = Jx.Encoder.js
+  let ok t = D.bool (Jx.obj_get t "ok")
+  let status t = D.int (Jx.obj_get t "status")
+  let text t = Jx.obj_call t "text" [||] |> Promise.map D.string
+  let json t = Jx.obj_call t "json" [||] |> Promise.map (fun x -> x)
+  let headers t = Jx.obj_get t "headers"
+  let of_js x = x
+  let to_js x = x
 end
 
 let fetch ?body ?(meth = `Get) ?headers ?mode ?credentials url =
   let opts = Options.make ~meth ?headers ?mode ?credentials ?body () in
-  Jx.Obj.call2 Stdweb_global.window "fetch" ~return:Response.of_js
-    Jx.Encoder.string Options.to_js url opts
+  Jx.obj_call Stdweb_global.window "fetch"
+    [| E.string url; Options.to_js opts |]

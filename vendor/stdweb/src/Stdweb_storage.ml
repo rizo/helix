@@ -3,11 +3,11 @@ type t = Jx.t
 let local = Jx.global "localStorage"
 
 let get t name =
-  Jx.Obj.call1 t "getItem"
-    ~return:Jx.Decoder.(nullable string)
-    Jx.Encoder.string name
+  Stdweb_jx.nullable Jx.Decode.string
+    (Jx.obj_call t "getItem" [| Jx.Encode.string name |])
 
 let set t name value =
-  Jx.Obj.call2_unit t "setItem" Jx.Encoder.string Jx.Encoder.string name value
+  ignore
+    (Jx.obj_call t "setItem" [| Jx.Encode.string name; Jx.Encode.string value |])
 
-let del t name = Jx.Obj.call1_unit t "removeItem" Jx.Encoder.string name
+let del t name = ignore (Jx.obj_call t "removeItem" [| Jx.Encode.string name |])

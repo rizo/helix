@@ -17,15 +17,15 @@ module Url_search_params = Stdweb_url_search_params
 module Navigator = struct
   type t = Jx.t
 
-  let clipboard t = Jx.Obj.get t "clipboard" Jx.Decoder.js
+  let clipboard t = Jx.obj_get t "clipboard"
 end
 
 module Number = struct
   type t = float
 
   let to_precision t n =
-    let t_js = Jx.Encoder.float t in
-    Jx.Obj.call1 t_js "toPrecision" ~return:Jx.Decoder.string Jx.Encoder.int n
+    let t_js = Jx.Encode.float t in
+    Jx.Decode.string (Jx.obj_call t_js "toPrecision" [| Jx.Encode.int n |])
 end
 
 include Stdweb_global

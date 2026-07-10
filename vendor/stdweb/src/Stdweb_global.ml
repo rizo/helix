@@ -1,5 +1,6 @@
 open struct
   module E = Jx.Encode
+  module D = Jx.Decode
 end
 
 let window = Jx.expr "window"
@@ -9,4 +10,4 @@ let navigator = Jx.expr "navigator"
 
 let encode_uri_component =
   let f = Jx.expr "encodeURIComponent" in
-  fun x -> Jx.call f [| E.string x |]
+  fun x -> D.string (Jx.call f [| E.string x |])
