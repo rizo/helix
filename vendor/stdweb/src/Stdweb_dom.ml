@@ -358,10 +358,10 @@ module Window = struct
   let location = Jx.obj_get this "location"
 
   let set_interval f ms =
-    D.int (Jx.obj_call Global.window "setInterval" [| E.func 0 f; E.int ms |])
+    D.int (Jx.obj_call Global.window "setInterval" [| E.func 1 f; E.int ms |])
 
   let set_timeout f ms =
-    D.int (Jx.obj_call Global.window "setTimeout" [| E.func 0 f; E.int ms |])
+    D.int (Jx.obj_call Global.window "setTimeout" [| E.func 1 f; E.int ms |])
 
   let clear_timeout id =
     ignore (Jx.obj_call Global.window "clearTimeout" [| E.int id |])
