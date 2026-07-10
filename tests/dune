@@ -7,7 +7,7 @@
   test_router_specialize
   test_cleanup
   test_basic)
- (libraries helix signal stdweb html jx_jsoo)
+ (libraries helix signal stdweb html jx)
  (modes js))
 
 (alias

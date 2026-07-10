@@ -1,7 +1,7 @@
 (executable
  (name events)
  (modules Events)
- (libraries jx_jsoo stdweb)
+ (libraries jx stdweb)
  (modes js))
 
 (alias

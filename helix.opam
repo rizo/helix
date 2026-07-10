@@ -20,12 +20,16 @@ build: [
 ]
 
 depends: [
-  "ocaml"
   "dune" {build}
-  "signal"
   "js_of_ocaml-compiler" {build & >= "4.1.0"}
-
-  "odoc" {with-doc}
+  "jx"
+  "ocaml"
   "ocaml-lsp-server" {with-dev-setup}
   "ocamlformat" {with-dev-setup}
+  "odoc" {with-doc}
+  "signal"
+]
+
+pin-depends: [
+  ["jx.dev" "git+https://github.com/rizo/jx#d78496d55cba9ab8d8643249df4917277622c21a"]
 ]

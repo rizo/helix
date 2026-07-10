@@ -1,4 +1,0 @@
-(executable
- (name test_api)
- (modes js)
- (libraries jx_jsoo))
